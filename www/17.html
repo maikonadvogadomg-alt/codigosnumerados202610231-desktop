@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Montador Multi-Projetos — PWA Jurídico</title>
+<style>
+:root { --bg:#0a0a0f; --bg2:#12121a; --bg3:#1a1a2e; --text:#e2e8f0; --text2:#94a3b8; --accent:#a3a082; --accent2:#d4d0a8; --green:#4ade80; --blue:#60a5fa; --red:#f87171; --border:#2d2d3a; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+.header { background:var(--bg2); border-bottom:1px solid var(--border); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.header h1 { font-size:14px; color:var(--accent); margin:0; }
+.header-buttons { display:flex; gap:4px; flex-wrap:wrap; }
+
+.container { max-width:1400px; margin:0 auto; padding:12px; display:flex; flex-direction:column; height:calc(100vh - 60px); }
+
+.tabs { display:flex; gap:4px; margin-bottom:12px; flex-wrap:wrap; background:var(--bg2); padding:6px; border-radius:8px; border:1px solid var(--border); }
+.tab-btn { padding:8px 14px; border:none; background:transparent; color:var(--text2); border-radius:6px; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.tab-btn.active { background:var(--accent); color:#000; }
+.tab-btn:hover:not(.active) { background:var(--bg3); }
+
+.tab-content { display:none; flex:1; overflow-y:auto; }
+.tab-content.active { display:flex; flex-direction:column; }
+
+.editor-container { display:flex; flex-direction:column; gap:12px; overflow-y:auto; }
+
+.workspace { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; display:flex; flex-direction:column; }
+.workspace h2 { font-size:12px; color:var(--accent); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+
+.projeto-header { display:flex; gap:8px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+.projeto-header input { flex:1; min-width:150px; }
+.projeto-header button { flex-shrink:0; }
+
+.btn { display:inline-flex; align-items:center; gap:4px; padding:6px 10px; border:none; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.btn-primary { background:var(--accent); color:#000; }
+.btn-primary:hover { background:var(--accent2); }
+.btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--bg3); }
+.btn-danger { background:rgba(239,68,68,0.2); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+.btn-sm { padding:4px 8px; font-size:9px; }
+
+.input { width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:11px; }
+.input:focus { outline:none; border-color:var(--accent); }
+
+.code-area { width:100%; flex:1; min-height:150px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:10px; font-family:'Consolas','Fira Code',monospace; font-size:11px; color:var(--text); resize:none; line-height:1.5; }
+.code-area:focus { outline:none; border-color:var(--accent); }
+
+.actions { display:flex; gap:6px; flex-wrap:wrap; }
+
+.project-card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:8px; }
+.project-card h3 { color:var(--accent2); font-size:11px; margin-bottom:4px; }
+.project-card .info { font-size:10px; color:var(--text2); margin-bottom:6px; }
+
+.status { padding:8px 10px; border-radius:6px; font-size:10px; font-weight:600; margin-bottom:10px; background:rgba(96,165,250,0.1); color:var(--blue); border:1px solid rgba(96,165,250,0.2); }
+
+.toast { position:fixed; bottom:20px; right:20px; background:var(--bg2); border:1px solid var(--accent); border-radius:8px; padding:10px 16px; font-size:11px; font-weight:600; color:var(--accent2); z-index:2000; transform:translateY(100px); opacity:0; transition:all 0.3s; }
+
+.modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:3000; align-items:center; justify-content:center; padding:10px; }
+.modal.active { display:flex; }
+.modal-content { background:var(--bg2); border:1px solid var(--accent); border-radius:8px; padding:16px; max-width:400px; width:100%; }
+.modal-content h3 { color:var(--accent); margin-bottom:12px; font-size:13px; }
+.modal-buttons { display:flex; gap:6px; justify-content:flex-end; }
+
+.viewer-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.9); z-index:3001; align-items:center; justify-content:center; padding:10px; }
+.viewer-modal.active { display:flex; }
+.viewer-box { background:var(--bg2); border:1px solid var(--accent); border-radius:8px; width:100%; height:90vh; display:flex; flex-direction:column; }
+.viewer-header { background:var(--bg3); padding:10px 16px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.viewer-content { flex:1; overflow:auto; }
+.viewer-content iframe { width:100%; height:100%; border:none; }
+
+.salvos-container { overflow-y:auto; }
+
+@media (max-width:768px) {
+  .header { padding:8px 12px; }
+  .header h1 { font-size:12px; }
+  .projeto-header { flex-direction:column; }
+  .projeto-header input { min-width:auto; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧩 Montador Multi-Projetos</h1>
+  <div class="header-buttons">
+    <button class="btn btn-primary" onclick="abrirModalNomeDownload()">📦 Gerar</button>
+    <button class="btn btn-ghost" onclick="exportarBackup()">💾 Backup</button>
+    <button class="btn btn-ghost" onclick="importarBackup()">📂 Importar</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="status">
+    💡 Adicione quantos projetos quiser. O nome é opcional (deixe em branco para usar o &lt;title&gt;)
+  </div>
+
+  <!-- ABAS PARA NAVEGAÇÃO -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="mudarAba('editor')">✏️ Editor</button>
+    <button class="tab-btn" onclick="mudarAba('salvos')">💾 Salvos</button>
+  </div>
+
+  <!-- ABA: EDITOR -->
+  <div class="tab-content active" id="aba-editor">
+    <div class="editor-container" id="editorContainer"></div>
+    <div style="padding:12px; background:var(--bg2); border:1px solid var(--border); border-radius:8px; text-align:center;">
+      <button class="btn btn-primary" onclick="adicionarProjeto()">➕ Adicionar Novo Projeto</button>
+    </div>
+  </div>
+
+  <!-- ABA: SALVOS -->
+  <div class="tab-content" id="aba-salvos">
+    <div class="salvos-container" id="projetosSalvos"></div>
+  </div>
+
+</div>
+
+<!-- Hidden inputs -->
+<div id="fileInputsContainer" style="display:none;"></div>
+<input type="file" id="backupInput" style="display:none" accept=".json" />
+
+<!-- MODAL PARA NOMEAR DOWNLOAD -->
+<div class="modal" id="modalDownload">
+  <div class="modal-content">
+    <h3>📦 Nome do Arquivo</h3>
+    <input type="text" class="input" id="nomeDownload" placeholder="Ex: Meu-Sistema" />
+    <p style="font-size:9px;color:var(--text2);margin-bottom:12px;">A extensão .html será adicionada</p>
+    <div class="modal-buttons">
+      <button class="btn btn-ghost" onclick="fecharModal()">❌ Cancelar</button>
+      <button class="btn btn-primary" onclick="gerarHtmlFinal()">✅ Gerar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TESTADOR -->
+<div class="viewer-modal" id="viewerModal">
+  <div class="viewer-box">
+    <div class="viewer-header">
+      <h3 id="viewerTitle" style="margin:0; font-size:13px;">Testador</h3>
+      <button class="btn btn-ghost btn-sm" onclick="fecharTestador()">✕</button>
+    </div>
+    <div class="viewer-content">
+      <iframe id="viewerIframe"></iframe>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_KEY = 'multiprojetos-v4';
+
+let projetos = [];
+let proximoId = 1;
+
+// ========== ABAS ==========
+function mudarAba(aba) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  
+  document.getElementById('aba-' + aba).classList.add('active');
+  event.target.classList.add('active');
+  
+  if (aba === 'salvos') {
+    renderizarSalvos();
+  }
+}
+
+// ========== STORAGE ==========
+function salvarProjetos() {
+  localStorage.setItem(LS_KEY, JSON.stringify(projetos));
+  renderizarSalvos();
+}
+
+function carregarProjetos() {
+  try {
+    const data = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+    projetos = data;
+    proximoId = Math.max(...projetos.map(p => p.id), 0) + 1;
+    renderizarEditor();
+  } catch(e) { 
+    console.error(e);
+    projetos = [];
+    proximoId = 1;
+  }
+}
+
+// ========== RENDERIZAR EDITOR ==========
+function renderizarEditor() {
+  const container = document.getElementById('editorContainer');
+  
+  if (projetos.length === 0) {
+    container.innerHTML = '<p style="color:var(--text2); padding:20px; text-align:center;">Nenhum projeto. Clique em "Adicionar Novo Projeto"</p>';
+    return;
+  }
+
+  container.innerHTML = projetos.map((p, idx) => `
+    <div class="workspace" id="projeto-${p.id}">
+      <div class="projeto-header">
+        <input type="text" class="input" id="nome-${p.id}" placeholder="Nome (opcional - deixe em branco para usar &lt;title&gt;)" value="${escHtml(p.nome)}" />
+        <button class="btn btn-danger btn-sm" onclick="removerProjeto(${p.id})">🗑️ Remover</button>
+      </div>
+      <textarea class="code-area" id="codigo-${p.id}" placeholder="Cole o código HTML completo aqui...">${escHtml(p.codigo)}</textarea>
+      <div class="actions" style="margin-top:8px;">
+        <button class="btn btn-ghost btn-sm" onclick="testarProjeto(${p.id})">👁️ Testar</button>
+        <button class="btn btn-ghost btn-sm" onclick="copiarCodigo(${p.id})">📋 Copiar</button>
+        <button class="btn btn-ghost btn-sm" onclick="importarArquivo(${p.id})">📂 Importar</button>
+      </div>
+    </div>
+  `).join('');
+
+  // Event listeners
+  projetos.forEach(p => {
+    const nomeEl = document.getElementById('nome-' + p.id);
+    const codigoEl = document.getElementById('codigo-' + p.id);
+    
+    if (nomeEl) {
+      nomeEl.addEventListener('input', () => {
+        const proj = projetos.find(x => x.id === p.id);
+        if (proj) proj.nome = nomeEl.value;
+        clearTimeout(window.autoSaveTimer);
+        window.autoSaveTimer = setTimeout(salvarProjetos, 1000);
+      });
+    }
+    
+    if (codigoEl) {
+      codigoEl.addEventListener('input', () => {
+        const proj = projetos.find(x => x.id === p.id);
+        if (proj) proj.codigo = codigoEl.value;
+        clearTimeout(window.autoSaveTimer);
+        window.autoSaveTimer = setTimeout(salvarProjetos, 1000);
+      });
+    }
+  });
+}
+
+// ========== ADICIONAR PROJETO ==========
+function adicionarProjeto() {
+  projetos.push({
+    id: proximoId++,
+    nome: '',
+    codigo: ''
+  });
+  salvarProjetos();
+  renderizarEditor();
+  
+  // Scroll para o novo projeto
+  setTimeout(() => {
+    const container = document.getElementById('editorContainer');
+    container.scrollTop = container.scrollHeight;
+  }, 100);
+}
+
+// ========== REMOVER PROJETO ==========
+function removerProjeto(id) {
+  if (!confirm('Remover este projeto?')) return;
+  projetos = projetos.filter(p => p.id !== id);
+  salvarProjetos();
+  renderizarEditor();
+}
+
+// ========== EXTRAIR NOME DO HTML ==========
+function extrairNomeDoHtml(html) {
+  const match = html.match(/<title[^>]*>([^<]+)<\/title>/i);
+  return match ? match[1].trim() : 'Sem título';
+}
+
+// ========== RENDERIZAR SALVOS ==========
+function renderizarSalvos() {
+  const container = document.getElementById('projetosSalvos');
+  const projetosSalvos = projetos.filter(p => p.codigo.trim());
+
+  if (projetosSalvos.length === 0) {
+    container.innerHTML = '<p style="color:var(--text2); padding:20px; text-align:center;">Nenhum projeto com código.</p>';
+    return;
+  }
+
+  container.innerHTML = projetosSalvos.map(p => {
+    const nomeExibicao = p.nome || extrairNomeDoHtml(p.codigo);
+    return `
+      <div class="project-card">
+        <h3>🔷 ${escHtml(nomeExibicao)}</h3>
+        <div class="info">${p.codigo.length} caracteres</div>
+        <div class="actions">
+          <button class="btn btn-ghost btn-sm" onclick="testarProjeto(${p.id})">👁️ Testar</button>
+          <button class="btn btn-ghost btn-sm" onclick="copiarCodigo(${p.id})">📋 Copiar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ========== AÇÕES ==========
+function testarProjeto(id) {
+  const proj = projetos.find(p => p.id === id);
+  if (!proj || !proj.codigo.trim()) { 
+    mostrarToast('❌ Projeto vazio!'); 
+    return; 
+  }
+  
+  document.getElementById('viewerIframe').srcdoc = proj.codigo;
+  const nomeExibicao = proj.nome || extrairNomeDoHtml(proj.codigo);
+  document.getElementById('viewerTitle').textContent = '👁️ ' + nomeExibicao;
+  document.getElementById('viewerModal').classList.add('active');
+}
+
+function fecharTestador() {
+  document.getElementById('viewerModal').classList.remove('active');
+  document.getElementById('viewerIframe').srcdoc = '';
+}
+
+function copiarCodigo(id) {
+  const proj = projetos.find(p => p.id === id);
+  if (!proj) return;
+  navigator.clipboard.writeText(proj.codigo);
+  mostrarToast('📋 Copiado!');
+}
+
+function importarArquivo(id) {
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.html,.htm';
+  
+  fileInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const proj = projetos.find(p => p.id === id);
+      if (proj) {
+        proj.codigo = ev.target.result;
+        // Se o nome estiver vazio, usar o nome do arquivo
+        if (!proj.nome) {
+          proj.nome = file.name.replace(/\.[^.]+$/, '');
+        }
+        salvarProjetos();
+        renderizarEditor();
+        mostrarToast('📂 Projeto importado!');
+      }
+    };
+    reader.readAsText(file);
+  });
+  
+  fileInput.click();
+}
+
+// ========== MODAL DOWNLOAD ==========
+function abrirModalNomeDownload() {
+  const projetosSalvos = projetos.filter(p => p.codigo.trim());
+  
+  if (projetosSalvos.length === 0) {
+    mostrarToast('❌ Adicione um projeto com código!');
+    return;
+  }
+  
+  document.getElementById('nomeDownload').value = 'multiprojetos-' + new Date().toISOString().slice(0,10);
+  document.getElementById('modalDownload').classList.add('active');
+}
+
+function fecharModal() {
+  document.getElementById('modalDownload').classList.remove('active');
+}
+
+// ========== GERAR HTML FINAL ==========
+function gerarHtmlFinal() {
+  const nomeArquivo = document.getElementById('nomeDownload').value.trim() || 'multiprojetos';
+  
+  const projetosFinal = projetos
+    .filter(p => p.codigo.trim())
+    .map(p => ({
+      nome: p.nome || extrairNomeDoHtml(p.codigo),
+      codigo: p.codigo
+    }));
+
+  if (projetosFinal.length === 0) {
+    mostrarToast('❌ Adicione um projeto com código!');
+    return;
+  }
+
+  const htmlFinal = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Projetos PWA — Maikon Caldeira</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #0a0a0f; color: #e2e8f0; }
+
+.project-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #12121a;
+  border-bottom: 2px solid #a3a082;
+  padding: 8px 16px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.nav-btn {
+  padding: 8px 14px;
+  background: #1a1a2e;
+  border: 1px solid #2d2d3a;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: #a3a082;
+  color: #000;
+  border-color: #a3a082;
+}
+
+.nav-btn.active {
+  background: #a3a082;
+  color: #000;
+  border-color: #d4d0a8;
+}
+
+.project-container {
+  display: none;
+  padding-top: 60px;
+  min-height: 100vh;
+}
+
+.project-container.active {
+  display: block;
+}
+
+.project-container iframe {
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  border: none;
+}
+</style>
+</head>
+<body>
+
+<!-- Navegação -->
+<div class="project-nav">
+  <span style="font-size:12px;font-weight:700;color:#a3a082;margin-right:6px;">📂</span>
+  ${projetosFinal.map((p, i) => `<button class="nav-btn ${i === 0 ? 'active' : ''}" onclick="trocarProjeto(${i})">${escHtml(p.nome)}</button>`).join('')}
+</div>
+
+<!-- Projetos (cada um em iframe isolado) -->
+${projetosFinal.map((p, i) => `
+<div class="project-container ${i === 0 ? 'active' : ''}" id="projeto${i}">
+  <iframe srcdoc="${escHtml(p.codigo).replace(/"/g, '&quot;')}"></iframe>
+</div>
+`).join('')}
+
+<script>
+function trocarProjeto(index) {
+  document.querySelectorAll('.project-container').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  
+  document.getElementById('projeto' + index).classList.add('active');
+  document.querySelectorAll('.nav-btn')[index].classList.add('active');
+  
+  localStorage.setItem('ultimo-projeto', index);
+}
+
+window.onload = function() {
+  const ultimo = localStorage.getItem('ultimo-projeto');
+  if (ultimo !== null) trocarProjeto(parseInt(ultimo));
+};
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+<\/script>
+</body>
+</html>`;
+
+  // Download
+  const blob = new Blob([htmlFinal], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nomeArquivo + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  fecharModal();
+  mostrarToast('✅ HTML com ' + projetosFinal.length + ' projetos gerado!');
+}
+
+// ========== BACKUP ==========
+function exportarBackup() {
+  if (projetos.length === 0) { 
+    mostrarToast('❌ Nada para exportar!'); 
+    return; 
+  }
+  
+  const blob = new Blob([JSON.stringify(projetos, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'backup-projetos-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  mostrarToast('💾 Backup exportado!');
+}
+
+function importarBackup() {
+  document.getElementById('backupInput').click();
+}
+
+document.getElementById('backupInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data)) {
+        projetos = data;
+        proximoId = Math.max(...projetos.map(p => p.id), 0) + 1;
+        salvarProjetos();
+        renderizarEditor();
+        mostrarToast('✅ Backup importado!');
+      } else {
+        mostrarToast('❌ Arquivo inválido!');
+      }
+    } catch(err) {
+      mostrarToast('❌ Erro ao importar!');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ========== UTILS ==========
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.transform = 'translateY(0)';
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.transform = 'translateY(100px)'; t.style.opacity = '0'; }, 2500);
+}
+
+// Init
+carregarProjetos();
+</script>
+</body>
+</html>

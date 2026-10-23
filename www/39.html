@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maikon Caldeira - Advocacia</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png">
+    <meta name="theme-color" content="#5d5e53">
+    
+    <style>
+        :root {
+            --primaria: #5d5e53;
+            --secundaria: #a3a082;
+            --fundo: #0a0a0a;
+            --texto: #f3f4f6;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: var(--fundo);
+            color: var(--texto);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            background: var(--secundaria);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            font-weight: bold;
+            color: var(--fundo);
+        }
+
+        h1 {
+            font-size: 28px;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--secundaria);
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 40px;
+        }
+
+        .grade {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .cartao {
+            background: #161614;
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: var(--texto);
+            border: 1px solid var(--primaria);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .cartao:hover {
+            transform: translateY(-5px);
+            border-color: var(--secundaria);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .icone {
+            font-size: 40px;
+        }
+
+        .titulo {
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .desc {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .btn-instalar {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            margin: 20px auto;
+        }
+
+        .btn-instalar:hover {
+            background: #45a049;
+        }
+
+        footer {
+            margin-top: 40px;
+            font-size: 10px;
+            opacity: 0.5;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo">M</div>
+        <h1>MAIKON CALDEIRA</h1>
+        <p class="subtitle">ADVOCACIA DIGITAL</p>
+
+        <!-- 🔥 ADICIONE SEUS APPS AQUI -->
+        <div class="grade">
+            
+            <!-- APP 1 -->
+            <a href="playground.html" class="cartao">
+                <span class="icone">🏗️</span>
+                <span class="titulo">Playground</span>
+                <span class="desc">Crie scripts</span>
+            </a>
+
+            <!-- APP 2 -->
+            <a href="filtrador.html" class="cartao">
+                <span class="icone">🔍</span>
+                <span class="titulo">Filtrador</span>
+                <span class="desc">Limpeza de textos</span>
+            </a>
+
+            <!-- APP 3 -->
+            <a href="chat.html" class="cartao">
+                <span class="icone">💬</span>
+                <span class="titulo">Chat IA</span>
+                <span class="desc">Assistente</span>
+            </a>
+
+            <!-- APP 4 -->
+            <a href="cirurgiao.html" class="cartao">
+                <span class="icone">🔬</span>
+                <span class="titulo">Cirurgião</span>
+                <span class="desc">Análise de código</span>
+            </a>
+
+            <!-- 
+            ✅ PARA ADICIONAR MAIS APPS, COPIE E COLE:
+            
+            <a href="NOME_DO_ARQUIVO.html" class="cartao">
+                <span class="icone">🎯</span>
+                <span class="titulo">Nome do App</span>
+                <span class="desc">Descrição</span>
+            </a>
+            -->
+
+        </div>
+
+        <button class="btn-instalar" id="btnInstalar">📥 Instalar App</button>
+
+        <footer>© 2026 MAIKON CALDEIRA</footer>
+    </div>
+
+    <script>
+        // ========================================
+        // INSTALAÇÃO PWA
+        // ========================================
+        let deferredPrompt;
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('btnInstalar').style.display = 'block';
+        });
+
+        document.getElementById('btnInstalar').addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                alert('PWA já instalado ou navegador não suporta.');
+                return;
+            }
+
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            
+            if (outcome === 'accepted') {
+                console.log('✅ PWA instalado!');
+            }
+            
+            deferredPrompt = null;
+            document.getElementById('btnInstalar').style.display = 'none';
+        });
+
+        // ========================================
+        // REGISTRAR SERVICE WORKER
+        // ========================================
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log('✅ Service Worker registrado'))
+                .catch((err) => console.error('❌ Erro:', err));
+        }
+    </script>
+
+</body>
+</html>

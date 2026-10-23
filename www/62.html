@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Analisador de Código Gigante</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: #111827;
+      --panel2: #020617;
+      --border: #334155;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --blue: #38bdf8;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --purple: #a78bfa;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+    }
+
+    header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      background: #020617;
+    }
+
+    header h1 {
+      margin: 0;
+      color: var(--blue);
+      font-size: 24px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      min-height: 120px;
+    }
+
+    .panel h2 {
+      margin-top: 0;
+      color: var(--blue);
+      font-size: 18px;
+    }
+
+    .panel h3 {
+      color: #bae6fd;
+      margin-bottom: 8px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 220px;
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #2563eb;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #1d4ed8;
+    }
+
+    .danger {
+      background: #991b1b;
+    }
+
+    .danger:hover {
+      background: #7f1d1d;
+    }
+
+    .ok {
+      background: #15803d;
+    }
+
+    .ok:hover {
+      background: #166534;
+    }
+
+    .small {
+      width: auto;
+      padding: 6px 10px;
+      font-size: 12px;
+      margin-right: 5px;
+    }
+
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .stat {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+    }
+
+    .stat b {
+      color: var(--blue);
+      font-size: 20px;
+      display: block;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .block {
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-left: 5px solid var(--blue);
+      border-radius: 10px;
+      padding: 10px;
+      margin: 10px 0;
+    }
+
+    .block.function {
+      border-left-color: var(--green);
+    }
+
+    .block.json {
+      border-left-color: var(--purple);
+    }
+
+    .block.storage {
+      border-left-color: var(--yellow);
+    }
+
+    .block.risk {
+      border-left-color: var(--red);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 3px 7px;
+      margin: 2px;
+      border-radius: 999px;
+      background: #334155;
+      color: #e0f2fe;
+      font-size: 12px;
+    }
+
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #020617;
+      color: #dbeafe;
+      border: 1px solid var(--border);
+      padding: 10px;
+      border-radius: 8px;
+      max-height: 420px;
+      overflow: auto;
+      font-size: 13px;
+      font-family: Consolas, monospace;
+    }
+
+    details {
+      margin: 8px 0;
+    }
+
+    summary {
+      cursor: pointer;
+      color: #67e8f9;
+      font-weight: bold;
+    }
+
+    .list {
+      max-height: 560px;
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    .line {
+      color: #facc15;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔍 Analisador de Código Gigante</h1>
+    <p>Importa HTML/JS misturado, separa em blocos, gera manual e permite copiar partes.</p>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>1. Entrada</h2>
+
+      <input type="file" id="fileInput" accept=".html,.htm,.js,.json,.txt,.css">
+
+      <button onclick="carregarArquivo()">📂 Importar arquivo</button>
+      <button onclick="analisar()">🔎 Analisar agora</button>
+      <button onclick="formatarBasico()">🧹 Organizar visualmente</button>
+      <button onclick="baixarRelatorio()">💾 Baixar relatório TXT</button>
+      <button class="danger" onclick="limparTudo()">🗑️ Limpar</button>
+
+      <h3>Ou cole o código aqui</h3>
+      <textarea id="entrada" placeholder="Cole aqui o HTML/JS gigante, se quiser analisar por partes..."></textarea>
+
+      <h2>Manual rápido</h2>
+
+      <details open>
+        <summary>Como usar</summary>
+        <div class="block">
+          <p>1. Importe o arquivo gigante.</p>
+          <p>2. Clique em <b>Analisar agora</b>.</p>
+          <p>3. Veja os blocos detectados.</p>
+          <p>4. Copie blocos importantes e traga aqui.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>O que copiar primeiro?</summary>
+        <div class="block">
+          <p><b>Prioridade 1:</b> blocos com <code>localStorage</code>, <code>sessionStorage</code> ou IndexedDB.</p>
+          <p><b>Prioridade 2:</b> funções com nomes como memória, brain, checkpoint, salvar, carregar, chat, enviar.</p>
+          <p><b>Prioridade 3:</b> chamadas <code>fetch</code>, APIs, modelos de IA.</p>
+          <p><b>Prioridade 4:</b> HTML visual bonito, botões e telas.</p>
+        </div>
+      </details>
+
+      <details>
+        <summary>Significado das partes</summary>
+        <div class="block">
+          <p><b>HTML:</b> estrutura visual da página.</p>
+          <p><b>CSS:</b> aparência, cores, tamanhos, layout.</p>
+          <p><b>JavaScript:</b> comportamento e lógica.</p>
+          <p><b>function:</b> uma ação reutilizável.</p>
+          <p><b>JSON:</b> dados organizados em chave e valor.</p>
+          <p><b>localStorage:</b> memória salva no navegador.</p>
+          <p><b>fetch:</b> pedido para API/servidor/IA.</p>
+          <p><b>class:</b> molde de objeto/cérebro/ferramenta.</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="panel">
+      <h2>2. Relatório</h2>
+
+      <div id="stats" class="stats"></div>
+
+      <div class="grid2">
+        <div>
+          <h3>Manual automático</h3>
+          <div id="manual" class="list"></div>
+        </div>
+
+        <div>
+          <h3>Blocos detectados</h3>
+          <div id="blocos" class="list"></div>
+        </div>
+      </div>
+
+      <h3>Prévia / código organizado / bloco copiado</h3>
+      <pre id="saida">Nada analisado ainda.</pre>
+      <button class="ok" onclick="copiarSaida()">📋 Copiar conteúdo da prévia</button>
+    </section>
+  </main>
+
+  <script>
+    let codigoAtual = "";
+    let blocosDetectados = [];
+    let relatorioTexto = "";
+
+    function byId(id) {
+      return document.getElementById(id);
+    }
+
+    function escaparHtml(s) {
+      return String(s)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function carregarArquivo() {
+      const file = byId("fileInput").files[0];
+
+      if (!file) {
+        alert("Escolha um arquivo primeiro.");
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        codigoAtual = e.target.result;
+        byId("entrada").value = codigoAtual;
+        byId("saida").textContent = "Arquivo carregado: " + file.name + "\nTamanho: " + codigoAtual.length + " caracteres.\n\nClique em Analisar agora.";
+      };
+
+      reader.readAsText(file);
+    }
+
+    function limparTudo() {
+      codigoAtual = "";
+      blocosDetectados = [];
+      relatorioTexto = "";
+      byId("entrada").value = "";
+      byId("stats").innerHTML = "";
+      byId("manual").innerHTML = "";
+      byId("blocos").innerHTML = "";
+      byId("saida").textContent = "Nada analisado ainda.";
+    }
+
+    function analisar() {
+      codigoAtual = byId("entrada").value || codigoAtual;
+
+      if (!codigoAtual.trim()) {
+        alert("Importe ou cole um código primeiro.");
+        return;
+      }
+
+      blocosDetectados = [];
+
+      const codigo = codigoAtual;
+      const linhas = codigo.split(/\r?\n/);
+      const tamanhoKB = (codigo.length / 1024).toFixed(1);
+
+      const scripts = extrairTags(codigo, "script");
+      const styles = extrairTags(codigo, "style");
+
+      const functions = detectarRegex(codigo, /function\s+([A-Za-z_$][\w$]*)?\s*\([^)]*\)\s*\{/g, "function");
+      const arrows = detectarRegex(codigo, /(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*(?:async\s*)?\([^)]*\)\s*=>/g, "arrow function");
+      const classes = detectarRegex(codigo, /class\s+([A-Za-z_$][\w$]*)/g, "class");
+      const fetches = detectarRegex(codigo, /fetch\s*\(/g, "fetch/API");
+      const localStorage = detectarRegex(codigo, /localStorage\.(getItem|setItem|removeItem|clear)\s*\(/g, "localStorage");
+      const sessionStorage = detectarRegex(codigo, /sessionStorage\.(getItem|setItem|removeItem|clear)\s*\(/g, "sessionStorage");
+      const imports = detectarRegex(codigo, /import\s+[\s\S]{0,160}?from\s+["'][^"']+["']/g, "import");
+      const exports = detectarRegex(codigo, /export\s+(default\s+)?(function|class|const|let|var)?\s*/g, "export");
+      const eventListeners = detectarRegex(codigo, /addEventListener\s*\(\s*["'][^"']+["']/g, "evento");
+      const possibleJsons = detectarJsonPossivel(codigo);
+
+      adicionarBlocos("SCRIPT", scripts, "script");
+      adicionarBlocos("STYLE", styles, "style");
+      adicionarBlocos("FUNCTION", functions, "function");
+      adicionarBlocos("ARROW_FUNCTION", arrows, "function");
+      adicionarBlocos("CLASS", classes, "class");
+      adicionarBlocos("LOCALSTORAGE", localStorage, "storage");
+      adicionarBlocos("SESSIONSTORAGE", sessionStorage, "storage");
+      adicionarBlocos("FETCH_API", fetches, "api");
+      adicionarBlocos("IMPORT", imports, "import");
+      adicionarBlocos("EXPORT", exports, "export");
+      adicionarBlocos("EVENTO", eventListeners, "event");
+      adicionarBlocos("JSON_POSSIVEL", possibleJsons, "json");
+
+      renderStats({
+        linhas: linhas.length,
+        kb: tamanhoKB,
+        chars: codigo.length,
+        scripts: scripts.length,
+        styles: styles.length,
+        functions: functions.length,
+        arrows: arrows.length,
+        classes: classes.length,
+        localStorage: localStorage.length,
+        fetches: fetches.length,
+        jsons: possibleJsons.length,
+        blocos: blocosDetectados.length
+      });
+
+      renderManual({
+        scripts,
+        styles,
+        functions,
+        arrows,
+        classes,
+        localStorage,
+        sessionStorage,
+        fetches,
+        imports,
+        exports,
+        eventListeners,
+        possibleJsons
+      });
+
+      renderBlocos();
+
+      relatorioTexto = gerarRelatorioTexto({
+        linhas: linhas.length,
+        kb: tamanhoKB,
+        chars: codigo.length
+      });
+
+      byId("saida").textContent = relatorioTexto;
+    }
+
+    function extrairTags(codigo, tag) {
+      const regex = new RegExp("<" + tag + "[^>]*>[\\s\\S]*?<\\/" + tag + ">", "gi");
+      const out = [];
+      let m;
+
+      while ((m = regex.exec(codigo)) !== null) {
+        out.push(criarItem(m[0], m.index, tag));
+      }
+
+      return out;
+    }
+
+    function detectarRegex(codigo, regex, tipo) {
+      const out = [];
+      let m;
+
+      while ((m = regex.exec(codigo)) !== null) {
+        const inicio = Math.max(0, m.index - 250);
+        const fim = Math.min(codigo.length, m.index + 900);
+        const trecho = codigo.slice(inicio, fim);
+        out.push(criarItem(trecho, m.index, tipo, m[0]));
+      }
+
+      return out;
+    }
+
+    function detectarJsonPossivel(codigo) {
+      const out = [];
+      const regex = /(?:const|let|var)?\s*([A-Za-z_$][\w$]*)?\s*=?\s*(\{[\s\S]{80,2500}?\})/g;
+      let m;
+      let limite = 0;
+
+      while ((m = regex.exec(codigo)) !== null && limite < 80) {
+        const trecho = m[2];
+
+        const pareceJson =
+          trecho.includes(":") &&
+          (
+            trecho.includes('"') ||
+            trecho.includes("'")
+          ) &&
+          !trecho.includes("function");
+
+        if (pareceJson) {
+          out.push(criarItem(trecho, m.index, "json provável", m[1] || "objeto"));
+          limite++;
+        }
+      }
+
+      return out;
+    }
+
+    function criarItem(texto, index, tipo, titulo) {
+      return {
+        tipo: tipo,
+        titulo: titulo || tipo,
+        index: index,
+        linha: linhaDoIndice(codigoAtual, index),
+        texto: texto
+      };
+    }
+
+    function linhaDoIndice(codigo, index) {
+      return codigo.slice(0, index).split(/\r?\n/).length;
+    }
+
+    function adicionarBlocos(grupo, itens, classe) {
+      itens.forEach((item) => {
+        blocosDetectados.push({
+          grupo,
+          classe,
+          ...item
+        });
+      });
+    }
+
+    function renderStats(s) {
+      byId("stats").innerHTML = `
+        <div class="stat"><b>${s.linhas}</b><span>linhas</span></div>
+        <div class="stat"><b>${s.kb} KB</b><span>tamanho</span></div>
+        <div class="stat"><b>${s.functions + s.arrows}</b><span>funções</span></div>
+        <div class="stat"><b>${s.blocos}</b><span>blocos</span></div>
+        <div class="stat"><b>${s.scripts}</b><span>scripts</span></div>
+        <div class="stat"><b>${s.styles}</b><span>styles</span></div>
+        <div class="stat"><b>${s.localStorage}</b><span>localStorage</span></div>
+        <div class="stat"><b>${s.fetches}</b><span>fetch/API</span></div>
+      `;
+    }
+
+    function renderManual(d) {
+      let html = "";
+
+      html += manualItem(
+        "HTML + Script misturado",
+        d.scripts.length > 0,
+        "Seu arquivo tem blocos <script>. Provavelmente o JavaScript principal está dentro deles."
+      );
+
+      html += manualItem(
+        "CSS interno",
+        d.styles.length > 0,
+        "Foram encontrados blocos <style>. Essa é a parte visual: cores, layout, botões, telas."
+      );
+
+      html += manualItem(
+        "Funções comuns",
+        d.functions.length > 0,
+        "Funções começam com function nome(...). Cada uma representa uma ação. Exemplos: salvar, carregar, enviar, processar."
+      );
+
+      html += manualItem(
+        "Funções modernas",
+        d.arrows.length > 0,
+        "Foram encontradas arrow functions: const nome = (...) =>. Elas também são funções, só em outro formato."
+      );
+
+      html += manualItem(
+        "Classes",
+        d.classes.length > 0,
+        "Classes podem representar cérebro, agente, memória, ferramentas ou controladores."
+      );
+
+      html += manualItem(
+        "Memória local",
+        d.localStorage.length > 0,
+        "localStorage salva dados no navegador. Pode conter o cérebro, histórico, checkpoints ou configurações."
+      );
+
+      html += manualItem(
+        "Memória de sessão",
+        d.sessionStorage.length > 0,
+        "sessionStorage salva dados temporários até fechar a aba."
+      );
+
+      html += manualItem(
+        "APIs / IA / servidor",
+        d.fetches.length > 0,
+        "fetch indica comunicação externa. Pode ser API de IA, backend, arquivos ou serviços."
+      );
+
+      html += manualItem(
+        "Imports/exports",
+        d.imports.length + d.exports.length > 0,
+        "Imports/exports indicam código modular, mas em HTML único podem quebrar se estiverem fora do contexto certo."
+      );
+
+      html += manualItem(
+        "Eventos de botão/tela",
+        d.eventListeners.length > 0,
+        "addEventListener conecta botões, campos e ações da interface."
+      );
+
+      html += manualItem(
+        "JSON/objetos grandes",
+        d.possibleJsons.length > 0,
+        "Objetos parecidos com JSON podem ser configurações, prompts, memória, mapas de projeto ou dados internos."
+      );
+
+      html += `
+        <div class="block risk">
+          <b>Diagnóstico provável</b>
+          <p>Se metade não funciona, pode ser porque a Replit misturou partes de projetos diferentes, deixou funções duplicadas, variáveis com mesmo nome, dependências ausentes ou código minificado.</p>
+          <p>O ideal é extrair por prioridade: memória, funções centrais, API/IA e depois interface.</p>
+        </div>
+      `;
+
+      byId("manual").innerHTML = html;
+    }
+
+    function manualItem(titulo, ok, texto) {
+      return `
+        <div class="block ${ok ? "" : "risk"}">
+          <b>${ok ? "✅" : "⚠️"} ${titulo}</b>
+          <p>${texto}</p>
+        </div>
+      `;
+    }
+
+    function renderBlocos() {
+      let html = "";
+
+      if (!blocosDetectados.length) {
+        byId("blocos").innerHTML = "<div class='block risk'>Nenhum bloco detectado.</div>";
+        return;
+      }
+
+      blocosDetectados.forEach((b, i) => {
+        const classe =
+          b.classe === "function" ? "function" :
+          b.classe === "json" ? "json" :
+          b.classe === "storage" ? "storage" :
+          b.classe === "api" ? "risk" : "";
+
+        html += `
+          <div class="block ${classe}">
+            <div>
+              <span class="tag">${b.grupo}</span>
+              <span class="tag">linha ${b.linha}</span>
+              <span class="tag">${escaparHtml(b.titulo).slice(0, 60)}</span>
+            </div>
+            <p class="muted">${explicarBloco(b)}</p>
+            <button class="small" onclick="mostrarBloco(${i})">Ver</button>
+            <button class="small" onclick="copiarBloco(${i})">Copiar</button>
+          </div>
+        `;
+      });
+
+      byId("blocos").innerHTML = html;
+    }
+
+    function explicarBloco(b) {
+      if (b.grupo === "LOCALSTORAGE") return "Possível parte de memória/cérebro/configuração salva no navegador.";
+      if (b.grupo === "SESSIONSTORAGE") return "Memória temporária da aba.";
+      if (b.grupo === "FETCH_API") return "Possível chamada de API, IA ou servidor.";
+      if (b.grupo === "FUNCTION") return "Função comum. Verifique nome e conteúdo para saber a tarefa dela.";
+      if (b.grupo === "ARROW_FUNCTION") return "Função moderna declarada em variável.";
+      if (b.grupo === "CLASS") return "Classe/estrutura maior. Pode ser módulo importante.";
+      if (b.grupo === "JSON_POSSIVEL") return "Objeto grande. Pode ser configuração, prompt, dados ou memória.";
+      if (b.grupo === "SCRIPT") return "Bloco JavaScript inteiro dentro do HTML.";
+      if (b.grupo === "STYLE") return "Bloco CSS visual.";
+      if (b.grupo === "EVENTO") return "Ligação entre botão/campo e ação.";
+      return "Bloco detectado automaticamente.";
+    }
+
+    function mostrarBloco(i) {
+      const b = blocosDetectados[i];
+      byId("saida").textContent =
+        "=== BLOCO " + i + " ===\n" +
+        "Tipo: " + b.grupo + "\n" +
+        "Linha aproximada: " + b.linha + "\n" +
+        "Explicação: " + explicarBloco(b) + "\n\n" +
+        b.texto;
+    }
+
+    function copiarBloco(i) {
+      mostrarBloco(i);
+      copiarSaida();
+    }
+
+    function copiarSaida() {
+      const texto = byId("saida").textContent;
+
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("Copiado.");
+      }).catch(() => {
+        alert("Não consegui copiar automaticamente. Selecione manualmente o texto da prévia.");
+      });
+    }
+
+    function formatarBasico() {
+      codigoAtual = byId("entrada").value || codigoAtual;
+
+      if (!codigoAtual.trim()) {
+        alert("Importe ou cole um código primeiro.");
+        return;
+      }
+
+      let s = codigoAtual;
+
+      s = s
+        .replace(/></g, ">\n<")
+        .replace(/\{/g, "{\n")
+        .replace(/\}/g, "\n}\n")
+        .replace(/;/g, ";\n")
+        .replace(/,/g, ",\n")
+        .replace(/\n{3,}/g, "\n\n");
+
+      s = indentarBasico(s);
+
+      byId("saida").textContent = s;
+    }
+
+    function indentarBasico(texto) {
+      const linhas = texto.split(/\r?\n/);
+      let nivel = 0;
+
+      return linhas.map((linha) => {
+        let t = linha.trim();
+
+        if (!t) return "";
+
+        if (
+          t.startsWith("}") ||
+          t.startsWith("</") ||
+          t.startsWith(")")
+        ) {
+          nivel = Math.max(0, nivel - 1);
+        }
+
+        const saida = "  ".repeat(nivel) + t;
+
+        if (
+          t.endsWith("{") ||
+          /^<[^/!][^>]*[^/]?>$/.test(t) && !t.includes("</") && !t.startsWith("<input") && !t.startsWith("<br") && !t.startsWith("<img")
+        ) {
+          nivel++;
+        }
+
+        return saida;
+      }).join("\n");
+    }
+
+    function gerarRelatorioTexto(info) {
+      let txt = "";
+      txt += "RELATÓRIO DO ANALISADOR DE CÓDIGO GIGANTE\n";
+      txt += "==========================================\n\n";
+      txt += "Linhas: " + info.linhas + "\n";
+      txt += "Tamanho: " + info.kb + " KB\n";
+      txt += "Caracteres: " + info.chars + "\n";
+      txt += "Blocos detectados: " + blocosDetectados.length + "\n\n";
+
+      txt += "BLOCOS:\n";
+      txt += "-------\n";
+
+      blocosDetectados.slice(0, 300).forEach((b, i) => {
+        txt += "\n[" + i + "] " + b.grupo + " - linha " + b.linha + "\n";
+        txt += "Explicação: " + explicarBloco(b) + "\n";
+        txt += "Prévia: " + b.texto.slice(0, 300).replace(/\s+/g, " ") + "\n";
+      });
+
+      txt += "\n\nORDEM RECOMENDADA PARA TRAZER AQUI:\n";
+      txt += "1. Blocos LOCALSTORAGE.\n";
+      txt += "2. Blocos FETCH_API.\n";
+      txt += "3. Funções com nomes relacionados a memória, cérebro, chat, send, prompt, checkpoint.\n";
+      txt += "4. JSONs grandes que pareçam configuração ou memória.\n";
+      txt += "5. HTML/CSS da interface bonita.\n";
+
+      return txt;
+    }
+
+    function baixarRelatorio() {
+      if (!relatorioTexto) {
+        alert("Analise primeiro.");
+        return;
+      }
+
+      const blob = new Blob([relatorioTexto], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      a.href = url;
+      a.download = "relatorio-codigo-gigante.txt";
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>

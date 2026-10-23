@@ -1,0 +1,174 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>manual-dev</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:860px;margin:0 auto;padding:12px 16px 40px;color:#1f2230;background:#fffdf8}h1,h2,h3{line-height:1.25}h2{border-bottom:1px solid #e3ddc8;padding-bottom:4px}code{background:#f1ede0;padding:1px 5px;border-radius:4px;font:14px ui-monospace,Consolas,monospace}.bloco{border:1px solid #d9d2bb;border-radius:8px;margin:10px 0;overflow:hidden}.bloco-bar{display:flex;gap:6px;align-items:center;background:#efe9d6;padding:5px 8px;font:600 12px ui-monospace,monospace;color:#6b6450}.bloco-bar span{flex:1}.bloco-bar button,.topo button{font:600 13px system-ui,sans-serif;border:1px solid #8a7b45;background:#fff;color:#4a4020;border-radius:6px;padding:5px 9px;cursor:pointer}.bloco pre{margin:0;padding:10px;overflow-x:auto;background:#fbf9f2}.bloco pre code{background:none;padding:0;white-space:pre}.tab{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}th,td{border-bottom:1px solid #e3ddc8;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f6f2e4}blockquote{margin:8px 0;padding:6px 12px;border-left:4px solid #c9b77a;background:#faf6e8}.topo{position:sticky;top:0;background:#fffdf8;padding:8px 0;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #eee;margin-bottom:8px;z-index:2}a{color:#7a6526}</style></head><body><div class="topo"><button id="md-todos">📋 Copiar todos os blocos (11)</button></div><h1>Manual para Desenvolvedores — Correções Necessárias no App Mobile</h1>
+<blockquote><b>Para:</b> Desenvolvedor(es) do app mobile de edição de código  <br><b>Autor:</b> Saulo Kenji (via SK Code Editor)  <br><b>Data:</b> Maio 2026  <br><b>Objetivo:</b> Trazer o app mobile ao mesmo nível do SK Code Editor (versão web que funciona corretamente)</blockquote>
+<hr>
+<h2>PROBLEMA 1 — Importar repositório GitHub traz poucos arquivos (2-3 arquivos ao invés de todos)</h2>
+<h3>O que está errado</h3>
+<p>O app usa a API <code>/repos/{owner}/{repo}/contents/</code> sem percorrer subpastas recursivamente. Esse endpoint retorna <b>apenas o nível raiz</b> do repositório.</p>
+<h3>Como corrigir</h3>
+<p>É necessário <b>percorrer a árvore de arquivos recursivamente</b>. Use a API do GitHub que retorna tudo de uma vez:</p>
+<div class="bloco"><div class="bloco-bar"><span>código</span><button data-copiar="0">📋 Copiar</button><button data-rodar="0" class="so-app">▶ Terminal</button></div><pre><code>GET https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1</code></pre></div>
+<p>Essa chamada retorna <b>todos os arquivos e pastas</b> do repositório em uma única requisição, sem limite de profundidade.</p>
+<h3>Código de referência (JavaScript/TypeScript)</h3>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="1">📋 Copiar</button></div><pre><code>async function clonarRepositorio(token, owner, repo, branch = &#39;main&#39;) {
+  // 1. Busca a árvore completa recursivamente
+  const treeRes = await fetch(
+    `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,
+    { headers: { Authorization: `token ${token}` } }
+  );
+  const treeData = await treeRes.json();
+
+  // 2. Filtra só os arquivos (type === &#39;blob&#39;), ignora pastas
+  const arquivos = treeData.tree.filter(item =&gt; item.type === &#39;blob&#39;);
+
+  // 3. Baixa o conteúdo de cada arquivo
+  const resultado = {};
+  for (const arquivo of arquivos) {
+    // Pula arquivos muito grandes (&gt;500KB) e node_modules
+    if (arquivo.size &gt; 500000) continue;
+    if (arquivo.path.startsWith(&#39;node_modules/&#39;)) continue;
+    if (arquivo.path.startsWith(&#39;.git/&#39;)) continue;
+
+    const contentRes = await fetch(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${arquivo.path}?ref=${branch}`,
+      { headers: { Authorization: `token ${token}` } }
+    );
+    const contentData = await contentRes.json();
+
+    // O conteúdo vem em Base64
+    resultado[arquivo.path] = atob(contentData.content.replace(/\n/g, &#39;&#39;));
+  }
+
+  return resultado; // { &#39;src/index.js&#39;: &#39;...&#39;, &#39;package.json&#39;: &#39;...&#39;, ... }
+}</code></pre></div>
+<h3>Observação importante</h3>
+<p>Se o repositório tiver mais de 100.000 arquivos ou for muito grande, o GitHub retorna <code>truncated: true</code>. Nesse caso, é necessário percorrer subpasta por subpasta. Mas para projetos normais (até 10.000 arquivos), o parâmetro <code>?recursive=1</code> funciona perfeitamente.</p>
+<hr>
+<h2>PROBLEMA 2 — Árvore de arquivos não organizada / sem hierarquia</h2>
+<h3>O que está errado</h3>
+<p>O app lista arquivos em modo &quot;flat&quot; (lista plana), sem mostrar a hierarquia de pastas, ou não expande subpastas corretamente.</p>
+<h3>Como corrigir</h3>
+<p>A partir da lista de caminhos (<code>src/components/App.js</code>, <code>src/index.js</code>, <code>package.json</code>...) é necessário construir uma árvore hierárquica antes de renderizar.</p>
+<h3>Código de referência (JavaScript)</h3>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="2">📋 Copiar</button></div><pre><code>function construirArvore(caminhos) {
+  const raiz = { nome: &#39;root&#39;, filhos: {}, tipo: &#39;pasta&#39; };
+
+  for (const caminho of caminhos) {
+    const partes = caminho.split(&#39;/&#39;);
+    let no = raiz;
+
+    for (let i = 0; i &lt; partes.length; i++) {
+      const parte = partes[i];
+      const ehUltimo = i === partes.length - 1;
+
+      if (!no.filhos[parte]) {
+        no.filhos[parte] = {
+          nome: parte,
+          caminho: partes.slice(0, i + 1).join(&#39;/&#39;),
+          tipo: ehUltimo ? &#39;arquivo&#39; : &#39;pasta&#39;,
+          filhos: {},
+        };
+      }
+      no = no.filhos[parte];
+    }
+  }
+
+  return raiz;
+}
+
+// Uso:
+const arquivos = Object.keys(repositorioImportado); // [&#39;src/App.js&#39;, &#39;package.json&#39;, ...]
+const arvore = construirArvore(arquivos);</code></pre></div>
+<h3>Ordenação recomendada</h3>
+<ul><li>Pastas primeiro, depois arquivos</li><li>Em ordem alfabética dentro de cada grupo</li></ul>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="3">📋 Copiar</button></div><pre><code>function ordenarFilhos(filhos) {
+  return Object.values(filhos).sort((a, b) =&gt; {
+    if (a.tipo !== b.tipo) return a.tipo === &#39;pasta&#39; ? -1 : 1;
+    return a.nome.localeCompare(b.nome);
+  });
+}</code></pre></div>
+<hr>
+<h2>PROBLEMA 3 — Configurar servidor local para rodar sem internet (Termux / Offline)</h2>
+<h3>O que está errado</h3>
+<p>O app depende 100% de um servidor remoto para funcionar. Quando sem internet ou sem o servidor pago, nada funciona.</p>
+<h3>Solução: Modo Offline com 3 níveis</h3>
+<p>O SK Code Editor usa três modos de terminal, escolhidos automaticamente:</p>
+<div class="tab"><table><thead><tr><th>Modo</th><th>Quando usar</th><th>Como funciona</th></tr></thead><tbody><tr><td><b>Online</b></td><td>Com servidor disponível</td><td>Bash real via WebSocket no servidor</td></tr><tr><td><b>Real</b></td><td>Com internet + navegador moderno</td><td>WebContainers (Node.js no navegador)</td></tr><tr><td><b>Offline</b></td><td>Sem internet / sem servidor</td><td>Terminal JavaScript simulado</td></tr></tbody></table></div>
+<h3>Como implementar o terminal offline (mínimo viável)</h3>
+<p>O terminal offline simula comandos básicos no próprio JavaScript do app, sem precisar de nenhum servidor:</p>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="4">📋 Copiar</button></div><pre><code>const comandosOffline = {
+  &#39;ls&#39;: (args, cwd, arquivos) =&gt; {
+    const prefixo = cwd === &#39;/&#39; ? &#39;&#39; : cwd + &#39;/&#39;;
+    const itens = Object.keys(arquivos)
+      .filter(p =&gt; p.startsWith(prefixo))
+      .map(p =&gt; p.slice(prefixo.length).split(&#39;/&#39;)[0])
+      .filter((v, i, a) =&gt; a.indexOf(v) === i); // unique
+    return itens.join(&#39;\n&#39;);
+  },
+  &#39;pwd&#39;: (args, cwd) =&gt; cwd,
+  &#39;cat&#39;: (args, cwd, arquivos) =&gt; {
+    const caminho = args[0]?.startsWith(&#39;/&#39;) ? args[0] : cwd + &#39;/&#39; + args[0];
+    return arquivos[caminho.replace(/^\//, &#39;&#39;)] || `cat: ${args[0]}: arquivo não encontrado`;
+  },
+  &#39;echo&#39;: (args) =&gt; args.join(&#39; &#39;),
+  &#39;clear&#39;: () =&gt; &#39;\x1Bc&#39;, // limpa o terminal
+  &#39;help&#39;: () =&gt; &#39;Comandos: ls, pwd, cat, echo, clear, help&#39;,
+};
+
+function executarComandoOffline(linha, cwd, arquivos) {
+  const [cmd, ...args] = linha.trim().split(/\s+/);
+  const fn = comandosOffline[cmd];
+  if (fn) return fn(args, cwd, arquivos);
+  return `${cmd}: comando não encontrado (modo offline)`;
+}</code></pre></div>
+<h3>Como configurar para Termux (Android)</h3>
+<p>Se o app usa um servidor Node.js rodando no próprio celular via Termux:</p>
+<ol><li><b>Instalar dependências no Termux:</b></li></ol>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="5">📋 Copiar</button><button data-rodar="5" class="so-app">▶ Terminal</button></div><pre><code>pkg install nodejs
+pkg install git
+npm install -g pm2</code></pre></div>
+<ol><li><b>O servidor deve ouvir em <code>localhost:8080</code></b> (não em IP externo)</li></ol>
+<ol><li><b>O app mobile deve apontar para <code>http://localhost:8080</code></b> quando detectar que está rodando localmente:</li></ol>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="6">📋 Copiar</button></div><pre><code>const API_BASE = __DEV__ || window.location.hostname === &#39;localhost&#39;
+  ? &#39;http://localhost:8080&#39;
+  : &#39;https://seu-servidor-remoto.com&#39;;</code></pre></div>
+<ol><li><b>Para iniciar automaticamente com o Termux:</b></li></ol>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="7">📋 Copiar</button><button data-rodar="7" class="so-app">▶ Terminal</button></div><pre><code>pm2 start server.js --name &quot;sk-server&quot;
+pm2 startup
+pm2 save</code></pre></div>
+<hr>
+<h2>PROBLEMA 4 — Limites artificiais de arquivos</h2>
+<h3>O que está errado</h3>
+<p>O app tem limites como &quot;máximo 50 arquivos&quot;, &quot;máximo 100KB por arquivo&quot;, etc.</p>
+<h3>Como remover os limites</h3>
+<p>Procure no código por constantes como:</p>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="8">📋 Copiar</button></div><pre><code>const MAX_FILES = 50;        // remover
+const MAX_FILE_SIZE = 100000; // aumentar ou remover
+const MAX_REPO_FILES = 200;  // remover</code></pre></div>
+<h3>Limites recomendados no SK Code Editor</h3>
+<div class="tab"><table><thead><tr><th>Item</th><th>Limite</th></tr></thead><tbody><tr><td>Arquivos por projeto</td><td>Sem limite</td></tr><tr><td>Tamanho por arquivo</td><td>500KB (apenas para importação do GitHub)</td></tr><tr><td>Arquivos ignorados</td><td><code>node_modules/</code>, <code>.git/</code>, arquivos binários</td></tr><tr><td>Sincronização com servidor</td><td>Apenas o arquivo ativo (não todos de uma vez)</td></tr></tbody></table></div>
+<h3>Para sincronização eficiente (evitar erros 413 &quot;payload too large&quot;)</h3>
+<p>Em vez de enviar todos os arquivos de uma vez ao servidor, envie <b>apenas o arquivo que está sendo editado</b>:</p>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="9">📋 Copiar</button></div><pre><code>// ERRADO: envia tudo de uma vez (causa erro 413)
+async function syncTudo(arquivos) {
+  await fetch(&#39;/api/sync&#39;, { body: JSON.stringify(arquivos) }); // pode ser MB de dados
+}
+
+// CERTO: envia só o arquivo ativo
+async function syncArquivoAtivo(caminho, conteudo) {
+  await fetch(&#39;/api/workspace/write&#39;, {
+    method: &#39;POST&#39;,
+    body: JSON.stringify({ path: caminho, content: conteudo }),
+  });
+}</code></pre></div>
+<p>No servidor (Express.js), aumentar o limite do body-parser:</p>
+<div class="bloco"><div class="bloco-bar"><span>javascript</span><button data-copiar="10">📋 Copiar</button></div><pre><code>app.use(express.json({ limit: &#39;50mb&#39; }));
+app.use(express.urlencoded({ limit: &#39;50mb&#39;, extended: true }));</code></pre></div>
+<hr>
+<h2>REFERÊNCIA — Funcionalidades que funcionam no SK Code Editor</h2>
+<div class="tab"><table><thead><tr><th>Funcionalidade</th><th>Status</th><th>Como funciona</th></tr></thead><tbody><tr><td>Importar repo GitHub (todos os arquivos)</td><td>✅</td><td>API <code>git/trees?recursive=1</code></td></tr><tr><td>Salvar arquivos localmente</td><td>✅</td><td>localStorage / IndexedDB</td></tr><tr><td>Árvore de arquivos hierárquica</td><td>✅</td><td>Construção recursiva da árvore</td></tr><tr><td>Terminal offline</td><td>✅</td><td>Comandos simulados em JavaScript</td></tr><tr><td>Terminal online (bash real)</td><td>✅</td><td>WebSocket PTY no servidor</td></tr><tr><td>Terminal real (Node.js no navegador)</td><td>✅</td><td>WebContainers API</td></tr><tr><td>Sem limite de arquivos</td><td>✅</td><td>Sem constante de limite</td></tr><tr><td>Sincronização eficiente</td><td>✅</td><td>Só arquivo ativo via /api/workspace/write</td></tr><tr><td>Funciona sem servidor</td><td>✅</td><td>Edição + GitHub funcionam offline</td></tr><tr><td>Instalável como app (PWA)</td><td>✅</td><td>Manifesto + Service Worker</td></tr><tr><td>Abrir no VS Code / StackBlitz</td><td>✅</td><td>Links externos diretos</td></tr><tr><td>Publicar no GitHub Pages</td><td>✅</td><td>Build + push para branch gh-pages</td></tr></tbody></table></div>
+<hr>
+<h2>CONTATO / REFERÊNCIA TÉCNICA</h2>
+<p>O código-fonte de referência do SK Code Editor está no repositório GitHub do Saulo Kenji.  <br>Os arquivos mais importantes para comparar são:</p>
+<ul><li><code>src/lib/github-service.ts</code> — clone recursivo do GitHub</li><li><code>src/components/FileTree.tsx</code> — árvore hierárquica de arquivos  </li><li><code>src/components/StreamTerminal.tsx</code> — terminal online com WebSocket</li><li><code>src/components/Terminal.tsx</code> — terminal offline simulado</li><li><code>api-server/src/routes/exec.ts</code> — servidor bash real via PTY</li></ul>
+<hr>
+<p><i>Documento gerado pelo SK Code Editor — Maio 2026</i></p><script>var B=["GET https://api.github.com/repos/{owner}/{repo}/git/trees/{branch}?recursive=1","async function clonarRepositorio(token, owner, repo, branch = 'main') {\n  // 1. Busca a árvore completa recursivamente\n  const treeRes = await fetch(\n    `https://api.github.com/repos/${owner}/${repo}/git/trees/${branch}?recursive=1`,\n    { headers: { Authorization: `token ${token}` } }\n  );\n  const treeData = await treeRes.json();\n\n  // 2. Filtra só os arquivos (type === 'blob'), ignora pastas\n  const arquivos = treeData.tree.filter(item => item.type === 'blob');\n\n  // 3. Baixa o conteúdo de cada arquivo\n  const resultado = {};\n  for (const arquivo of arquivos) {\n    // Pula arquivos muito grandes (>500KB) e node_modules\n    if (arquivo.size > 500000) continue;\n    if (arquivo.path.startsWith('node_modules/')) continue;\n    if (arquivo.path.startsWith('.git/')) continue;\n\n    const contentRes = await fetch(\n      `https://api.github.com/repos/${owner}/${repo}/contents/${arquivo.path}?ref=${branch}`,\n      { headers: { Authorization: `token ${token}` } }\n    );\n    const contentData = await contentRes.json();\n\n    // O conteúdo vem em Base64\n    resultado[arquivo.path] = atob(contentData.content.replace(/\\n/g, ''));\n  }\n\n  return resultado; // { 'src/index.js': '...', 'package.json': '...', ... }\n}","function construirArvore(caminhos) {\n  const raiz = { nome: 'root', filhos: {}, tipo: 'pasta' };\n\n  for (const caminho of caminhos) {\n    const partes = caminho.split('/');\n    let no = raiz;\n\n    for (let i = 0; i \u003c partes.length; i++) {\n      const parte = partes[i];\n      const ehUltimo = i === partes.length - 1;\n\n      if (!no.filhos[parte]) {\n        no.filhos[parte] = {\n          nome: parte,\n          caminho: partes.slice(0, i + 1).join('/'),\n          tipo: ehUltimo ? 'arquivo' : 'pasta',\n          filhos: {},\n        };\n      }\n      no = no.filhos[parte];\n    }\n  }\n\n  return raiz;\n}\n\n// Uso:\nconst arquivos = Object.keys(repositorioImportado); // ['src/App.js', 'package.json', ...]\nconst arvore = construirArvore(arquivos);","function ordenarFilhos(filhos) {\n  return Object.values(filhos).sort((a, b) => {\n    if (a.tipo !== b.tipo) return a.tipo === 'pasta' ? -1 : 1;\n    return a.nome.localeCompare(b.nome);\n  });\n}","const comandosOffline = {\n  'ls': (args, cwd, arquivos) => {\n    const prefixo = cwd === '/' ? '' : cwd + '/';\n    const itens = Object.keys(arquivos)\n      .filter(p => p.startsWith(prefixo))\n      .map(p => p.slice(prefixo.length).split('/')[0])\n      .filter((v, i, a) => a.indexOf(v) === i); // unique\n    return itens.join('\\n');\n  },\n  'pwd': (args, cwd) => cwd,\n  'cat': (args, cwd, arquivos) => {\n    const caminho = args[0]?.startsWith('/') ? args[0] : cwd + '/' + args[0];\n    return arquivos[caminho.replace(/^\\//, '')] || `cat: ${args[0]}: arquivo não encontrado`;\n  },\n  'echo': (args) => args.join(' '),\n  'clear': () => '\\x1Bc', // limpa o terminal\n  'help': () => 'Comandos: ls, pwd, cat, echo, clear, help',\n};\n\nfunction executarComandoOffline(linha, cwd, arquivos) {\n  const [cmd, ...args] = linha.trim().split(/\\s+/);\n  const fn = comandosOffline[cmd];\n  if (fn) return fn(args, cwd, arquivos);\n  return `${cmd}: comando não encontrado (modo offline)`;\n}","pkg install nodejs\npkg install git\nnpm install -g pm2","const API_BASE = __DEV__ || window.location.hostname === 'localhost'\n  ? 'http://localhost:8080'\n  : 'https://seu-servidor-remoto.com';","pm2 start server.js --name \"sk-server\"\npm2 startup\npm2 save","const MAX_FILES = 50;        // remover\nconst MAX_FILE_SIZE = 100000; // aumentar ou remover\nconst MAX_REPO_FILES = 200;  // remover","// ERRADO: envia tudo de uma vez (causa erro 413)\nasync function syncTudo(arquivos) {\n  await fetch('/api/sync', { body: JSON.stringify(arquivos) }); // pode ser MB de dados\n}\n\n// CERTO: envia só o arquivo ativo\nasync function syncArquivoAtivo(caminho, conteudo) {\n  await fetch('/api/workspace/write', {\n    method: 'POST',\n    body: JSON.stringify({ path: caminho, content: conteudo }),\n  });\n}","app.use(express.json({ limit: '50mb' }));\napp.use(express.urlencoded({ limit: '50mb', extended: true }));"];var EMB=window.parent!==window;if(!EMB)document.querySelectorAll(".so-app").forEach(function(b){b.remove()});function marca(b,t){var a=b.textContent;b.textContent=t;setTimeout(function(){b.textContent=a},1400)}function copiar(t,b){if(EMB){parent.postMessage({sk:"md",acao:"copiar",texto:t},"*");marca(b,"✔ Copiado");return}navigator.clipboard.writeText(t).then(function(){marca(b,"✔ Copiado")},function(){var r=document.createRange();r.selectNodeContents(b.closest(".bloco").querySelector("pre"));var s=getSelection();s.removeAllRanges();s.addRange(r);marca(b,"Selecionado")})}document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.copiar!=null)copiar(B[+b.dataset.copiar],b);if(b.dataset.rodar!=null){parent.postMessage({sk:"md",acao:"rodar",texto:B[+b.dataset.rodar]},"*");marca(b,"✔ Mandado")}if(b.id==="md-baixar")parent.postMessage({sk:"md",acao:"baixar"},"*");if(b.id==="md-todos"){var t=B.join("\n\n");copiar(t,b)}});</script></body></html>

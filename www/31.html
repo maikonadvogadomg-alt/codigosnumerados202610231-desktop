@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Playground Code Pro — Maikon Caldeira</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --bg3: #334155;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --accent: #a3a082;
+  --accent2: #d4d0a8;
+  --blue: #3b82f6;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --border: #334155;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 6px; }
+.header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.header-right { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.logo { font-weight: 800; font-size: 14px; color: var(--accent); letter-spacing: -0.5px; }
+.logo small { font-size: 9px; color: var(--text2); font-weight: 400; letter-spacing: 1px; display: block; }
+
+/* Inputs */
+.title-input { background: transparent; border: 1px solid transparent; color: var(--text); font-size: 12px; padding: 4px 8px; border-radius: 6px; width: 180px; transition: border-color 0.2s; }
+.title-input:focus { outline: none; border-color: var(--accent); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.btn-icon { padding: 6px; border-radius: 6px; background: transparent; border: none; color: var(--text2); cursor: pointer; transition: all 0.15s; font-size: 14px; }
+.btn-icon:hover { background: var(--bg3); color: var(--text); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-ghost { background: transparent; color: var(--text2); }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+.btn-mode { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; }
+.btn-mode.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* AI Button Special */
+.btn-ai { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; animation: aiPulse 2s infinite; }
+.btn-ai:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+@keyframes aiPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+
+/* Mode selector */
+.mode-group { display: flex; gap: 2px; background: var(--bg); padding: 2px; border-radius: 8px; border: 1px solid var(--border); }
+
+/* Tabs */
+.tabs-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.tabs { display: flex; gap: 2px; }
+.tab { padding: 5px 12px; font-size: 11px; font-weight: 600; border: none; background: transparent; color: var(--text2); cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+.tab.active { background: var(--bg3); color: var(--text); }
+.tab:hover:not(.active) { color: var(--text); }
+.tab-info { font-size: 10px; color: var(--text2); display: flex; gap: 8px; align-items: center; }
+
+/* Main layout */
+.main { display: flex; flex: 1; overflow: hidden; }
+.editor-panel { display: flex; flex-direction: column; width: 50%; border-right: 1px solid var(--border); transition: width 0.3s; }
+.editor-panel.collapsed { width: 0; overflow: hidden; border: none; }
+.editor-panel.expanded { width: 100%; }
+.preview-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.preview-panel.hidden { display: none; }
+
+/* Editor */
+.editor-wrap { flex: 1; position: relative; overflow: hidden; display: flex; }
+.line-numbers { width: 50px; background: rgba(30,41,59,0.8); padding: 12px 8px 12px 0; text-align: right; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 12px; line-height: 1.65; color: var(--text2); overflow: hidden; user-select: none; border-right: 1px solid var(--border); flex-shrink: 0; }
+.line-numbers .line { padding: 0 4px; cursor: pointer; transition: all 0.15s; }
+.line-numbers .line:hover { background: rgba(163, 160, 130, 0.1); color: var(--accent); }
+.line-numbers .line.current { background: rgba(163, 160, 130, 0.2); color: var(--accent2); font-weight: 700; }
+.editor-textarea { flex: 1; resize: none; background: var(--bg); color: var(--text); font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 13px; line-height: 1.65; padding: 12px; border: none; outline: none; tab-size: 2; }
+
+/* Syntax highlight hints (basic) */
+.editor-textarea::selection { background: rgba(163, 160, 130, 0.3); }
+
+/* Preview */
+.preview-header { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.preview-header .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.preview-frame { flex: 1; border: none; background: #fff; }
+
+/* Dialog/Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative; }
+.modal h3 { font-size: 18px; margin-bottom: 16px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.modal-close { position: absolute; top: 16px; right: 16px; }
+
+/* Snippet list */
+.snippet-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.snippet-item:hover { border-color: var(--accent); background: var(--bg3); transform: translateX(4px); }
+.snippet-item .name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.snippet-item .meta { font-size: 10px; color: var(--text2); }
+.snippet-actions { display: flex; gap: 4px; }
+
+/* Search & Go to Line */
+.search-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; margin-bottom: 16px; }
+.search-input:focus { outline: none; border-color: var(--accent); }
+
+.goto-line-box { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+.goto-line-box input { flex: 1; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; }
+.goto-line-box input:focus { outline: none; border-color: var(--accent); }
+
+/* AI Helper */
+.ai-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; }
+.ai-panel textarea { width: 100%; min-height: 100px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 10px; font-size: 12px; font-family: inherit; resize: vertical; }
+.ai-panel textarea:focus { outline: none; border-color: var(--accent); }
+.ai-response { margin-top: 12px; padding: 12px; background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 6px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 20px; font-size: 12px; font-weight: 600; color: var(--accent2); z-index: 2000; transform: translateY(100px); opacity: 0; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* Status badge */
+.status-badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-badge.html { background: rgba(239,68,68,0.15); color: var(--red); }
+.status-badge.react { background: rgba(59,130,246,0.15); color: var(--blue); }
+.status-badge.python { background: rgba(251,191,36,0.15); color: var(--yellow); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main { flex-direction: column; }
+  .editor-panel { width: 100% !important; height: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+  .editor-panel.collapsed { height: 0; }
+  .editor-panel.expanded { height: 100%; }
+  .preview-panel { height: 50%; }
+  .hide-mobile { display: none !important; }
+  .title-input { width: 120px; }
+}
+
+/* Loading indicator */
+.loading { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="header-left">
+    <div class="logo">⚡ Playground Pro <small>Maikon Caldeira — Advanced Code Editor</small></div>
+    <div class="mode-group">
+      <button class="btn-mode active" id="modeHtml" onclick="switchMode('html')">🌐 HTML</button>
+      <button class="btn-mode" id="modeReact" onclick="switchMode('react')">⚛️ React</button>
+      <button class="btn-mode" id="modePython" onclick="switchMode('python')">🐍 Python</button>
+    </div>
+    <input type="text" class="title-input" id="projectTitle" value="Sem titulo" placeholder="Nome do projeto..." />
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ai" onclick="openAIHelper()" title="Ajuda com IA">🤖 IA</button>
+    <button class="btn-icon" onclick="openGotoLine()" title="Ir para linha (Ctrl+G)">🔍</button>
+    <button class="btn-icon" onclick="importFile()" title="Importar arquivo HTML/JS/CSS">📂</button>
+    <button class="btn-icon" onclick="toggleFullscreen()" title="Tela cheia">🔳</button>
+    <button class="btn-icon" onclick="copyCode()" title="Copiar código">📋</button>
+    <button class="btn-icon" onclick="downloadFile()" title="Baixar">⬇️</button>
+    <button class="btn btn-primary" onclick="saveToLocal()" title="Salvar projeto">💾 Salvar</button>
+    <button class="btn-icon" onclick="openSavedModal()" title="Meus projetos">📁</button>
+    <button class="btn-icon" onclick="resetCode()" title="Resetar">🔄</button>
+    <button class="btn-icon" onclick="clearCode()" title="Limpar">🗑️</button>
+    <button class="btn-icon" onclick="toggleEditor()" id="btnToggleEditor" title="Ampliar/Reduzir editor">⬜</button>
+  </div>
+</header>
+
+<!-- Tabs -->
+<div class="tabs-bar">
+  <div class="tabs" id="tabsContainer">
+    <button class="tab active" id="tabHtml" onclick="switchTab('html')">📄 HTML</button>
+    <button class="tab" id="tabCss" onclick="switchTab('css')">🎨 CSS</button>
+    <button class="tab" id="tabJs" onclick="switchTab('js')">⚙️ JS</button>
+  </div>
+  <div class="tab-info">
+    <span id="lineCount">1 linhas</span>
+    <span>•</span>
+    <span id="cursorPos">Ln 1, Col 1</span>
+    <span class="status-badge html" id="modeBadge">HTML</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="editor-panel" id="editorPanel">
+    <div class="editor-wrap">
+      <div class="line-numbers" id="lineNumbers"></div>
+      <textarea class="editor-textarea" id="editor" spellcheck="false" placeholder="Cole ou digite seu código aqui... (Ctrl+G para ir para linha)"></textarea>
+    </div>
+  </div>
+  <div class="preview-panel" id="previewPanel">
+    <div class="preview-header">
+      <div class="dot"></div>
+      <span style="font-size:11px;color:var(--text2);font-weight:600;">Resultado ao vivo</span>
+      <span id="autoLabel" style="font-size:9px;color:var(--green);margin-left:auto;">● AUTO</span>
+    </div>
+    <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-modals allow-forms allow-popups"></iframe>
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" style="display:none" accept=".html,.htm,.css,.js,.jsx,.tsx,.py,.txt,.svg,.xml" />
+
+<!-- Modal: Saved Projects -->
+<div class="modal-overlay" id="savedModal">
+  <div class="modal">
+    <button class="btn-icon modal-close" onclick="closeSavedModal()">✕</button>
+    <h3>📁 Meus Projetos Salvos</h3>
+    <input type="text" class="search-input" id="searchInput" placeholder="🔍 Buscar por nome..." oninput="renderSavedList()" />
+    <div id="savedList"></div>
+    <div style="text-align:right;margin-top:16px;">
+      <button class="btn btn-ghost" onclick="closeSavedModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Go to Line -->
+<div class="modal-overlay" id="gotoModal">
+  <div class="modal" style="max-width:400px;">
+    <button class="btn-icon modal-close" onclick="closeGotoLine()">✕</button>
+    <h3>🔍 Ir para Linha</h3>
+    <div class="goto-line-box">
+      <input type="number" id="gotoLineInput" placeholder="Número da linha..." min="1" />
+      <button class="btn btn-primary" onclick="gotoLine()">Ir</button>
+    </div>
+    <p style="font-size:11px;color:var(--text2);">Dica: Use <strong>Ctrl+G</strong> para abrir rapidamente</p>
+  </div>
+</div>
+
+<!-- Modal: AI Helper -->
+<div class="modal-overlay" id="aiModal">
+  <div class="modal">
+    <button class="btn-icon modal-close" onclick="closeAIHelper()">✕</button>
+    <h3>🤖 Assistente IA</h3>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:12px;">Descreva o que você precisa ou pergunte sobre seu código:</p>
+    <div class="ai-panel">
+      <textarea id="aiPrompt" placeholder="Ex: Como posso centralizar essa div? Ou: Crie um botão animado..."></textarea>
+      <div style="text-align:right;margin-top:12px;">
+        <button class="btn btn-ghost" onclick="closeAIHelper()" style="margin-right:8px;">Cancelar</button>
+        <button class="btn btn-ai" onclick="askAI()">✨ Perguntar IA</button>
+      </div>
+      <div id="aiResponse"></div>
+    </div>
+    <p style="font-size:10px;color:var(--text2);margin-top:12px;">💡 <strong>Nota:</strong> Esta é uma interface para IA. Para funcionar, você precisaria integrar uma API (OpenAI, Claude, etc). Por enquanto, mostra exemplo de resposta.</p>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== STATE ==========
+const LS_KEY = 'playground-projects-v3';
+const AUTOSAVE_KEY = 'playground-autosave-v3';
+
+let state = {
+  mode: 'html',
+  activeTab: 'html',
+  html: `<div style="max-width:600px;margin:40px auto;padding:20px;font-family:sans-serif;">
+  <h1 style="color:#333;">Bem-vindo ao Playground Pro</h1>
+  <p style="color:#666;margin:16px 0;">Cole seu código HTML aqui e veja o resultado ao vivo!</p>
+  <button onclick="alert('Funcionou!')" style="padding:10px 24px;font-size:16px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;">Clique aqui</button>
+</div>`,
+  css: '',
+  js: `// Seu JavaScript aqui\nconsole.log("Hello from Playground Pro!");`,
+  jsx: `function App() {\n  const [count, setCount] = React.useState(0);\n  return (\n    <div style={{padding:40,fontFamily:'sans-serif',textAlign:'center'}}>\n      <h1>⚛️ React no Playground</h1>\n      <p>Contador: <strong>{count}</strong></p>\n      <button onClick={() => setCount(count + 1)} style={{padding:'10px 24px',fontSize:16,background:'#3b82f6',color:'white',border:'none',borderRadius:8,cursor:'pointer'}}>\n        Incrementar\n      </button>\n    </div>\n  );\n}`,
+  python: `# Python — output aparece no preview\ndados = ["João Silva", "Maria Souza", "Pedro Lima"]\n\nprint("=== LISTA DE CLIENTES ===")\nfor i, nome in enumerate(dados, 1):\n    print(f"{i}. {nome}")\n\nprint(f"\\nTotal: {len(dados)} clientes")`,
+  title: 'Sem titulo',
+  editorState: 'normal',
+  currentLine: 1
+};
+
+// Load autosave
+try {
+  const saved = localStorage.getItem(AUTOSAVE_KEY);
+  if (saved) Object.assign(state, JSON.parse(saved));
+} catch(e) {}
+
+// ========== DOM REFS ==========
+const editor = document.getElementById('editor');
+const previewFrame = document.getElementById('previewFrame');
+const lineNumbers = document.getElementById('lineNumbers');
+const titleInput = document.getElementById('projectTitle');
+const editorPanel = document.getElementById('editorPanel');
+const previewPanel = document.getElementById('previewPanel');
+const fileInput = document.getElementById('fileInput');
+
+// ========== INIT ==========
+titleInput.value = state.title;
+updateTabs();
+loadEditorContent();
+updatePreview();
+
+// ========== EDITOR EVENTS ==========
+editor.addEventListener('input', () => {
+  saveCurrentTab();
+  updateLineNumbers();
+  updateCursorPosition();
+  autoSave();
+  debouncePreview();
+});
+
+editor.addEventListener('scroll', () => {
+  lineNumbers.scrollTop = editor.scrollTop;
+});
+
+editor.addEventListener('click', updateCursorPosition);
+editor.addEventListener('keyup', updateCursorPosition);
+
+editor.addEventListener('keydown', (e) => {
+  // Tab support
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+    saveCurrentTab();
+  }
+  
+  // Ctrl+G: Go to line
+  if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+    e.preventDefault();
+    openGotoLine();
+  }
+  
+  // Ctrl+S: Save
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveToLocal();
+  }
+});
+
+// Auto-detect on paste
+editor.addEventListener('paste', (e) => {
+  setTimeout(() => {
+    const content = editor.value;
+    if (state.activeTab === 'html' || state.mode === 'html') {
+      if (/import\s+React|from\s+['"]react['"]|useState|useEffect/.test(content)) {
+        switchMode('react');
+        state.jsx = content;
+        loadEditorContent();
+        showToast('⚛️ React/JSX detectado!');
+        return;
+      }
+      if (/^(def |class |import |from |print\(|#.*python)/im.test(content) && !content.includes('<')) {
+        switchMode('python');
+        state.python = content;
+        loadEditorContent();
+        showToast('🐍 Python detectado!');
+        return;
+      }
+    }
+    saveCurrentTab();
+    updatePreview();
+  }, 50);
+});
+
+titleInput.addEventListener('input', () => {
+  state.title = titleInput.value;
+  autoSave();
+});
+
+// ========== LINE NUMBERS ==========
+function updateLineNumbers() {
+  const lines = editor.value.split('\n');
+  const totalLines = lines.length;
+  document.getElementById('lineCount').textContent = totalLines + ' linhas';
+  
+  lineNumbers.innerHTML = lines.map((_, i) => {
+    const lineNum = i + 1;
+    const isCurrent = lineNum === state.currentLine;
+    return `<div class="line ${isCurrent ? 'current' : ''}" onclick="jumpToLine(${lineNum})">${lineNum}</div>`;
+  }).join('');
+}
+
+function updateCursorPosition() {
+  const pos = editor.selectionStart;
+  const textBefore = editor.value.substring(0, pos);
+  const lines = textBefore.split('\n');
+  const line = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  
+  state.currentLine = line;
+  document.getElementById('cursorPos').textContent = `Ln ${line}, Col ${col}`;
+  updateLineNumbers();
+}
+
+function jumpToLine(lineNum) {
+  const lines = editor.value.split('\n');
+  let pos = 0;
+  for (let i = 0; i < lineNum - 1 && i < lines.length; i++) {
+    pos += lines[i].length + 1;
+  }
+  editor.focus();
+  editor.setSelectionRange(pos, pos);
+  updateCursorPosition();
+}
+
+// ========== GO TO LINE ==========
+function openGotoLine() {
+  document.getElementById('gotoModal').classList.add('open');
+  setTimeout(() => {
+    const input = document.getElementById('gotoLineInput');
+    input.value = '';
+    input.max = editor.value.split('\n').length;
+    input.focus();
+  }, 100);
+}
+
+function closeGotoLine() {
+  document.getElementById('gotoModal').classList.remove('open');
+}
+
+function gotoLine() {
+  const lineNum = parseInt(document.getElementById('gotoLineInput').value);
+  if (lineNum && lineNum > 0) {
+    jumpToLine(lineNum);
+    closeGotoLine();
+    showToast(`📍 Linha ${lineNum}`);
+  }
+}
+
+// Enter key in goto modal
+document.getElementById('gotoLineInput')?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') gotoLine();
+});
+
+// ========== TABS & MODES ==========
+function saveCurrentTab() {
+  const tab = state.activeTab;
+  if (state.mode === 'react' && tab === 'jsx') state.jsx = editor.value;
+  else if (state.mode === 'python' && tab === 'python') state.python = editor.value;
+  else if (tab === 'html') state.html = editor.value;
+  else if (tab === 'css') state.css = editor.value;
+  else if (tab === 'js') state.js = editor.value;
+}
+
+function loadEditorContent() {
+  const tab = state.activeTab;
+  if (state.mode === 'react' && tab === 'jsx') editor.value = state.jsx;
+  else if (state.mode === 'python' && tab === 'python') editor.value = state.python;
+  else if (tab === 'html') editor.value = state.html;
+  else if (tab === 'css') editor.value = state.css;
+  else if (tab === 'js') editor.value = state.js;
+  else editor.value = '';
+  updateLineNumbers();
+  updateCursorPosition();
+}
+
+function switchTab(tab) {
+  saveCurrentTab();
+  state.activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const tabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (tabEl) tabEl.classList.add('active');
+  loadEditorContent();
+}
+
+function updateTabs() {
+  const container = document.getElementById('tabsContainer');
+  const badge = document.getElementById('modeBadge');
+  
+  if (state.mode === 'html') {
+    container.innerHTML = `
+      <button class="tab ${state.activeTab==='html'?'active':''}" id="tabHtml" onclick="switchTab('html')">📄 HTML</button>
+      <button class="tab ${state.activeTab==='css'?'active':''}" id="tabCss" onclick="switchTab('css')">🎨 CSS</button>
+      <button class="tab ${state.activeTab==='js'?'active':''}" id="tabJs" onclick="switchTab('js')">⚙️ JS</button>
+    `;
+    badge.className = 'status-badge html';
+    badge.textContent = 'HTML';
+  } else if (state.mode === 'react') {
+    container.innerHTML = `
+      <button class="tab ${state.activeTab==='jsx'?'active':''}" id="tabJsx" onclick="switchTab('jsx')">⚛️ JSX</button>
+      <button class="tab ${state.activeTab==='css'?'active':''}" id="tabCss" onclick="switchTab('css')">🎨 CSS</button>
+    `;
+    badge.className = 'status-badge react';
+    badge.textContent = 'REACT';
+  } else if (state.mode === 'python') {
+    container.innerHTML = `<button class="tab active" id="tabPython" onclick="switchTab('python')">🐍 Python</button>`;
+    badge.className = 'status-badge python';
+    badge.textContent = 'PYTHON';
+  }
+}
+
+function switchMode(mode) {
+  saveCurrentTab();
+  state.mode = mode;
+  
+  document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+  document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  
+  if (mode === 'html') state.activeTab = 'html';
+  else if (mode === 'react') state.activeTab = 'jsx';
+  else if (mode === 'python') state.activeTab = 'python';
+  
+  updateTabs();
+  loadEditorContent();
+  updatePreview();
+  autoSave();
+}
+
+// ========== PREVIEW ==========
+let previewTimer = null;
+function debouncePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 400);
+}
+
+function buildDocument() {
+  if (state.mode === 'react') {
+    return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"><\/script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"><\/script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+<style>*{box-sizing:border-box;}body{margin:0;font-family:sans-serif;}${state.css}</style>
+</head><body><div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo, useContext, createContext, Fragment } = React;
+${state.jsx}
+try {
+  const _root = ReactDOM.createRoot(document.getElementById('root'));
+  _root.render(<App />);
+} catch(e) {
+  document.getElementById('root').innerHTML = '<div style="color:red;padding:20px;font-family:monospace;white-space:pre-wrap">Erro: '+e.message+'</div>';
+}
+<\/script></body></html>`;
+  }
+  
+  if (state.mode === 'python') {
+    const escapedCode = state.python.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/<\/script>/g,'<\\/script>');
+    return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+body{margin:0;background:#0f172a;color:#e2e8f0;font-family:'Consolas',monospace;padding:20px;}
+#output{white-space:pre-wrap;font-size:13px;line-height:1.6;}
+.loading{color:#60a5fa;}
+.error{color:#f87171;}
+.success{color:#4ade80;}
+</style>
+</head><body>
+<div id="output"><span class="loading">⟳ Carregando Pyodide...</span></div>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js"><\/script>
+<script>
+async function main() {
+  const out = document.getElementById('output');
+  try {
+    const pyodide = await loadPyodide();
+    out.innerHTML = '';
+    pyodide.runPython(\`
+import sys
+from io import StringIO
+sys.stdout = StringIO()
+\`);
+    pyodide.runPython(\`${escapedCode}\`);
+    const stdout = pyodide.runPython('sys.stdout.getvalue()');
+    out.innerHTML = '<span class="success">$ python3 script.py</span>\\n' + stdout;
+  } catch(e) {
+    out.innerHTML = '<span class="error">Erro: ' + e.message + '</span>';
+  }
+}
+main();
+<\/script></body></html>`;
+  }
+  
+  // HTML mode
+  const lower = state.html.trim().toLowerCase();
+  const isComplete = lower.includes('<!doctype') || (lower.includes('<html') && lower.includes('</html>'));
+  
+  if (isComplete) return state.html;
+  
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<style>${state.css}</style>
+</head><body>
+${state.html}
+<script>${state.js}<\/script>
+</body></html>`;
+}
+
+function updatePreview() {
+  const doc = buildDocument();
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  previewFrame.src = url;
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function autoSave() {
+  try {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
+  } catch(e) {}
+}
+
+// ========== FILE OPERATIONS ==========
+function copyCode() {
+  const doc = buildDocument();
+  navigator.clipboard.writeText(doc).then(() => showToast('📋 Código copiado!'));
+}
+
+function downloadFile() {
+  let content, ext, mime;
+  if (state.mode === 'python') { content = state.python; ext = 'py'; mime = 'text/plain'; }
+  else if (state.mode === 'react') { content = state.jsx; ext = 'jsx'; mime = 'text/plain'; }
+  else { content = buildDocument(); ext = 'html'; mime = 'text/html'; }
+  
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (state.title || 'playground') + '.' + ext;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇️ Arquivo baixado!');
+}
+
+function toggleFullscreen() {
+  const doc = buildDocument();
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function importFile() {
+  fileInput.click();
+}
+
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const content = ev.target.result;
+    const ext = file.name.split('.').pop().toLowerCase();
+    const name = file.name.replace(/\.[^.]+$/, '');
+    
+    if (ext === 'py') {
+      switchMode('python');
+      state.python = content;
+    } else if (ext === 'jsx' || ext === 'tsx') {
+      switchMode('react');
+      state.jsx = content;
+    } else if (ext === 'css') {
+      state.css = content;
+      if (state.mode === 'html') switchTab('css');
+    } else if (ext === 'js') {
+      state.js = content;
+      if (state.mode === 'html') switchTab('js');
+    } else {
+      // HTML or text
+      const lower = content.trim().toLowerCase();
+      if (lower.includes('<!doctype') || lower.includes('<html')) {
+        // Complete HTML document - extract parts
+        const htmlMatch = content.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+        const cssMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+        const jsMatch = content.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+        
+        state.html = htmlMatch ? htmlMatch[1].trim() : content;
+        state.css = cssMatch ? cssMatch[1].trim() : '';
+        state.js = jsMatch ? jsMatch[1].trim() : '';
+      } else {
+        state.html = content;
+      }
+      switchMode('html');
+    }
+    
+    state.title = name;
+    titleInput.value = name;
+    loadEditorContent();
+    updatePreview();
+    autoSave();
+    showToast('📂 "' + file.name + '" importado!');
+  };
+  reader.readAsText(file);
+  fileInput.value = '';
+});
+
+function toggleEditor() {
+  if (state.editorState === 'normal') {
+    state.editorState = 'expanded';
+    editorPanel.classList.add('expanded');
+    previewPanel.classList.add('hidden');
+    document.getElementById('btnToggleEditor').textContent = '◧';
+  } else if (state.editorState === 'expanded') {
+    state.editorState = 'collapsed';
+    editorPanel.classList.remove('expanded');
+    editorPanel.classList.add('collapsed');
+    previewPanel.classList.remove('hidden');
+    document.getElementById('btnToggleEditor').textContent = '◨';
+  } else {
+    state.editorState = 'normal';
+    editorPanel.classList.remove('collapsed', 'expanded');
+    previewPanel.classList.remove('hidden');
+    document.getElementById('btnToggleEditor').textContent = '⬜';
+  }
+}
+
+function clearCode() {
+  if (!confirm('Limpar todo o código atual?')) return;
+  if (state.mode === 'react') state.jsx = '';
+  else if (state.mode === 'python') state.python = '';
+  else { state.html = ''; state.css = ''; state.js = ''; }
+  loadEditorContent();
+  updatePreview();
+  autoSave();
+  showToast('🗑️ Código limpo!');
+}
+
+function resetCode() {
+  if (!confirm('Resetar para o código padrão?')) return;
+  if (state.mode === 'react') {
+    state.jsx = `function App() {\n  const [count, setCount] = React.useState(0);\n  return (\n    <div style={{padding:40,fontFamily:'sans-serif',textAlign:'center'}}>\n      <h1>⚛️ React no Playground</h1>\n      <p>Contador: <strong>{count}</strong></p>\n      <button onClick={() => setCount(count + 1)}>\n        Incrementar\n      </button>\n    </div>\n  );\n}`;
+  } else if (state.mode === 'python') {
+    state.python = `# Python\ndados = ["João", "Maria", "Pedro"]\nfor i, nome in enumerate(dados, 1):\n    print(f"{i}. {nome}")`;
+  } else {
+    state.html = `<div style="max-width:600px;margin:40px auto;padding:20px;">\n  <h1>Bem-vindo!</h1>\n  <p>Cole seu código aqui.</p>\n</div>`;
+    state.css = '';
+    state.js = '';
+  }
+  loadEditorContent();
+  updatePreview();
+  autoSave();
+  showToast('🔄 Código resetado!');
+}
+
+// ========== PROJECT MANAGEMENT ==========
+function getProjects() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function setProjects(list) {
+  localStorage.setItem(LS_KEY, JSON.stringify(list));
+}
+
+function saveToLocal() {
+  const projects = getProjects();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const item = {
+    id,
+    title: state.title || 'Sem titulo',
+    mode: state.mode,
+    html: state.html,
+    css: state.css,
+    js: state.js,
+    jsx: state.jsx,
+    python: state.python,
+    date: new Date().toISOString()
+  };
+  projects.unshift(item);
+  setProjects(projects);
+  showToast('💾 Projeto salvo!');
+}
+
+function openSavedModal() {
+  document.getElementById('savedModal').classList.add('open');
+  renderSavedList();
+}
+
+function closeSavedModal() {
+  document.getElementById('savedModal').classList.remove('open');
+}
+
+function renderSavedList() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const projects = getProjects().filter(s => s.title.toLowerCase().includes(query));
+  const container = document.getElementById('savedList');
+  
+  if (projects.length === 0) {
+    container.innerHTML = '<p style="text-align:center;color:var(--text2);font-size:12px;padding:20px;">Nenhum projeto salvo.</p>';
+    return;
+  }
+  
+  container.innerHTML = projects.map(s => `
+    <div class="snippet-item" onclick="loadProject('${s.id}')">
+      <div>
+        <div class="name">${escapeHtml(s.title)}</div>
+        <div class="meta">${s.mode || 'html'} • ${new Date(s.date).toLocaleDateString('pt-BR')} ${new Date(s.date).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div class="snippet-actions">
+        <button class="btn-icon" onclick="event.stopPropagation();renameProject('${s.id}')" title="Renomear">✏️</button>
+        <button class="btn-icon" onclick="event.stopPropagation();deleteProject('${s.id}')" title="Excluir">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function loadProject(id) {
+  const projects = getProjects();
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  
+  Object.assign(state, {
+    title: p.title,
+    mode: p.mode || 'html',
+    html: p.html || '',
+    css: p.css || '',
+    js: p.js || '',
+    jsx: p.jsx || '',
+    python: p.python || ''
+  });
+  
+  titleInput.value = state.title;
+  switchMode(state.mode);
+  closeSavedModal();
+  showToast('📂 "' + p.title + '" carregado!');
+}
+
+function deleteProject(id) {
+  if (!confirm('Excluir este projeto?')) return;
+  const projects = getProjects().filter(s => s.id !== id);
+  setProjects(projects);
+  renderSavedList();
+  showToast('🗑️ Projeto excluído!');
+}
+
+function renameProject(id) {
+  const projects = getProjects();
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+  const newName = prompt('Novo nome:', p.title);
+  if (newName && newName.trim()) {
+    p.title = newName.trim();
+    setProjects(projects);
+    renderSavedList();
+    showToast('✏️ Renomeado!');
+  }
+}
+
+// ========== AI HELPER ==========
+function openAIHelper() {
+  document.getElementById('aiModal').classList.add('open');
+  document.getElementById('aiResponse').innerHTML = '';
+  setTimeout(() => document.getElementById('aiPrompt').focus(), 100);
+}
+
+function closeAIHelper() {
+  document.getElementById('aiModal').classList.remove('open');
+}
+
+function askAI() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) {
+    showToast('⚠️ Digite uma pergunta primeiro');
+    return;
+  }
+  
+  const responseDiv = document.getElementById('aiResponse');
+  responseDiv.innerHTML = '<div class="loading"></div> <span style="color:var(--text2);">Pensando...</span>';
+  
+  // Simulate AI response (replace with real API call)
+  setTimeout(() => {
+    const mockResponse = `🤖 Resposta da IA:\n\nPara "${prompt}", aqui está uma sugestão:\n\n// Exemplo de código\nconst elemento = document.querySelector('.minha-div');\nelemento.style.display = 'flex';\nelemento.style.justifyContent = 'center';\nelemento.style.alignItems = 'center';\n\n💡 Dica: Você também pode usar Flexbox ou Grid para centralização mais robusta!\n\n⚠️ Nota: Esta é uma resposta simulada. Para respostas reais, integre uma API de IA (OpenAI, Claude, Gemini, etc).`;
+    
+    responseDiv.innerHTML = `<div class="ai-response">${escapeHtml(mockResponse)}</div>`;
+  }, 1500);
+}
+
+// ========== UTILS ==========
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>

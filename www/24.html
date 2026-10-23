@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PWA Scanner ZIP Jurídico</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    header {
+      background: #020617;
+      padding: 14px;
+      border-bottom: 1px solid #334155;
+    }
+    main {
+      padding: 14px;
+    }
+    h1 {
+      font-size: 20px;
+      margin: 0 0 8px;
+      color: #93c5fd;
+    }
+    h2 {
+      color: #bfdbfe;
+      font-size: 18px;
+    }
+    input, button, textarea, select {
+      font-size: 15px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin: 6px 4px 6px 0;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #475569;
+    }
+    button.danger {
+      background: #b91c1c;
+    }
+    .card {
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px;
+      margin: 12px 0;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    textarea {
+      width: 100%;
+      min-height: 280px;
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      box-sizing: border-box;
+      white-space: pre;
+    }
+    pre {
+      background: #020617;
+      color: #e5e7eb;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .ok { color: #86efac; }
+    .warn { color: #fde68a; }
+    .bad { color: #fca5a5; }
+    .file-list {
+      max-height: 320px;
+      overflow: auto;
+      background: #020617;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    .file-item {
+      padding: 6px;
+      border-bottom: 1px solid #1f2937;
+      cursor: pointer;
+      word-break: break-all;
+    }
+    .file-item:hover {
+      background: #1e293b;
+    }
+    .small {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .search-box {
+      width: 100%;
+      box-sizing: border-box;
+      background: #020617;
+      color: white;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px;
+      margin: 6px 0;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>🔎 PWA Scanner ZIP Jurídico</h1>
+  <div class="small">Importa ZIP, lista arquivos, lê conteúdo, encontra termos e gera relatório.</div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>1. Importar ZIP</h2>
+    <input type="file" id="zipInput" accept=".zip">
+    <br>
+    <button onclick="carregarZip()">Carregar ZIP</button>
+    <button class="secondary" onclick="gerarRelatorio()">Gerar relatório</button>
+    <button class="danger" onclick="limparTudo()">Limpar</button>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>2. Arquivos encontrados</h2>
+      <input class="search-box" id="filtroArquivo" placeholder="Filtrar arquivo. Ex: package, src, replit, vite" oninput="renderArquivos()">
+      <div id="listaArquivos" class="file-list">Nenhum ZIP carregado.</div>
+    </div>
+
+    <div class="card">
+      <h2>3. Conteúdo do arquivo</h2>
+      <div id="arquivoAtual" class="small">Nenhum arquivo selecionado.</div>
+      <textarea id="conteudoArquivo" readonly></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. Buscar termos dentro dos arquivos</h2>
+    <input class="search-box" id="termosBusca" value="replit,.replit,replit.nix,package.json,vite,react,capacitor,netlify,supabase,neon,manifest,service-worker,dist,build,error,TODO,FIXME" placeholder="Termos separados por vírgula">
+    <button onclick="buscarTermos()">Buscar termos</button>
+    <pre id="resultadoBusca">Resultado da busca aparecerá aqui.</pre>
+  </div>
+
+  <div class="card">
+    <h2>5. Diagnóstico automático</h2>
+    <pre id="diagnostico">Carregue um ZIP para diagnosticar.</pre>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+  let zipGlobal = null;
+  let arquivos = [];
+  let conteudosTexto = {};
+
+  const extensoesTexto = [
+    '.txt', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.html', '.css',
+    '.scss', '.xml', '.yml', '.yaml', '.toml', '.env', '.sql', '.gitignore',
+    '.nix', '.config', '.cjs', '.mjs'
+  ];
+
+  function ehTexto(nome) {
+    const lower = nome.toLowerCase();
+    if (lower.includes('package.json')) return true;
+    if (lower.endsWith('/')) return false;
+    return extensoesTexto.some(ext => lower.endsWith(ext));
+  }
+
+  async function carregarZip() {
+    const input = document.getElementById('zipInput');
+    if (!input.files || !input.files[0]) {
+      alert('Selecione um arquivo ZIP primeiro.');
+      return;
+    }
+
+    const file = input.files[0];
+    const buffer = await file.arrayBuffer();
+
+    zipGlobal = await JSZip.loadAsync(buffer);
+    arquivos = [];
+    conteudosTexto = {};
+
+    zipGlobal.forEach((path, entry) => {
+      arquivos.push({
+        nome: path,
+        dir: entry.dir
+      });
+    });
+
+    arquivos.sort((a, b) => a.nome.localeCompare(b.nome));
+
+    for (const item of arquivos) {
+      if (!item.dir && ehTexto(item.nome)) {
+        try {
+          conteudosTexto[item.nome] = await zipGlobal.file(item.nome).async('string');
+        } catch (e) {
+          conteudosTexto[item.nome] = '[ERRO AO LER COMO TEXTO]';
+        }
+      }
+    }
+
+    renderArquivos();
+    diagnosticar();
+  }
+
+  function renderArquivos() {
+    const filtro = document.getElementById('filtroArquivo').value.toLowerCase();
+    const el = document.getElementById('listaArquivos');
+
+    if (!arquivos.length) {
+      el.innerHTML = 'Nenhum ZIP carregado.';
+      return;
+    }
+
+    const filtrados = arquivos.filter(a => a.nome.toLowerCase().includes(filtro));
+
+    el.innerHTML = filtrados.map(a => {
+      const tipo = a.dir ? '📁' : ehTexto(a.nome) ? '📄' : '📦';
+      return '<div class="file-item" onclick="abrirArquivo(' + JSON.stringify(a.nome).replace(/"/g, '&quot;') + ')">' + tipo + ' ' + a.nome + '</div>';
+    }).join('');
+  }
+
+  function abrirArquivo(nome) {
+    document.getElementById('arquivoAtual').textContent = nome;
+    const area = document.getElementById('conteudoArquivo');
+
+    if (conteudosTexto[nome] !== undefined) {
+      area.value = conteudosTexto[nome];
+    } else {
+      area.value = '[Arquivo binário, pasta, ou tipo não lido como texto]';
+    }
+  }
+
+  function buscarTermos() {
+    const termos = document.getElementById('termosBusca').value
+      .split(',')
+      .map(t => t.trim().toLowerCase())
+      .filter(Boolean);
+
+    let saida = '';
+
+    Object.entries(conteudosTexto).forEach(([nome, conteudo]) => {
+      const linhas = conteudo.split(/\r?\n/);
+      linhas.forEach((linha, idx) => {
+        const low = linha.toLowerCase();
+        termos.forEach(termo => {
+          if (low.includes(termo)) {
+            saida += nome + ':' + (idx + 1) + ' | termo: ' + termo + '\n';
+            saida += linha.slice(0, 300) + '\n\n';
+          }
+        });
+      });
+    });
+
+    if (!saida) saida = 'Nenhum termo encontrado.';
+    document.getElementById('resultadoBusca').textContent = saida;
+  }
+
+  function temArquivo(parte) {
+    return arquivos.some(a => a.nome.toLowerCase().includes(parte.toLowerCase()));
+  }
+
+  function temConteudo(parte) {
+    const p = parte.toLowerCase();
+    return Object.values(conteudosTexto).some(c => c.toLowerCase().includes(p));
+  }
+
+  function diagnosticar() {
+    let d = '';
+    d += '=== DIAGNÓSTICO ===\n\n';
+    d += 'Total de itens no ZIP: ' + arquivos.length + '\n';
+    d += 'Arquivos de texto lidos: ' + Object.keys(conteudosTexto).length + '\n\n';
+
+    const hasPackage = temArquivo('package.json');
+    const hasSrc = temArquivo('src/');
+    const hasDist = temArquivo('dist/') || temArquivo('assets/');
+    const hasVite = temArquivo('vite.config') || temConteudo('"vite"') || temConteudo('vite build');
+    const hasReact = temConteudo('"react"') || temArquivo('.tsx') || temArquivo('App.tsx') || temArquivo('main.tsx');
+    const hasNext = temArquivo('next.config') || temConteudo('"next"');
+    const hasCapacitor = temArquivo('capacitor.config') || temConteudo('@capacitor') || temArquivo('android/');
+    const hasReplit = temArquivo('.replit') || temArquivo('replit.nix') || temArquivo('.config/') || temConteudo('replit');
+    const hasNetlify = temArquivo('netlify.toml') || temConteudo('netlify');
+    const hasManifest = temArquivo('manifest.json');
+    const hasServiceWorker = temArquivo('service-worker') || temArquivo('sw.js') || temConteudo('serviceWorker');
+    const hasSupabase = temConteudo('supabase') || temArquivo('supabase/');
+    const hasNeon = temConteudo('neon');
+
+    d += hasPackage ? '✅ Tem package.json\n' : '❌ Não achei package.json\n';
+    d += hasSrc ? '✅ Tem pasta src/ ou código fonte\n' : '⚠️ Não achei src/ claramente\n';
+    d += hasDist ? '⚠️ Tem dist/assets. Pode ser build compilado.\n' : '✅ Não parece ser só dist/build\n';
+    d += hasVite ? '✅ Indício de Vite\n' : '⚠️ Não confirmei Vite\n';
+    d += hasReact ? '✅ Indício de React\n' : '⚠️ Não confirmei React\n';
+    d += hasNext ? '⚠️ Indício de Next.js\n' : '';
+    d += hasCapacitor ? '⚠️ Indício de Capacitor/APK\n' : '';
+    d += hasReplit ? '⚠️ Tem marcas/arquivos ligados ao Replit\n' : '✅ Não achei marcas óbvias do Replit\n';
+    d += hasNetlify ? '✅ Indício de Netlify\n' : '';
+    d += hasManifest ? '✅ Tem manifest.json\n' : '⚠️ Não achei manifest.json\n';
+    d += hasServiceWorker ? '✅ Tem service worker\n' : '⚠️ Não achei service worker\n';
+    d += hasSupabase ? '⚠️ Indício de Supabase\n' : '';
+    d += hasNeon ? '⚠️ Indício de Neon\n' : '';
+
+    d += '\n=== INTERPRETAÇÃO ===\n';
+
+    if (hasPackage && hasSrc && hasVite && hasReact) {
+      d += 'Parece ser um projeto fonte React + Vite. Melhor caminho: corrigir package.json/build e publicar como web/PWA.\n';
+      d += 'Netlify provável: build command npm run build, publish directory dist.\n';
+    } else if (!hasPackage && hasDist) {
+      d += 'Parece ser uma versão compilada. Pode abrir como site, mas é ruim para editar.\n';
+    } else if (hasNext) {
+      d += 'Parece Next.js. Vercel costuma ser mais fácil que Netlify.\n';
+    } else {
+      d += 'Tipo não confirmado. Precisa olhar package.json e estrutura.\n';
+    }
+
+    d += '\n=== SOBRE REPLIT ===\n';
+    d += 'Arquivos como .replit e replit.nix geralmente são configuração do ambiente, não necessariamente o erro principal.\n';
+    d += 'Não apague cegamente antes de saber se o build funciona.\n';
+
+    document.getElementById('diagnostico').textContent = d;
+  }
+
+  function gerarRelatorio() {
+    diagnosticar();
+    buscarTermos();
+
+    const rel = [
+      document.getElementById('diagnostico').textContent,
+      '\n\n=== BUSCA ===\n',
+      document.getElementById('resultadoBusca').textContent,
+      '\n\n=== LISTA DE ARQUIVOS ===\n',
+      arquivos.map(a => a.nome).join('\n')
+    ].join('');
+
+    navigator.clipboard.writeText(rel).then(() => {
+      alert('Relatório copiado para a área de transferência.');
+    }).catch(() => {
+      document.getElementById('conteudoArquivo').value = rel;
+      document.getElementById('arquivoAtual').textContent = 'Relatório gerado';
+      alert('Não consegui copiar automático. Coloquei o relatório na caixa de conteúdo.');
+    });
+  }
+
+  function limparTudo() {
+    zipGlobal = null;
+    arquivos = [];
+    conteudosTexto = {};
+    document.getElementById('listaArquivos').innerHTML = 'Nenhum ZIP carregado.';
+    document.getElementById('conteudoArquivo').value = '';
+    document.getElementById('arquivoAtual').textContent = 'Nenhum arquivo selecionado.';
+    document.getElementById('resultadoBusca').textContent = 'Resultado da busca aparecerá aqui.';
+    document.getElementById('diagnostico').textContent = 'Carregue um ZIP para diagnosticar.';
+  }
+</script>
+</body>
+</html>

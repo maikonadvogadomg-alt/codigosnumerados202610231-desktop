@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#141c0d">
+<title>Visualizador de Markdown</title>
+<!-- Marked: parser de Markdown -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<!-- Highlight.js: cor nos códigos -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/styles/github-dark.min.css">
+<script src="https://cdn.jsdelivr.net/npm/highlight.js@11.9.0/lib/highlight.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#141c0d; --panel:#1c2714; --border:#2d4a1e;
+  --accent:#5aab56; --accent2:#7ec87a; --text:#e2e8f0;
+  --muted:#6b8f68; --code-bg:#0d1309; --user-bg:#1a3a14;
+  --err:#f87171; --warn:#fbbf24;
+}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg); color:var(--text);
+  height:100dvh; display:flex; flex-direction:column; overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
+
+/* HEADER */
+header{
+  flex-shrink:0; display:flex; align-items:center; gap:6px;
+  padding:10px 12px; background:var(--panel);
+  border-bottom:1px solid var(--border); min-height:50px;
+}
+header h1{font-size:14px; font-weight:700; flex:1; color:var(--accent2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.btn{
+  height:36px; padding:0 12px; border-radius:9px;
+  border:1px solid var(--border); background:rgba(90,171,86,0.12);
+  color:var(--accent2); font-size:12px; cursor:pointer;
+  white-space:nowrap; display:flex; align-items:center; gap:5px;
+}
+.btn:hover{background:rgba(90,171,86,0.22)}
+.btn.danger{color:var(--err); background:rgba(248,113,113,0.08)}
+.btn.danger:hover{background:rgba(248,113,113,0.18)}
+.icon-btn{
+  width:36px; height:36px; display:flex; align-items:center; justify-content:center;
+  border-radius:9px; border:1px solid var(--border); background:var(--code-bg);
+  color:var(--muted); cursor:pointer; font-size:16px; flex-shrink:0;
+}
+.icon-btn:hover{color:var(--accent2); border-color:var(--accent)}
+.icon-btn.active{background:rgba(90,171,86,0.18); color:var(--accent2); border-color:var(--accent)}
+
+/* SEARCH BAR */
+#searchBar{
+  flex-shrink:0; padding:8px 12px; background:var(--panel);
+  border-bottom:1px solid var(--border); display:none; gap:6px;
+}
+#searchBar.show{display:flex}
+#searchInput{
+  flex:1; height:36px; padding:0 12px;
+  background:var(--code-bg); border:1px solid var(--border);
+  border-radius:9px; color:var(--text); font-size:13px; outline:none;
+}
+#searchInput:focus{border-color:var(--accent)}
+#searchCount{font-size:11px; color:var(--muted); display:flex; align-items:center; padding:0 6px}
+
+/* LAYOUT */
+.layout{flex:1; display:flex; overflow:hidden; position:relative}
+
+/* SIDEBAR / TOC */
+#toc{
+  width:280px; flex-shrink:0; background:var(--panel);
+  border-right:1px solid var(--border); overflow-y:auto;
+  padding:12px 8px; transition:transform 0.25s, width 0.25s;
+}
+#toc.hidden{width:0; padding:0; overflow:hidden}
+.toc-title{
+  font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+  color:var(--muted); font-weight:700; padding:6px 10px; margin-bottom:4px;
+}
+.toc-item{
+  display:flex; align-items:center; gap:4px;
+  padding:6px 10px; border-radius:6px; cursor:pointer;
+  font-size:12px; color:var(--text); line-height:1.4;
+  border-left:2px solid transparent;
+}
+.toc-item:hover{background:rgba(90,171,86,0.1); color:var(--accent2)}
+.toc-item.active{background:rgba(90,171,86,0.15); color:var(--accent2); border-left-color:var(--accent)}
+.toc-item.h1{font-weight:700; padding-left:10px}
+.toc-item.h2{padding-left:22px}
+.toc-item.h3{padding-left:34px; font-size:11px}
+.toc-item.h4{padding-left:46px; font-size:11px; color:var(--muted)}
+.toc-item.h5,.toc-item.h6{padding-left:58px; font-size:10px; color:var(--muted)}
+.toc-text{flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.toc-copy{
+  width:22px; height:22px; border-radius:5px; border:none;
+  background:transparent; color:var(--muted); cursor:pointer; font-size:11px;
+  display:none; align-items:center; justify-content:center; flex-shrink:0;
+}
+.toc-item:hover .toc-copy{display:flex}
+.toc-copy:hover{background:rgba(90,171,86,0.2); color:var(--accent2)}
+
+/* CONTEÚDO */
+#content{
+  flex:1; overflow-y:auto; padding:24px 32px 60px 32px;
+  scroll-behavior:smooth; max-width:100%;
+}
+#emptyState{
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  height:100%; text-align:center; padding:24px; color:var(--muted);
+}
+#emptyState .big{font-size:64px; margin-bottom:14px}
+#emptyState h2{color:var(--accent2); font-size:18px; margin-bottom:10px}
+#emptyState p{font-size:13px; line-height:1.6; max-width:380px; margin-bottom:14px}
+#dropZone{
+  border:2px dashed var(--border); border-radius:12px;
+  padding:30px 20px; cursor:pointer; transition:all 0.2s;
+  background:var(--panel); width:100%; max-width:380px;
+}
+#dropZone:hover, #dropZone.dragover{
+  border-color:var(--accent); background:rgba(90,171,86,0.08);
+}
+#dropZone .icon{font-size:32px; margin-bottom:8px}
+
+/* MARKDOWN RENDERIZADO */
+.md h1,.md h2,.md h3,.md h4,.md h5,.md h6{
+  color:var(--accent2); margin:24px 0 12px 0; line-height:1.3;
+  scroll-margin-top:20px; position:relative;
+}
+.md h1{font-size:24px; border-bottom:2px solid var(--border); padding-bottom:8px}
+.md h2{font-size:20px; border-bottom:1px solid var(--border); padding-bottom:6px}
+.md h3{font-size:17px}
+.md h4{font-size:15px}
+.md h5,.md h6{font-size:13px}
+.md h1:first-child,.md h2:first-child{margin-top:0}
+
+/* Botão de copiar seção em cada heading */
+.section-copy{
+  position:absolute; right:0; top:50%; transform:translateY(-50%);
+  display:none; gap:4px; align-items:center;
+}
+.md h1:hover .section-copy,.md h2:hover .section-copy,
+.md h3:hover .section-copy,.md h4:hover .section-copy{display:flex}
+.section-copy button{
+  font-size:10px; padding:4px 8px; border-radius:5px;
+  border:1px solid var(--border); background:var(--panel);
+  color:var(--muted); cursor:pointer;
+}
+.section-copy button:hover{color:var(--accent2); border-color:var(--accent)}
+
+.md p{margin:10px 0; line-height:1.7; font-size:14px}
+.md strong{color:var(--accent2)}
+.md em{color:#a5c8a2; font-style:italic}
+.md a{color:#60a5fa; text-decoration:underline; word-break:break-all}
+.md ul,.md ol{margin:10px 0 10px 24px; line-height:1.7}
+.md li{margin:4px 0}
+.md blockquote{
+  border-left:3px solid var(--accent); padding:8px 14px;
+  margin:12px 0; background:rgba(90,171,86,0.06);
+  color:#a5c8a2; border-radius:0 6px 6px 0;
+}
+.md hr{border:none; border-top:1px solid var(--border); margin:20px 0}
+.md table{
+  border-collapse:collapse; margin:14px 0; font-size:13px;
+  display:block; overflow-x:auto; max-width:100%;
+}
+.md th,.md td{
+  border:1px solid var(--border); padding:8px 12px; text-align:left;
+}
+.md th{background:var(--panel); color:var(--accent2); font-weight:700}
+.md tr:nth-child(even){background:rgba(255,255,255,0.02)}
+.md img{max-width:100%; border-radius:6px; margin:10px 0}
+
+/* Inline code */
+.md :not(pre) > code{
+  background:var(--code-bg); padding:2px 6px; border-radius:4px;
+  font-family:'Consolas','Courier New',monospace; font-size:12px;
+  color:#a8d5a2; border:1px solid var(--border);
+}
+
+/* Code block wrapper */
+.code-wrap{
+  margin:14px 0; border-radius:8px; overflow:hidden;
+  border:1px solid var(--border); background:var(--code-bg);
+}
+.code-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 12px; background:#0a1008; font-size:10px;
+  font-family:monospace; color:var(--muted);
+  border-bottom:1px solid var(--border);
+}
+.code-lang{text-transform:uppercase; letter-spacing:0.05em}
+.code-copy{
+  background:none; border:none; color:var(--muted); cursor:pointer;
+  font-size:10px; font-family:inherit; display:flex; align-items:center; gap:4px;
+  padding:2px 6px; border-radius:4px;
+}
+.code-copy:hover{color:var(--accent2); background:rgba(90,171,86,0.1)}
+.md pre{
+  margin:0; padding:12px 14px; overflow-x:auto;
+  font-size:12px; line-height:1.55;
+  font-family:'Consolas','Courier New',monospace;
+}
+.md pre code{background:transparent !important; padding:0; color:#d4f1d4}
+
+/* Highlight de busca */
+mark.search-hit{background:#fbbf24; color:#000; padding:0 2px; border-radius:2px}
+mark.search-hit.current{background:#f87171; color:#fff}
+
+/* Toast */
+.toast{
+  position:fixed; bottom:30px; left:50%; transform:translateX(-50%);
+  background:var(--panel); border:1px solid var(--accent);
+  color:var(--accent2); padding:10px 18px; border-radius:10px;
+  font-size:12px; z-index:9999; box-shadow:0 4px 14px rgba(0,0,0,0.5);
+  opacity:0; transition:opacity 0.2s; pointer-events:none;
+}
+.toast.show{opacity:1}
+.toast.err{border-color:var(--err); color:var(--err)}
+
+/* MOBILE */
+@media (max-width:768px){
+  #toc{
+    position:absolute; left:0; top:0; bottom:0; z-index:50;
+    transform:translateX(-100%); width:80%; max-width:300px;
+    box-shadow:4px 0 20px rgba(0,0,0,0.5);
+  }
+  #toc.show-mobile{transform:translateX(0)}
+  #content{padding:16px 18px 50px 18px}
+  .md h1{font-size:20px} .md h2{font-size:17px} .md h3{font-size:15px}
+  .section-copy{display:flex !important; opacity:0.6}
+  header h1{font-size:13px}
+  .btn span.lbl{display:none}
+}
+
+::-webkit-scrollbar{width:6px; height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border); border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+
+/* Backdrop mobile */
+.backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,0.5);
+  z-index:40; display:none;
+}
+.backdrop.show{display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="icon-btn" id="tocToggle" title="Mostrar/ocultar árvore" onclick="toggleTOC()">📑</button>
+  <h1 id="docTitle">Visualizador de Markdown</h1>
+  <button class="icon-btn" title="Buscar (Ctrl+F)" onclick="toggleSearch()">🔍</button>
+  <button class="btn" onclick="document.getElementById('fileIn').click()">
+    📂 <span class="lbl">Abrir</span>
+  </button>
+  <button class="btn" id="exportBtn" onclick="exportHTML()" style="display:none">
+    💾 <span class="lbl">Exportar</span>
+  </button>
+  <input type="file" id="fileIn" accept=".md,.markdown,.txt,.mdx" style="display:none" onchange="loadFile(event)">
+</header>
+
+<div id="searchBar">
+  <input id="searchInput" placeholder="Buscar no documento... (Enter = próximo, Shift+Enter = anterior)"
+         oninput="doSearch()" onkeydown="searchKey(event)">
+  <span id="searchCount">0/0</span>
+  <button class="icon-btn" onclick="toggleSearch()" title="Fechar">✕</button>
+</div>
+
+<div class="layout">
+  <aside id="toc">
+    <div class="toc-title">📑 Sumário</div>
+    <div id="tocList">
+      <div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 10px">
+        Abra um arquivo .md pra ver o sumário aqui
+      </div>
+    </div>
+  </aside>
+
+  <div class="backdrop" id="backdrop" onclick="toggleTOC()"></div>
+
+  <main id="content">
+    <div id="emptyState">
+      <div class="big">📄</div>
+      <h2>Visualizador de Markdown</h2>
+      <p>
+        Abra qualquer arquivo <strong>.md</strong> (Markdown) pra visualizar bonito,
+        com sumário lateral, busca e botões pra copiar cada pedaço.<br><br>
+        Perfeito pra trazer documentação de projetos pra conversar com a IA.
+      </p>
+      <div id="dropZone" onclick="document.getElementById('fileIn').click()">
+        <div class="icon">📂</div>
+        <strong style="color:var(--accent2)">Clique aqui ou arraste um arquivo</strong>
+        <div style="font-size:11px; color:var(--muted); margin-top:6px">
+          Suporta: .md, .markdown, .mdx, .txt
+        </div>
+      </div>
+      <p style="margin-top:18px; font-size:11px">
+        💡 Você também pode <strong>colar texto Markdown</strong> direto: Ctrl+V em qualquer lugar
+      </p>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+let rawMarkdown = '';
+let currentFileName = '';
+let searchHits = [];
+let searchIdx = 0;
+
+/*══════════════════════════════════════════════════════════════════
+  CONFIG MARKED
+══════════════════════════════════════════════════════════════════*/
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+  headerIds: true,
+  mangle: false,
+});
+
+// Renderer customizado pra blocos de código
+const renderer = new marked.Renderer();
+renderer.code = function(code, lang) {
+  const language = (lang || '').toLowerCase().trim() || 'texto';
+  let highlighted = escapeHTML(code);
+  try {
+    if (lang && hljs.getLanguage(lang)) {
+      highlighted = hljs.highlight(code, { language: lang }).value;
+    } else {
+      highlighted = hljs.highlightAuto(code).value;
+    }
+  } catch(e) { /* fallback pra escape */ }
+
+  const safeCode = escapeAttr(code);
+  return (
+    '<div class="code-wrap">'+
+      '<div class="code-head">'+
+        '<span class="code-lang">'+language+'</span>'+
+        '<button class="code-copy" data-code="'+safeCode+'">📋 Copiar código</button>'+
+      '</div>'+
+      '<pre><code class="hljs language-'+language+'">'+highlighted+'</code></pre>'+
+    '</div>'
+  );
+};
+
+// Headings com botões de copiar seção
+renderer.heading = function(text, level, raw) {
+  const slug = slugify(raw);
+  return (
+    '<h'+level+' id="'+slug+'" data-heading="'+level+'" data-raw="'+escapeAttr(raw)+'">'+
+      text+
+      '<span class="section-copy">'+
+        '<button onclick="copySection(\''+slug+'\')" title="Copiar essa seção inteira">📋 Seção</button>'+
+        '<button onclick="copySectionMD(\''+slug+'\')" title="Copiar a seção em Markdown">📝 MD</button>'+
+      '</span>'+
+    '</h'+level+'>'
+  );
+};
+
+marked.use({ renderer });
+
+/*══════════════════════════════════════════════════════════════════
+  CARREGAR ARQUIVO
+══════════════════════════════════════════════════════════════════*/
+function loadFile(e) {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  e.target.value = '';
+  readFile(file);
+}
+
+function readFile(file) {
+  currentFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    rawMarkdown = ev.target.result || '';
+    render();
+    toast('✓ '+file.name+' carregado');
+  };
+  reader.onerror = () => toast('Erro ao ler arquivo','err');
+  reader.readAsText(file, 'UTF-8');
+}
+
+/*══════════════════════════════════════════════════════════════════
+  RENDERIZAR
+══════════════════════════════════════════════════════════════════*/
+function render() {
+  if (!rawMarkdown) return;
+  const html = marked.parse(rawMarkdown);
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="md" id="md">'+html+'</div>';
+  document.getElementById('exportBtn').style.display = '';
+  document.getElementById('docTitle').textContent = currentFileName || 'Documento';
+  buildTOC();
+  bindCodeCopies();
+}
+
+function buildTOC() {
+  const list = document.getElementById('tocList');
+  const headings = document.querySelectorAll('#md h1, #md h2, #md h3, #md h4, #md h5, #md h6');
+  if (!headings.length) {
+    list.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 10px">Documento sem títulos</div>';
+    return;
+  }
+  list.innerHTML = '';
+  headings.forEach(h => {
+    const lvl = h.tagName.toLowerCase();
+    const id  = h.id;
+    const txt = h.dataset.raw || h.textContent.replace(/📋.*$/,'').trim();
+    const item = document.createElement('div');
+    item.className = 'toc-item ' + lvl;
+    item.innerHTML =
+      '<span class="toc-text" title="'+escapeAttr(txt)+'">'+escapeHTML(txt)+'</span>'+
+      '<button class="toc-copy" title="Copiar essa seção" onclick="event.stopPropagation();copySection(\''+id+'\')">📋</button>';
+    item.onclick = () => {
+      document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
+      if (window.innerWidth <= 768) toggleTOC();
+      document.querySelectorAll('.toc-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+    };
+    list.appendChild(item);
+  });
+}
+
+function bindCodeCopies() {
+  document.querySelectorAll('.code-copy').forEach(btn => {
+    btn.onclick = () => {
+      const code = btn.dataset.code || '';
+      navigator.clipboard.writeText(decodeAttr(code)).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '✓ Copiado!';
+        setTimeout(() => btn.innerHTML = orig, 1500);
+      });
+    };
+  });
+}
+
+/*══════════════════════════════════════════════════════════════════
+  COPIAR SEÇÃO
+══════════════════════════════════════════════════════════════════*/
+function copySection(headingId, asMarkdown) {
+  const h = document.getElementById(headingId);
+  if (!h) return;
+  const level = parseInt(h.dataset.heading || '1');
+
+  // Coleta todos os elementos da seção (até o próximo heading de nível <= )
+  const elements = [h];
+  let el = h.nextElementSibling;
+  while (el) {
+    if (/^H[1-6]$/.test(el.tagName)) {
+      const lvl = parseInt(el.dataset.heading || el.tagName[1]);
+      if (lvl <= level) break;
+    }
+    elements.push(el);
+    el = el.nextElementSibling;
+  }
+
+  let text;
+  if (asMarkdown) {
+    text = extractMarkdownSection(headingId);
+  } else {
+    text = elements.map(e => extractText(e)).join('\n\n').trim();
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    toast('✓ Seção copiada ('+text.length+' caracteres)');
+  }).catch(() => toast('Erro ao copiar','err'));
+}
+
+function copySectionMD(headingId) {
+  copySection(headingId, true);
+}
+
+function extractText(el) {
+  // Mantém quebras de bloco de código
+  if (el.classList?.contains('code-wrap')) {
+    const lang = el.querySelector('.code-lang')?.textContent || '';
+    const code = decodeAttr(el.querySelector('.code-copy')?.dataset.code || '');
+    return '```'+lang+'\n'+code+'\n```';
+  }
+  // Heading
+  if (/^H[1-6]$/.test(el.tagName)) {
+    const lvl = parseInt(el.tagName[1]);
+    const raw = el.dataset.raw || el.textContent.replace(/📋.*$/,'').trim();
+    return '#'.repeat(lvl)+' '+raw;
+  }
+  return el.innerText || el.textContent || '';
+}
+
+/* Extrai a seção do MD bruto (mais fiel) */
+function extractMarkdownSection(headingId) {
+  const lines = rawMarkdown.split('\n');
+  const headings = [];
+  lines.forEach((line, i) => {
+    const m = line.match(/^(#{1,6})\s+(.+?)\s*$/);
+    if (m) headings.push({ idx:i, level:m[1].length, text:m[2], slug:slugify(m[2]) });
+  });
+  const start = headings.find(h => h.slug === headingId);
+  if (!start) return '';
+  const next = headings.find(h => h.idx > start.idx && h.level <= start.level);
+  const endIdx = next ? next.idx : lines.length;
+  return lines.slice(start.idx, endIdx).join('\n').trim();
+}
+
+/*══════════════════════════════════════════════════════════════════
+  EXPORTAR HTML
+══════════════════════════════════════════════════════════════════*/
+function exportHTML() {
+  if (!rawMarkdown) return;
+  const md = document.getElementById('md');
+  if (!md) return;
+
+  // CSS embutido pra o HTML ficar standalone bonito
+  const css = `
+    body{font-family:Georgia,Cambria,'Times New Roman',serif;max-width:860px;margin:30px auto;padding:0 24px;color:#222;line-height:1.7;background:#fafafa}
+    h1,h2,h3,h4{color:#2d4a1e;margin-top:28px;margin-bottom:12px}
+    h1{border-bottom:2px solid #5aab56;padding-bottom:8px}
+    h2{border-bottom:1px solid #ccc;padding-bottom:6px}
+    a{color:#0066cc}
+    code{background:#eee;padding:2px 5px;border-radius:3px;font-family:Consolas,monospace;font-size:90%}
+    pre{background:#0d1309;color:#a8d5a2;padding:14px;border-radius:6px;overflow-x:auto;font-size:13px;line-height:1.5}
+    pre code{background:transparent;color:inherit;padding:0}
+    blockquote{border-left:4px solid #5aab56;padding:6px 14px;margin:14px 0;background:#f0f7ed;color:#444}
+    table{border-collapse:collapse;margin:14px 0;width:100%}
+    th,td{border:1px solid #ccc;padding:8px 12px;text-align:left}
+    th{background:#e8f5e9}
+    .copy-btn{font-size:11px;padding:4px 10px;border:1px solid #5aab56;background:#fff;color:#2d4a1e;border-radius:5px;cursor:pointer;margin-left:8px}
+    .copy-btn:hover{background:#5aab56;color:#fff}
+    .code-wrap{position:relative;margin:14px 0}
+    .code-wrap .copy-btn{position:absolute;top:8px;right:8px}
+    @media print{.copy-btn{display:none}body{background:#fff}}
+  `;
+
+  // Clona conteúdo e adiciona botões de copiar funcionais (com JS embutido)
+  const clone = md.cloneNode(true);
+  // Remove botões antigos de seção
+  clone.querySelectorAll('.section-copy').forEach(s => s.remove());
+  // Substitui code-wrap pra simplificar
+  clone.querySelectorAll('.code-wrap').forEach(w => {
+    const code = decodeAttr(w.querySelector('.code-copy')?.dataset.code || '');
+    const lang = w.querySelector('.code-lang')?.textContent || '';
+    const newWrap = document.createElement('div');
+    newWrap.className = 'code-wrap';
+    newWrap.innerHTML =
+      '<button class="copy-btn" data-code="'+escapeAttr(code)+'">📋 Copiar</button>'+
+      '<pre><code class="language-'+lang+'">'+escapeHTML(code)+'</code></pre>';
+    w.replaceWith(newWrap);
+  });
+  // Adiciona botão em cada heading
+  clone.querySelectorAll('h1,h2,h3,h4').forEach(h => {
+    const btn = document.createElement('button');
+    btn.className = 'copy-btn';
+    btn.textContent = '📋 Seção';
+    btn.dataset.section = h.id;
+    h.appendChild(btn);
+  });
+
+  const script = `
+    <script>
+    document.querySelectorAll('.copy-btn[data-code]').forEach(b=>{
+      b.onclick=()=>{navigator.clipboard.writeText(b.dataset.code);b.textContent='✓ Copiado!';setTimeout(()=>b.textContent='📋 Copiar',1500)};
+    });
+    document.querySelectorAll('.copy-btn[data-section]').forEach(b=>{
+      b.onclick=()=>{
+        const h=document.getElementById(b.dataset.section);
+        const lvl=parseInt(h.tagName[1]);
+        let txt=h.innerText.replace('📋 Seção','').trim()+'\\n\\n';
+        let el=h.nextElementSibling;
+        while(el){
+          if(/^H[1-6]$/.test(el.tagName)&&parseInt(el.tagName[1])<=lvl)break;
+          txt+=el.innerText+'\\n\\n';
+          el=el.nextElementSibling;
+        }
+        navigator.clipboard.writeText(txt.trim());
+        b.textContent='✓ Copiado!';setTimeout(()=>b.textContent='📋 Seção',1500);
+      };
+    });
+    <\/script>
+  `;
+
+  const fullHTML =
+    '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">'+
+    '<meta name="viewport" content="width=device-width,initial-scale=1.0">'+
+    '<title>'+escapeHTML(currentFileName||'Documento')+'</title>'+
+    '<style>'+css+'</style></head><body>'+
+    '<h1 style="border:none">'+escapeHTML(currentFileName||'Documento')+'</h1>'+
+    clone.outerHTML+
+    script+
+    '</body></html>';
+
+  const blob = new Blob([fullHTML], { type:'text/html;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = (currentFileName.replace(/\.(md|markdown|mdx|txt)$/i,'') || 'documento') + '.html';
+  a.click();
+  toast('💾 HTML exportado!');
+}
+
+/*══════════════════════════════════════════════════════════════════
+  BUSCA
+══════════════════════════════════════════════════════════════════*/
+function toggleSearch() {
+  const bar = document.getElementById('searchBar');
+  const show = !bar.classList.contains('show');
+  bar.classList.toggle('show', show);
+  if (show) {
+    document.getElementById('searchInput').focus();
+  } else {
+    clearSearch();
+  }
+}
+
+function clearSearch() {
+  document.querySelectorAll('mark.search-hit').forEach(m => {
+    const parent = m.parentNode;
+    parent.replaceChild(document.createTextNode(m.textContent), m);
+    parent.normalize();
+  });
+  searchHits = [];
+  searchIdx = 0;
+  document.getElementById('searchCount').textContent = '0/0';
+}
+
+function doSearch() {
+  clearSearch();
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q || q.length < 2) { document.getElementById('searchCount').textContent='0/0'; return; }
+
+  const md = document.getElementById('md');
+  if (!md) return;
+
+  const re = new RegExp(escapeRegex(q), 'gi');
+  walkAndHighlight(md, re);
+  searchHits = [...document.querySelectorAll('mark.search-hit')];
+  searchIdx = 0;
+  if (searchHits.length) {
+    searchHits[0].classList.add('current');
+    searchHits[0].scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+  document.getElementById('searchCount').textContent = (searchHits.length ? 1 : 0) + '/' + searchHits.length;
+}
+
+function walkAndHighlight(node, re) {
+  if (node.nodeType === 3) { // text
+    const text = node.nodeValue;
+    if (!re.test(text)) return;
+    re.lastIndex = 0;
+    const frag = document.createDocumentFragment();
+    let last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const mark = document.createElement('mark');
+      mark.className = 'search-hit';
+      mark.textContent = m[0];
+      frag.appendChild(mark);
+      last = m.index + m[0].length;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+    node.parentNode.replaceChild(frag, node);
+  } else if (node.nodeType === 1 && !['SCRIPT','STYLE','MARK'].includes(node.tagName)) {
+    [...node.childNodes].forEach(c => walkAndHighlight(c, re));
+  }
+}
+
+function searchKey(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (!searchHits.length) return;
+    searchHits[searchIdx].classList.remove('current');
+    searchIdx = e.shiftKey
+      ? (searchIdx - 1 + searchHits.length) % searchHits.length
+      : (searchIdx + 1) % searchHits.length;
+    searchHits[searchIdx].classList.add('current');
+    searchHits[searchIdx].scrollIntoView({ behavior:'smooth', block:'center' });
+    document.getElementById('searchCount').textContent = (searchIdx+1)+'/'+searchHits.length;
+  } else if (e.key === 'Escape') {
+    toggleSearch();
+  }
+}
+
+/*══════════════════════════════════════════════════════════════════
+  TOC TOGGLE
+══════════════════════════════════════════════════════════════════*/
+function toggleTOC() {
+  const toc = document.getElementById('toc');
+  const bd  = document.getElementById('backdrop');
+  if (window.innerWidth <= 768) {
+    const show = !toc.classList.contains('show-mobile');
+    toc.classList.toggle('show-mobile', show);
+    bd.classList.toggle('show', show);
+  } else {
+    toc.classList.toggle('hidden');
+  }
+  document.getElementById('tocToggle').classList.toggle('active');
+}
+
+/*══════════════════════════════════════════════════════════════════
+  DRAG & DROP / PASTE
+══════════════════════════════════════════════════════════════════*/
+const dz = document.getElementById('dropZone');
+['dragenter','dragover'].forEach(ev => {
+  document.addEventListener(ev, e => {
+    e.preventDefault();
+    dz?.classList.add('dragover');
+  });
+});
+['dragleave','drop'].forEach(ev => {
+  document.addEventListener(ev, e => {
+    e.preventDefault();
+    dz?.classList.remove('dragover');
+  });
+});
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  const f = e.dataTransfer?.files?.[0];
+  if (f) readFile(f);
+});
+
+document.addEventListener('paste', e => {
+  if (document.activeElement?.tagName === 'INPUT') return;
+  const txt = e.clipboardData?.getData('text');
+  if (txt && txt.length > 50) {
+    rawMarkdown = txt;
+    currentFileName = 'colado.md';
+    render();
+    toast('✓ Texto colado renderizado');
+  }
+});
+
+/*══════════════════════════════════════════════════════════════════
+  ATALHOS
+══════════════════════════════════════════════════════════════════*/
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+    e.preventDefault();
+    toggleSearch();
+  }
+});
+
+/*══════════════════════════════════════════════════════════════════
+  UTILS
+══════════════════════════════════════════════════════════════════*/
+function escapeHTML(s) {
+  return String(s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function escapeAttr(s) { return escapeHTML(s); }
+function decodeAttr(s) {
+  return String(s)
+    .replace(/&#39;/g,"'").replace(/&quot;/g,'"')
+    .replace(/&gt;/g,'>').replace(/&lt;/g,'<').replace(/&amp;/g,'&');
+}
+function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+function slugify(s) {
+  return String(s).toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9\s-]/g,'')
+    .trim().replace(/\s+/g,'-').replace(/-+/g,'-');
+}
+
+let toastTimer;
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.toggle('err', type === 'err');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+</script>
+</body>
+</html>

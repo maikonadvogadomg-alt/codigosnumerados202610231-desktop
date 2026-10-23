@@ -1,0 +1,50 @@
+{
+  "name": "codigosnumerados202610231",
+  "version": "1.0.0",
+  "description": "codigos-numerados-2026-10-23 (teste 10231845)",
+  "author": "Maikon",
+  "private": true,
+  "main": "electron/main.cjs",
+  "portaDoPrograma": 9477,
+  "devDependencies": {
+    "electron": "33.2.1",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "com.maikonadvogadomgalt.codigosnumerados202610231.nteste10231845.pc.nteste10231845",
+    "productName": "codigos-numerados-2026-10-23 (teste 10231845)",
+    "executableName": "codigos-numerados-2026-10-23-teste-10231845-nteste10231845",
+    "directories": {
+      "output": "release"
+    },
+    "asar": false,
+    "files": [
+      "**/*",
+      "!android/**",
+      "!.github/**",
+      "!release/**",
+      "!node_modules/.cache/**",
+      "!*.zip",
+      "!.sk/**",
+      "!apk.config.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "icons/icon-512.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "codigos-numerados-2026-10-23 (teste 10231845)",
+      "artifactName": "codigos-numerados-2026-10-23-teste-10231845-nteste10231845-Instalar.exe"
+    },
+    "portable": {
+      "artifactName": "codigos-numerados-2026-10-23-teste-10231845-nteste10231845-sem-instalar.exe"
+    }
+  }
+}

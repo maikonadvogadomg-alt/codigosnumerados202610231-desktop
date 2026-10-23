@@ -1,0 +1,1323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🔬 Cirurgião 3.0 — Scanner Inteligente</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #12121a;
+      --bg3: #1a1a2e;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --accent: #a3a082;
+      --accent2: #d4d0a8;
+      --green: #4ade80;
+      --blue: #60a5fa;
+      --red: #f87171;
+      --yellow: #fbbf24;
+      --border: #2d2d3a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--bg2), var(--bg3));
+      border-bottom: 2px solid var(--accent);
+      padding: 24px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 28px;
+      color: var(--accent2);
+      margin-bottom: 4px;
+    }
+
+    .header p {
+      font-size: 12px;
+      color: var(--text2);
+      letter-spacing: 1px;
+    }
+
+    .container {
+      max-width: 1800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text2);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #000;
+      border-color: var(--accent);
+    }
+
+    .section {
+      display: none;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .section h2 {
+      font-size: 18px;
+      color: var(--accent2);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .grid-1 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .card h3 {
+      font-size: 13px;
+      color: var(--accent2);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent2);
+    }
+
+    .btn-success {
+      background: var(--green);
+      color: #000;
+    }
+
+    .btn-success:hover {
+      background: #22c55e;
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text2);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .btn-blue {
+      background: rgba(96, 165, 250, 0.15);
+      color: var(--blue);
+      border: 1px solid rgba(96, 165, 250, 0.3);
+    }
+
+    .btn-blue:hover {
+      background: rgba(96, 165, 250, 0.25);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .input-file {
+      padding: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      cursor: pointer;
+    }
+
+    .input-text {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12px;
+    }
+
+    .input-text:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      resize: vertical;
+      min-height: 200px;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .file-list {
+      max-height: 400px;
+      overflow-y: auto;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px;
+    }
+
+    .file-item {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      word-break: break-all;
+      font-size: 11px;
+      transition: all 0.2s;
+    }
+
+    .file-item:hover {
+      background: var(--bg3);
+      color: var(--accent);
+    }
+
+    .file-item.selected {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      border: 1px solid;
+    }
+
+    .status-info {
+      background: rgba(96, 165, 250, 0.1);
+      color: var(--blue);
+      border-color: rgba(96, 165, 250, 0.3);
+    }
+
+    .status-success {
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--green);
+      border-color: rgba(74, 222, 128, 0.3);
+    }
+
+    .status-warning {
+      background: rgba(251, 146, 60, 0.1);
+      color: var(--yellow);
+      border-color: rgba(251, 146, 60, 0.3);
+    }
+
+    .status-error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--red);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .code-preview {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      max-height: 300px;
+      overflow-y: auto;
+      color: var(--text2);
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    .error-item {
+      background: rgba(239, 68, 68, 0.1);
+      border-left: 3px solid var(--red);
+      padding: 10px;
+      margin-bottom: 8px;
+      border-radius: 4px;
+      font-size: 11px;
+    }
+
+    .error-item .file {
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    .error-item .line {
+      color: var(--yellow);
+    }
+
+    .error-item .msg {
+      color: var(--red);
+    }
+
+    .note-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 8px;
+    }
+
+    .note-item .title {
+      color: var(--accent2);
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .note-item .content {
+      color: var(--text2);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--bg2);
+      border: 1px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent2);
+      z-index: 2000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text2);
+    }
+
+    .empty-state .icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--bg3);
+      border-radius: 4px;
+      font-size: 10px;
+      color: var(--text2);
+      margin-right: 4px;
+    }
+
+    .badge.bug {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--red);
+    }
+
+    .badge.api {
+      background: rgba(96, 165, 250, 0.2);
+      color: var(--blue);
+    }
+
+    .badge.replit {
+      background: rgba(251, 146, 60, 0.2);
+      color: var(--yellow);
+    }
+
+    .badge.function {
+      background: rgba(74, 222, 128, 0.2);
+      color: var(--green);
+    }
+
+    @media (max-width: 1200px) {
+      .grid-3 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .header h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔬 Cirurgião 3.0 — Scanner Inteligente</h1>
+  <p>Importar → Analisar → Detectar → Editar → Salvar</p>
+</div>
+
+<div class="container">
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('import')">📂 1. Importar</button>
+    <button class="tab-btn" onclick="switchTab('analyze')">🔍 2. Analisar</button>
+    <button class="tab-btn" onclick="switchTab('detect')">🐛 3. Detectar</button>
+    <button class="tab-btn" onclick="switchTab('edit')">✏️ 4. Editar</button>
+    <button class="tab-btn" onclick="switchTab('notes')">📝 5. Notas</button>
+    <button class="tab-btn" onclick="switchTab('manual')">📖 Manual</button>
+  </div>
+
+  <!-- SEÇÃO 1: IMPORTAR -->
+  <div id="section-import" class="section active">
+    <h2>📂 Importar Arquivos</h2>
+
+    <div class="status status-info">
+      💡 Suporta: ZIP, TAR, TAZ, HTML, JS, CSS, JSON, TXT e mais
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Carregar Arquivo</h3>
+        <input type="file" id="fileInput" class="input-file" accept=".zip,.tar,.tar.gz,.taz,.html,.htm,.js,.css,.json,.txt,.jsx,.tsx,.ts">
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="importarArquivo()">📁 Carregar</button>
+          <button class="btn btn-ghost" onclick="limparImportacao()">🗑️ Limpar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Ou Cole Diretamente</h3>
+        <textarea id="codigoColado" placeholder="Cole HTML, JS, JSON, etc aqui..."></textarea>
+        <div class="btn-group">
+          <button class="btn btn-success" onclick="importarCodigo()">✅ Importar</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="statusImportacao"></div>
+  </div>
+
+  <!-- SEÇÃO 2: ANALISAR -->
+  <div id="section-analyze" class="section">
+    <h2>🔍 Análise de Arquivos</h2>
+
+    <div class="grid-3">
+      <div class="card">
+        <h3>📂 Arquivos Encontrados</h3>
+        <input type="text" class="search-box" id="filtroArquivo" placeholder="Filtrar por nome..." oninput="filtrarArquivos()">
+        <div class="file-list" id="listaArquivos">
+          <div class="empty-state"><p>Nenhum arquivo carregado</p></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📊 Conteúdo do Arquivo</h3>
+        <div id="infoArquivo" style="font-size: 11px; color: var(--text2); margin-bottom: 8px;">Selecione um arquivo</div>
+        <div class="code-preview" id="conteudoArquivo">Selecione um arquivo para ver seu conteúdo</div>
+      </div>
+
+      <div class="card">
+        <h3>📈 Estatísticas</h3>
+        <div class="code-preview" id="estatisticas">Nada analisado ainda</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 3: DETECTAR -->
+  <div id="section-detect" class="section">
+    <h2>🐛 Detecção Automática</h2>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>🔎 Buscar Termos</h3>
+        <input type="text" class="search-box" id="termosBusca" value="replit,.replit,replit.nix,package.json,vite,react,bug,TODO,FIXME,error,console.log,undefined,null,import,export">
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="buscarTermos()">🔍 Buscar</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>⚙️ Análise Automática</h3>
+        <div class="btn-group">
+          <button class="btn btn-success" onclick="diagnosticar()">🔧 Diagnosticar</button>
+          <button class="btn btn-blue" onclick="analisarComIA()">🤖 IA Analyze</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>🚨 Erros & Avisos Encontrados</h3>
+      <div id="errosEncontrados">
+        <div class="empty-state"><p>Execute uma busca ou diagnóstico</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 4: EDITAR -->
+  <div id="section-edit" class="section">
+    <h2>✏️ Editar Arquivo</h2>
+
+    <div class="card">
+      <h3>Arquivo Selecionado</h3>
+      <div id="nomeArquivoEditar" style="font-size: 11px; color: var(--text2); margin-bottom: 12px;">Nenhum</div>
+      <textarea id="conteudoEditar" placeholder="Edite o conteúdo aqui..."></textarea>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="salvarEdicao()">💾 Salvar</button>
+        <button class="btn btn-ghost" onclick="reescreverComIA()">🤖 IA Reescrever</button>
+        <button class="btn btn-ghost" onclick="corrigirSintaxe()">✅ Corrigir Sintaxe</button>
+        <button class="btn btn-danger" onclick="descartarEdicao()">❌ Descartar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 5: NOTAS -->
+  <div id="section-notes" class="section">
+    <h2>📝 Notas & Análises Salvas</h2>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Adicionar Nota</h3>
+        <input type="text" class="search-box" id="notaTitulo" placeholder="Título da nota...">
+        <textarea id="notaConteudo" placeholder="Conteúdo da nota..." style="min-height: 100px;"></textarea>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="salvarNota()">💾 Salvar Nota</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Notas Salvas</h3>
+        <div id="listaNot as">
+          <div class="empty-state"><p>Nenhuma nota salva</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 6: MANUAL -->
+  <div id="section-manual" class="section">
+    <h2>📖 Manual de Uso</h2>
+
+    <div class="grid-1">
+      <div class="card">
+        <h3>🎯 O que é o Cirurgião 3.0?</h3>
+        <p style="font-size: 12px; color: var(--text2); line-height: 1.8;">
+          Uma ferramenta inteligente para importar, analisar, detectar problemas e editar código.
+          Suporta múltiplos formatos (ZIP, TAR, HTML, JS, etc) e identifica automaticamente:
+          bugs, dependências do Replit, APIs, funções, erros de sintaxe e mais.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>📋 Formatos Suportados</h3>
+        <ul style="font-size: 12px; color: var(--text2); line-height: 1.8; padding-left: 16px;">
+          <li><strong>Compactados:</strong> ZIP, TAR, TAZ (.tar.gz)</li>
+          <li><strong>Código:</strong> HTML, JS, CSS, JSX, TSX, TS, JSON, TXT</li>
+          <li><strong>Diretos:</strong> Cole código no campo "Ou Cole Diretamente"</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>🔍 Detecções Automáticas</h3>
+        <ul style="font-size: 12px; color: var(--text2); line-height: 1.8; padding-left: 16px;">
+          <li><span class="badge bug">BUG</span> Erros, console.log, undefined</li>
+          <li><span class="badge replit">REPLIT</span> Arquivos .replit, replit.nix</li>
+          <li><span class="badge api">API</span> Chamadas HTTP, fetch, axios</li>
+          <li><span class="badge function">FUNCTION</span> Funções e métodos</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>💡 Dicas</h3>
+        <ul style="font-size: 12px; color: var(--text2); line-height: 1.8; padding-left: 16px;">
+          <li>Use a busca para encontrar termos específicos</li>
+          <li>Clique em um arquivo para ver seu conteúdo completo</li>
+          <li>Use "IA Analyze" para análise automática</li>
+          <li>Salve notas para documentar problemas encontrados</li>
+          <li>Use "IA Reescrever" para melhorar o código</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast"></div>
+
+<!-- Hidden inputs -->
+<input type="file" id="fileInputHidden" style="display: none;">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tar-js@0.3.0/tar.js"></script>
+
+<script>
+// ========== ESTADO GLOBAL ==========
+let arquivos = [];
+let conteudosTexto = {};
+let arquivoAtualSelecionado = null;
+let notasSalvas = [];
+
+const extensoesTexto = [
+  '.txt', '.md', '.json', '.js', '.jsx', '.ts', '.tsx', '.html', '.css',
+  '.scss', '.xml', '.yml', '.yaml', '.toml', '.env', '.sql', '.gitignore',
+  '.nix', '.config', '.cjs', '.mjs', '.py', '.java', '.cpp', '.c', '.go',
+  '.rb', '.php', '.sh', '.bash', '.dockerfile', '.lock'
+];
+
+// ========== INTERFACE ==========
+function switchTab(tabName) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  
+  document.getElementById('section-' + tabName).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+// ========== 1. IMPORTAÇÃO ==========
+function importarArquivo() {
+  const input = document.getElementById('fileInput');
+  if (!input.files || !input.files[0]) {
+    showToast('❌ Selecione um arquivo!');
+    return;
+  }
+  
+  const file = input.files[0];
+  const nome = file.name.toLowerCase();
+  
+  if (nome.endsWith('.zip')) {
+    importarZip(file);
+  } else if (nome.endsWith('.tar') || nome.endsWith('.tar.gz') || nome.endsWith('.taz')) {
+    importarTar(file);
+  } else {
+    importarArquivoSimples(file);
+  }
+}
+
+async function importarZip(file) {
+  try {
+    const buffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(buffer);
+    
+    arquivos = [];
+    conteudosTexto = {};
+    
+    zip.forEach((path, entry) => {
+      if (!entry.dir) {
+        arquivos.push({
+          nome: path,
+          tipo: 'arquivo',
+          tamanho: entry._data.uncompressedSize,
+          caminho: path
+        });
+      }
+    });
+    
+    // Lê arquivos de texto
+    for (const item of arquivos) {
+      if (ehTexto(item.nome)) {
+        try {
+          conteudosTexto[item.nome] = await zip.file(item.nome).async('string');
+        } catch (e) {
+          conteudosTexto[item.nome] = '[ERRO AO LER]';
+        }
+      }
+    }
+    
+    arquivos.sort((a, b) => a.nome.localeCompare(b.nome));
+    renderizarArquivos();
+    mostrarEstatisticas();
+    showToast('✅ ZIP importado! ' + arquivos.length + ' arquivos');
+    
+  } catch (e) {
+    showToast('❌ Erro ao ler ZIP: ' + e.message);
+  }
+}
+
+async function importarTar(file) {
+  try {
+    const buffer = await file.arrayBuffer();
+    const view = new Uint8Array(buffer);
+    
+    // Detecta se é comprimido
+    const isGzip = view[0] === 0x1f && view[1] === 0x8b;
+    
+    if (isGzip) {
+      // Descompacta GZIP
+      const decompressed = await decompressGzip(buffer);
+      parsearTar(decompressed);
+    } else {
+      parsearTar(buffer);
+    }
+    
+    showToast('✅ TAR importado! ' + arquivos.length + ' arquivos');
+    
+  } catch (e) {
+    showToast('❌ Erro ao ler TAR: ' + e.message);
+  }
+}
+
+function parsearTar(buffer) {
+  const view = new Uint8Array(buffer);
+  arquivos = [];
+  conteudosTexto = {};
+  
+  let offset = 0;
+  while (offset < view.length) {
+    const header = view.slice(offset, offset + 512);
+    
+    // Verifica se é fim do arquivo
+    if (header.every(b => b === 0)) break;
+    
+    // Extrai nome (primeiros 100 bytes)
+    const nomeBytes = header.slice(0, 100);
+    const nome = new TextDecoder().decode(nomeBytes).split('\0')[0];
+    
+    // Extrai tamanho (bytes 124-135)
+    const tamanhoOctal = new TextDecoder().decode(header.slice(124, 135)).trim();
+    const tamanho = parseInt(tamanhoOctal, 8) || 0;
+    
+    if (nome) {
+      arquivos.push({
+        nome: nome,
+        tipo: 'arquivo',
+        tamanho: tamanho,
+        caminho: nome
+      });
+      
+      // Lê conteúdo se for texto
+      if (ehTexto(nome) && tamanho > 0) {
+        const conteudoBytes = view.slice(offset + 512, offset + 512 + tamanho);
+        try {
+          conteudosTexto[nome] = new TextDecoder().decode(conteudoBytes);
+        } catch (e) {
+          conteudosTexto[nome] = '[ERRO AO DECODIFICAR]';
+        }
+      }
+    }
+    
+    // Próximo bloco (512 + tamanho arredondado para múltiplo de 512)
+    const blocos = Math.ceil((512 + tamanho) / 512);
+    offset += blocos * 512;
+  }
+  
+  arquivos.sort((a, b) => a.nome.localeCompare(b.nome));
+  renderizarArquivos();
+  mostrarEstatisticas();
+}
+
+async function decompressGzip(buffer) {
+  // Implementação simplificada - em produção use pako ou similar
+  try {
+    const ds = new DecompressionStream('gzip');
+    const reader = ds.readable.getReader();
+    const writer = ds.writable.getWriter();
+    
+    writer.write(new Uint8Array(buffer));
+    writer.close();
+    
+    const chunks = [];
+    let result;
+    while (!(result = await reader.read()).done) {
+      chunks.push(...result.value);
+    }
+    
+    return new Uint8Array(chunks).buffer;
+  } catch (e) {
+    showToast('⚠️ Não consegui descomprimir GZIP. Tentando como TAR direto...');
+    return buffer;
+  }
+}
+
+function importarArquivoSimples(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const conteudo = e.target.result;
+    const nome = file.name;
+    
+    arquivos = [{
+      nome: nome,
+      tipo: 'arquivo',
+      tamanho: file.size,
+      caminho: nome
+    }];
+    
+    conteudosTexto[nome] = conteudo;
+    
+    renderizarArquivos();
+    mostrarEstatisticas();
+    showToast('✅ Arquivo importado!');
+  };
+  reader.readAsText(file);
+}
+
+function importarCodigo() {
+  const codigo = document.getElementById('codigoColado').value.trim();
+  
+  if (!codigo) {
+    showToast('❌ Cole um código!');
+    return;
+  }
+  
+  const nome = 'codigo-colado-' + Date.now() + '.txt';
+  
+  arquivos = [{
+    nome: nome,
+    tipo: 'arquivo',
+    tamanho: codigo.length,
+    caminho: nome
+  }];
+  
+  conteudosTexto[nome] = codigo;
+  
+  renderizarArquivos();
+  mostrarEstatisticas();
+  showToast('✅ Código importado!');
+}
+
+function limparImportacao() {
+  arquivos = [];
+  conteudosTexto = {};
+  arquivoAtualSelecionado = null;
+  document.getElementById('fileInput').value = '';
+  document.getElementById('codigoColado').value = '';
+  document.getElementById('statusImportacao').innerHTML = '';
+  showToast('🗑️ Importação limpa!');
+}
+
+// ========== 2. ANÁLISE ==========
+function filtrarArquivos() {
+  const filtro = document.getElementById('filtroArquivo').value.toLowerCase();
+  renderizarArquivos(filtro);
+}
+
+function renderizarArquivos(filtro = '') {
+  const lista = document.getElementById('listaArquivos');
+  
+  if (arquivos.length === 0) {
+    lista.innerHTML = '<div class="empty-state"><p>Nenhum arquivo carregado</p></div>';
+    return;
+  }
+  
+  const filtrados = arquivos.filter(a => a.nome.toLowerCase().includes(filtro));
+  
+  lista.innerHTML = filtrados.map(a => `
+    <div class="file-item ${arquivoAtualSelecionado === a.nome ? 'selected' : ''}" onclick="abrirArquivo('${a.nome}')">
+      📄 ${a.nome}
+      <span class="small" style="display: block; margin-top: 2px; color: var(--text2);">${formatarTamanho(a.tamanho)}</span>
+    </div>
+  `).join('');
+}
+
+function abrirArquivo(nome) {
+  arquivoAtualSelecionado = nome;
+  
+  const conteudo = conteudosTexto[nome] || '[Arquivo binário ou não lido]';
+  const linhas = conteudo.split('\n').length;
+  const tamanho = conteudo.length;
+  
+  document.getElementById('conteudoArquivo').textContent = conteudo;
+  document.getElementById('infoArquivo').innerHTML = `
+    <strong>${nome}</strong><br>
+    ${linhas} linhas • ${tamanho} caracteres
+  `;
+  
+  // Também carrega no editor
+  document.getElementById('nomeArquivoEditar').textContent = nome;
+  document.getElementById('conteudoEditar').value = conteudo;
+  
+  renderizarArquivos();
+  showToast('✅ Arquivo aberto!');
+}
+
+function mostrarEstatisticas() {
+  const stats = {
+    total: arquivos.length,
+    html: arquivos.filter(a => a.nome.endsWith('.html') || a.nome.endsWith('.htm')).length,
+    js: arquivos.filter(a => a.nome.endsWith('.js') || a.nome.endsWith('.jsx') || a.nome.endsWith('.ts') || a.nome.endsWith('.tsx')).length,
+    css: arquivos.filter(a => a.nome.endsWith('.css') || a.nome.endsWith('.scss')).length,
+    json: arquivos.filter(a => a.nome.endsWith('.json')).length,
+    caracteres: Object.values(conteudosTexto).reduce((a, b) => a + b.length, 0),
+    linhas: Object.values(conteudosTexto).reduce((a, b) => a + b.split('\n').length, 0)
+  };
+  
+  const html = `
+    <strong>📊 Estatísticas:</strong><br>
+    Total: ${stats.total}<br>
+    HTML: ${stats.html}<br>
+    JS/TS: ${stats.js}<br>
+    CSS: ${stats.css}<br>
+    JSON: ${stats.json}<br>
+    Caracteres: ${stats.caracteres.toLocaleString()}<br>
+    Linhas: ${stats.linhas.toLocaleString()}
+  `;
+  
+  document.getElementById('estatisticas').textContent = html;
+}
+
+// ========== 3. DETECÇÃO ==========
+function buscarTermos() {
+  const termos = document.getElementById('termosBusca').value
+    .split(',')
+    .map(t => t.trim().toLowerCase())
+    .filter(Boolean);
+  
+  if (termos.length === 0) {
+    showToast('❌ Digite termos para buscar!');
+    return;
+  }
+  
+  let resultados = [];
+  
+  Object.entries(conteudosTexto).forEach(([arquivo, conteudo]) => {
+    const linhas = conteudo.split('\n');
+    
+    linhas.forEach((linha, idx) => {
+      const linhaLower = linha.toLowerCase();
+      
+      termos.forEach(termo => {
+        if (linhaLower.includes(termo)) {
+          resultados.push({
+            arquivo: arquivo,
+            linha: idx + 1,
+            termo: termo,
+            conteudo: linha.slice(0, 100)
+          });
+        }
+      });
+    });
+  });
+  
+  mostrarErros(resultados);
+  showToast(`✅ Encontrados ${resultados.length} resultados!`);
+}
+
+function diagnosticar() {
+  let diagnostico = [];
+  
+  // Verifica estrutura
+  const temPackageJson = arquivos.some(a => a.nome === 'package.json');
+  const temSrc = arquivos.some(a => a.nome.includes('src/'));
+  const temDist = arquivos.some(a => a.nome.includes('dist/') || a.nome.includes('build/'));
+  const temVite = conteudosTexto['package.json']?.includes('vite') || arquivos.some(a => a.nome === 'vite.config.js');
+  const temReact = conteudosTexto['package.json']?.includes('react') || arquivos.some(a => a.nome.includes('.tsx') || a.nome.includes('.jsx'));
+  const temReplit = arquivos.some(a => a.nome.includes('.replit') || a.nome.includes('replit.nix'));
+  const temManifest = arquivos.some(a => a.nome === 'manifest.json');
+  const temServiceWorker = arquivos.some(a => a.nome.includes('service-worker') || a.nome.includes('sw.js'));
+  
+  diagnostico.push({
+    arquivo: 'package.json',
+    linha: 0,
+    termo: 'estrutura',
+    conteudo: temPackageJson ? '✅ package.json encontrado' : '❌ Sem package.json'
+  });
+  
+  if (temReplit) {
+    diagnostico.push({
+      arquivo: '.replit',
+      linha: 0,
+      termo: 'replit',
+      conteudo: '⚠️ Marcas do Replit detectadas'
+    });
+  }
+  
+  if (temVite) {
+    diagnostico.push({
+      arquivo: 'package.json',
+      linha: 0,
+      termo: 'vite',
+      conteudo: '✅ Vite detectado'
+    });
+  }
+  
+  if (temReact) {
+    diagnostico.push({
+      arquivo: 'package.json',
+      linha: 0,
+      termo: 'react',
+      conteudo: '✅ React detectado'
+    });
+  }
+  
+  if (temManifest) {
+    diagnostico.push({
+      arquivo: 'manifest.json',
+      linha: 0,
+      termo: 'pwa',
+      conteudo: '✅ PWA manifest encontrado'
+    });
+  }
+  
+  if (temServiceWorker) {
+    diagnostico.push({
+      arquivo: 'service-worker',
+      linha: 0,
+      termo: 'offline',
+      conteudo: '✅ Service Worker detectado'
+    });
+  }
+  
+  mostrarErros(diagnostico);
+  showToast('✅ Diagnóstico concluído!');
+}
+
+function analisarComIA() {
+  // Simula análise com IA
+  let analise = [];
+  
+  // Detecta padrões comuns
+  Object.entries(conteudosTexto).forEach(([arquivo, conteudo]) => {
+    const linhas = conteudo.split('\n');
+    
+    linhas.forEach((linha, idx) => {
+      // Detecta console.log
+      if (linha.includes('console.log')) {
+        analise.push({
+          arquivo: arquivo,
+          linha: idx + 1,
+          termo: 'console.log',
+          conteudo: '⚠️ Debug: ' + linha.trim().slice(0, 80)
+        });
+      }
+      
+      // Detecta TODO/FIXME
+      if (linha.includes('TODO') || linha.includes('FIXME')) {
+        analise.push({
+          arquivo: arquivo,
+          linha: idx + 1,
+          termo: 'TODO',
+          conteudo: '📝 ' + linha.trim().slice(0, 80)
+        });
+      }
+      
+      // Detecta funções
+      if (linha.includes('function ') || linha.includes('const ') && linha.includes('=')) {
+        if (linha.includes('function ')) {
+          analise.push({
+            arquivo: arquivo,
+            linha: idx + 1,
+            termo: 'function',
+            conteudo: '🔧 Função: ' + linha.trim().slice(0, 80)
+          });
+        }
+      }
+      
+      // Detecta imports/exports
+      if (linha.includes('import ') || linha.includes('export ')) {
+        analise.push({
+          arquivo: arquivo,
+          linha: idx + 1,
+          termo: 'import',
+          conteudo: '📦 ' + linha.trim().slice(0, 80)
+        });
+      }
+      
+      // Detecta fetch/API
+      if (linha.includes('fetch(') || linha.includes('axios') || linha.includes('http')) {
+        analise.push({
+          arquivo: arquivo,
+          linha: idx + 1,
+          termo: 'api',
+          conteudo: '🌐 API: ' + linha.trim().slice(0, 80)
+        });
+      }
+    });
+  });
+  
+  mostrarErros(analise);
+  showToast(`✅ Análise IA: ${analise.length} itens encontrados!`);
+}
+
+function mostrarErros(resultados) {
+  const container = document.getElementById('errosEncontrados');
+  
+  if (resultados.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>Nenhum resultado encontrado</p></div>';
+    return;
+  }
+  
+  container.innerHTML = resultados.map(r => `
+    <div class="error-item">
+      <div class="file">📁 ${r.arquivo}</div>
+      <div class="line">Linha ${r.linha}</div>
+      <div class="msg">🏷️ ${r.termo}</div>
+      <div style="margin-top: 6px; color: var(--text2); font-size: 10px;">
+        ${r.conteudo}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== 4. EDIÇÃO ==========
+function salvarEdicao() {
+  const nome = arquivoAtualSelecionado;
+  const conteudo = document.getElementById('conteudoEditar').value;
+  
+  if (!nome) {
+    showToast('❌ Selecione um arquivo!');
+    return;
+  }
+  
+  conteudosTexto[nome] = conteudo;
+  
+  // Atualiza visualização
+  document.getElementById('conteudoArquivo').textContent = conteudo;
+  
+  showToast('✅ Arquivo salvo em memória!');
+}
+
+function descartarEdicao() {
+  if (arquivoAtualSelecionado) {
+    document.getElementById('conteudoEditar').value = conteudosTexto[arquivoAtualSelecionado] || '';
+    showToast('↩️ Edições descartadas!');
+  }
+}
+
+function reescreverComIA() {
+  const conteudo = document.getElementById('conteudoEditar').value;
+  
+  if (!conteudo) {
+    showToast('❌ Nenhum conteúdo para reescrever!');
+    return;
+  }
+  
+  // Simula reescrita com IA
+  let reescrito = conteudo;
+  
+  // Remove console.log
+  reescrito = reescrito.replace(/console\.log\([^)]*\);?/g, '');
+  
+  // Formata código
+  reescrito = reescrito.replace(/\s+/g, ' ').trim();
+  
+  document.getElementById('conteudoEditar').value = reescrito;
+  showToast('🤖 Código reescrito (versão simplificada)!');
+}
+
+function corrigirSintaxe() {
+  const conteudo = document.getElementById('conteudoEditar').value;
+  
+  if (!conteudo) {
+    showToast('❌ Nenhum conteúdo para corrigir!');
+    return;
+  }
+  
+  let corrigido = conteudo;
+  
+  // Corrige chaves desbalanceadas
+  let abertas = (corrigido.match(/\{/g) || []).length;
+  let fechadas = (corrigido.match(/\}/g) || []).length;
+  if (abertas > fechadas) {
+    corrigido += '\n' + '}'.repeat(abertas - fechadas);
+  }
+  
+  // Corrige parênteses
+  abertas = (corrigido.match(/\(/g) || []).length;
+  fechadas = (corrigido.match(/\)/g) || []).length;
+  if (abertas > fechadas) {
+    corrigido += ')'.repeat(abertas - fechadas);
+  }
+  
+  document.getElementById('conteudoEditar').value = corrigido;
+  showToast('✅ Sintaxe corrigida!');
+}
+
+// ========== 5. NOTAS ==========
+function salvarNota() {
+  const titulo = document.getElementById('notaTitulo').value.trim();
+  const conteudo = document.getElementById('notaConteudo').value.trim();
+  
+  if (!titulo || !conteudo) {
+    showToast('❌ Preencha título e conteúdo!');
+    return;
+  }
+  
+  notasSalvas.push({
+    id: Date.now(),
+    titulo: titulo,
+    conteudo: conteudo,
+    arquivo: arquivoAtualSelecionado || 'Geral',
+    data: new Date().toLocaleString()
+  });
+  
+  document.getElementById('notaTitulo').value = '';
+  document.getElementById('notaConteudo').value = '';
+  
+  renderizarNotas();
+  showToast('✅ Nota salva!');
+}
+
+function renderizarNotas() {
+  const container = document.getElementById('listaNot as');
+  
+  if (notasSalvas.length === 0) {
+    container.innerHTML = '<div class="empty-state"><p>Nenhuma nota salva</p></div>';
+    return;
+  }
+  
+  container.innerHTML = notasSalvas.map(n => `
+    <div class="note-item">
+      <div class="title">${n.titulo}</div>
+      <div class="content">${n.conteudo}</div>
+      <div style="font-size: 10px; color: var(--text2); margin-top: 8px;">
+        📁 ${n.arquivo} • ${n.data}
+      </div>
+      <button class="btn btn-danger" style="margin-top: 8px; padding: 4px 8px; font-size: 10px;" onclick="deletarNota(${n.id})">🗑️ Deletar</button>
+    </div>
+  `).join('');
+}
+
+function deletarNota(id) {
+  notasSalvas = notasSalvas.filter(n => n.id !== id);
+  renderizarNotas();
+  showToast('🗑️ Nota deletada!');
+}
+
+// ========== UTILITÁRIOS ==========
+function ehTexto(nome) {
+  const lower = nome.toLowerCase();
+  if (lower.includes('package.json') || lower.includes('manifest')) return true;
+  if (lower.endsWith('/')) return false;
+  return extensoesTexto.some(ext => lower.endsWith(ext));
+}
+
+function formatarTamanho(bytes) {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+}
+
+// ========== INICIALIZAÇÃO ==========
+document.addEventListener('DOMContentLoaded', () => {
+  renderizarArquivos();
+  renderizarNotas();
+});
+</script>
+</body>
+</html>

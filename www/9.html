@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iara 2.0 - Mapeador Profissional de Dependências</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1117; color: #e6edf3; font-family: 'Segoe UI', sans-serif; height: 100vh; display: flex; flex-direction: column; }
+  
+  #header { background: #161b22; border-bottom: 1px solid #30363d; padding: 12px 20px; display: flex; align-items: center; gap: 12px; justify-content: space-between; }
+  #header h1 { font-size: 16px; color: #58a6ff; }
+  #header span { font-size: 12px; color: #8b949e; }
+  
+  #toolbar { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 20px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; overflow-x: auto; }
+  
+  .btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #30363d; cursor: pointer; font-size: 13px; transition: all 0.2s; white-space: nowrap; }
+  .btn-primary { background: #238636; border-color: #2ea043; color: #fff; }
+  .btn-primary:hover { background: #2ea043; }
+  .btn-secondary { background: #21262d; color: #e6edf3; }
+  .btn-secondary:hover { background: #30363d; }
+  .btn-danger { background: #da3633; border-color: #f85149; color: #fff; }
+  .btn-danger:hover { background: #f85149; }
+  .btn-warning { background: #9e6a03; border-color: #d29922; color: #fff; }
+  .btn-warning:hover { background: #d29922; }
+
+  #drop-zone { border: 2px dashed #30363d; border-radius: 8px; padding: 8px 16px; font-size: 13px; color: #8b949e; cursor: pointer; transition: all 0.2s; flex: 1; min-width: 250px; }
+  #drop-zone:hover, #drop-zone.drag-over { border-color: #58a6ff; color: #58a6ff; background: #1c2128; }
+
+  #main { display: flex; flex: 1; overflow: hidden; }
+  
+  #sidebar { width: 260px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; overflow: hidden; }
+  #sidebar-header { padding: 10px 14px; font-size: 12px; color: #8b949e; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+  #file-list { flex: 1; overflow-y: auto; padding: 6px; }
+  .file-item { padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 6px; transition: background 0.15s; border: 1px solid transparent; margin-bottom: 2px; }
+  .file-item:hover { background: #21262d; }
+  .file-item.selected { background: #1c2128; border-color: #58a6ff; }
+  .file-item.has-imports { color: #58a6ff; }
+  .file-item.no-imports { color: #8b949e; }
+  .file-badge { font-size: 10px; background: #238636; color: #fff; padding: 1px 5px; border-radius: 10px; margin-left: auto; }
+
+  #canvas-area { flex: 1; position: relative; overflow: hidden; }
+  #graph-canvas { width: 100%; height: 100%; }
+  
+  #info-panel { width: 320px; background: #161b22; border-left: 1px solid #30363d; display: flex; flex-direction: column; overflow: hidden; transition: width 0.3s; }
+  #info-panel.hidden { width: 0; }
+  #info-header { padding: 10px 14px; font-size: 12px; color: #8b949e; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+  #info-content { flex: 1; overflow-y: auto; padding: 10px; }
+  
+  .info-section { margin-bottom: 14px; }
+  .info-section h3 { font-size: 12px; color: #58a6ff; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .info-tag { display: inline-block; background: #21262d; border: 1px solid #30363d; border-radius: 4px; padding: 3px 8px; font-size: 11px; margin: 2px; cursor: pointer; transition: all 0.15s; }
+  .info-tag:hover { border-color: #58a6ff; color: #58a6ff; }
+  .info-tag.import-tag { border-color: #1f6feb; color: #79c0ff; }
+  .info-tag.export-tag { border-color: #238636; color: #56d364; }
+  .info-tag.cycle-tag { border-color: #da3633; color: #f85149; }
+
+  #status-bar { background: #161b22; border-top: 1px solid #30363d; padding: 4px 16px; font-size: 11px; color: #8b949e; display: flex; gap: 20px; overflow-x: auto; }
+  
+  .tooltip { position: absolute; background: #1c2128; border: 1px solid #30363d; border-radius: 6px; padding: 8px 12px; font-size: 12px; pointer-events: none; z-index: 100; max-width: 250px; }
+
+  #empty-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #8b949e; }
+  #empty-state h2 { font-size: 18px; margin-bottom: 8px; color: #30363d; }
+  #empty-state p { font-size: 13px; line-height: 1.6; }
+
+  /* Modal */
+  .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+  .modal.active { display: flex; }
+  .modal-content { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+  .modal-header { font-size: 16px; color: #58a6ff; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+  .modal-close { cursor: pointer; color: #8b949e; font-size: 20px; }
+  .modal-close:hover { color: #e6edf3; }
+
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0d1117; }
+  ::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🕸️ Iara 2.0 — Mapeador Profissional</h1>
+  <span>v2.0 | Suporta ZIP, TAR, TAR.GZ</span>
+</div>
+
+<div id="toolbar">
+  <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+    📁 Importar (.ts, .js, .tsx, .jsx, .vue, .html, .zip, .tar, .tar.gz)
+  </div>
+  <input type="file" id="file-input" multiple accept=".ts,.tsx,.js,.jsx,.html,.vue,.zip,.tar" style="display:none">
+  
+  <button class="btn btn-secondary" onclick="layoutGraph()">🔄 Reorganizar</button>
+  <button class="btn btn-secondary" onclick="togglePanel()">📋 Painel</button>
+  <button class="btn btn-warning" onclick="showReport()">📊 Relatório</button>
+  <button class="btn btn-warning" onclick="exportReport()">💾 Baixar</button>
+  <button class="btn btn-secondary" onclick="showStats()">📈 Estatísticas</button>
+  <button class="btn btn-danger" onclick="clearAll()">🗑️ Limpar</button>
+</div>
+
+<div id="main">
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <span>ARQUIVOS (<span id="file-count">0</span>)</span>
+      <span id="import-count" style="color:#56d364;">0</span>
+    </div>
+    <div id="file-list"></div>
+  </div>
+
+  <div id="canvas-area">
+    <div id="empty-state">
+      <h2>📂 Nenhum arquivo carregado</h2>
+      <p>Importe arquivos individuais ou<br>compactados (ZIP, TAR, TAR.GZ)<br>para ver o mapa de dependências</p>
+    </div>
+    <canvas id="graph-canvas"></canvas>
+    <div class="tooltip" id="tooltip" style="display:none"></div>
+  </div>
+
+  <div id="info-panel">
+    <div id="info-header">
+      <span>📋 DETALHES</span>
+      <span id="close-panel" onclick="togglePanel()" style="cursor:pointer;">✕</span>
+    </div>
+    <div id="info-content">
+      <p style="color:#8b949e; font-size:12px;">Clique em um arquivo para ver detalhes.</p>
+    </div>
+  </div>
+</div>
+
+<div id="status-bar">
+  <span id="status-files">Arquivos: 0</span>
+  <span id="status-connections">Conexões: 0</span>
+  <span id="status-cycles">Ciclos: 0</span>
+  <span id="status-selected">Selecionado: —</span>
+</div>
+
+<!-- Modais -->
+<div id="report-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>📊 Relatório de Dependências</span>
+      <span class="modal-close" onclick="closeModal('report-modal')">✕</span>
+    </div>
+    <div id="report-content"></div>
+  </div>
+</div>
+
+<div id="stats-modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span>📈 Estatísticas</span>
+      <span class="modal-close" onclick="closeModal('stats-modal')">✕</span>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script>
+// ========== ESTADO ==========
+const state = {
+  files: {},
+  nodes: {},
+  selected: null,
+  dragging: null,
+  dragOffset: { x: 0, y: 0 },
+  pan: { x: 0, y: 0 },
+  panning: false,
+  panStart: { x: 0, y: 0 },
+  zoom: 1,
+  cycles: []
+};
+
+// ========== CANVAS ==========
+const canvas = document.getElementById('graph-canvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const area = document.getElementById('canvas-area');
+  canvas.width = area.clientWidth;
+  canvas.height = area.clientHeight;
+  draw();
+}
+
+// ========== IMPORTAR ARQUIVOS ==========
+document.getElementById('file-input').addEventListener('change', e => loadFiles(e.target.files));
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  loadFiles(e.dataTransfer.files);
+});
+
+canvas.addEventListener('dragover', e => e.preventDefault());
+canvas.addEventListener('drop', e => {
+  e.preventDefault();
+  loadFiles(e.dataTransfer.files);
+});
+
+async function loadFiles(files) {
+  const fileArray = Array.from(files);
+  let processed = 0;
+  const total = fileArray.length;
+
+  for (const file of fileArray) {
+    if (file.name.endsWith('.zip')) {
+      await loadZip(file);
+    } else if (file.name.endsWith('.tar.gz') || file.name.endsWith('.tgz')) {
+      await loadTarGz(file);
+    } else if (file.name.endsWith('.tar')) {
+      await loadTar(file);
+    } else {
+      const reader = new FileReader();
+      reader.onload = e => {
+        addFile(file.name, e.target.result);
+        processed++;
+        if (processed === total) finishLoading();
+      };
+      reader.readAsText(file);
+    }
+  }
+  
+  if (fileArray.every(f => f.name.match(/\.(zip|tar|tgz)$/))) {
+    finishLoading();
+  }
+}
+
+async function loadZip(file) {
+  const zip = new JSZip();
+  const content = await zip.loadAsync(file);
+  
+  for (const [path, fileObj] of Object.entries(content.files)) {
+    if (!fileObj.dir && isCodeFile(path)) {
+      const text = await fileObj.async('text');
+      addFile(path, text);
+    }
+  }
+}
+
+async function loadTarGz(file) {
+  // Nota: Para TAR.GZ seria necessário tar.js ou similar
+  // Por enquanto, mostramos um aviso
+  alert('TAR.GZ requer biblioteca adicional. Use ZIP por enquanto.');
+}
+
+async function loadTar(file) {
+  alert('TAR requer biblioteca adicional. Use ZIP por enquanto.');
+}
+
+function isCodeFile(path) {
+  return /\.(ts|tsx|js|jsx|vue|html|css|json)$/.test(path);
+}
+
+function addFile(name, content) {
+  const imports = parseImports(content, name);
+  state.files[name] = { name, content, imports, importedBy: [] };
+}
+
+function finishLoading() {
+  resolveImportedBy();
+  detectCycles();
+  buildNodes();
+  layoutGraph();
+  updateSidebar();
+  updateStatus();
+  document.getElementById('empty-state').style.display = 'none';
+}
+
+// ========== PARSER DE IMPORTS ==========
+function parseImports(content, filename) {
+  const imports = [];
+  const patterns = [
+    /import\s+.*?\s+from\s+['"]([^'"]+)['"]/g,
+    /import\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+    /require\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+    /from\s+['"]([^'"]+)['"]/g,
+    /@import\s+['"]([^'"]+)['"]/g,
+  ];
+  
+  const found = new Set();
+  patterns.forEach(pattern => {
+    let match;
+    while ((match = pattern.exec(content)) !== null) {
+      const imp = match[1];
+      if (!imp.startsWith('http') && !found.has(imp)) {
+        found.add(imp);
+        imports.push(imp);
+      }
+    }
+  });
+  return [...new Set(imports)];
+}
+
+function resolveImportedBy() {
+  Object.values(state.files).forEach(f => f.importedBy = []);
+  
+  Object.values(state.files).forEach(file => {
+    file.imports.forEach(imp => {
+      const resolved = resolveImport(imp, file.name);
+      if (resolved && state.files[resolved]) {
+        if (!state.files[resolved].importedBy.includes(file.name)) {
+          state.files[resolved].importedBy.push(file.name);
+        }
+      }
+    });
+  });
+}
+
+function resolveImport(imp, fromFile) {
+  const bases = [imp, imp.replace('./', ''), imp.split('/').pop()];
+  const exts = ['', '.ts', '.tsx', '.js', '.jsx', '.vue', '/index.ts', '/index.tsx', '/index.js', '/index.jsx'];
+  
+  for (const base of bases) {
+    for (const ext of exts) {
+      const candidate = base + ext;
+      const found = Object.keys(state.files).find(name => 
+        name === candidate || 
+        name.endsWith('/' + candidate) ||
+        name === candidate.replace('./', '')
+      );
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+// ========== DETECÇÃO DE CICLOS ==========
+function detectCycles() {
+  state.cycles = [];
+  const visited = new Set();
+  const recStack = new Set();
+  
+  function dfs(node, path) {
+    visited.add(node);
+    recStack.add(node);
+    path.push(node);
+    
+    const file = state.files[node];
+    if (!file) return;
+    
+    file.imports.forEach(imp => {
+      const resolved = resolveImport(imp, node);
+      if (!resolved) return;
+      
+      if (recStack.has(resolved)) {
+        const cycleStart = path.indexOf(resolved);
+        const cycle = path.slice(cycleStart).concat([resolved]);
+        state.cycles.push(cycle);
+      } else if (!visited.has(resolved)) {
+        dfs(resolved, [...path]);
+      }
+    });
+    
+    recStack.delete(node);
+  }
+  
+  Object.keys(state.files).forEach(name => {
+    if (!visited.has(name)) {
+      dfs(name, []);
+    }
+  });
+}
+
+// ========== NÓS ==========
+function buildNodes() {
+  Object.keys(state.files).forEach(name => {
+    if (!state.nodes[name]) {
+      state.nodes[name] = {
+        x: Math.random() * (canvas.width - 200) + 100,
+        y: Math.random() * (canvas.height - 100) + 50,
+        vx: 0, vy: 0,
+        width: Math.max(120, name.length * 6 + 20),
+        height: 36
+      };
+    }
+  });
+  
+  Object.keys(state.nodes).forEach(name => {
+    if (!state.files[name]) delete state.nodes[name];
+  });
+}
+
+function layoutGraph() {
+  const names = Object.keys(state.files);
+  if (names.length === 0) return;
+
+  names.forEach((name, i) => {
+    const angle = (i / names.length) * Math.PI * 2;
+    const r = Math.min(canvas.width, canvas.height) * 0.35;
+    state.nodes[name].x = canvas.width / 2 + Math.cos(angle) * r;
+    state.nodes[name].y = canvas.height / 2 + Math.sin(angle) * r;
+    state.nodes[name].vx = 0;
+    state.nodes[name].vy = 0;
+  });
+
+  for (let iter = 0; iter < 200; iter++) {
+    simulateForce(names, 0.5);
+  }
+  draw();
+}
+
+function simulateForce(names, damping) {
+  const K_repel = 8000;
+  const K_attract = 0.05;
+  const ideal = 180;
+
+  names.forEach(a => {
+    let fx = 0, fy = 0;
+    const na = state.nodes[a];
+
+    names.forEach(b => {
+      if (a === b) return;
+      const nb = state.nodes[b];
+      const dx = na.x - nb.x;
+      const dy = na.y - nb.y;
+      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      const force = K_repel / (dist * dist);
+      fx += (dx / dist) * force;
+      fy += (dy / dist) * force;
+    });
+
+    state.files[a].imports.forEach(imp => {
+      const resolved = resolveImport(imp, a);
+      if (resolved && state.nodes[resolved]) {
+        const nb = state.nodes[resolved];
+        const dx = nb.x - na.x;
+        const dy = nb.y - na.y;
+        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
+        const stretch = dist - ideal;
+        fx += dx / dist * stretch * K_attract;
+        fy += dy / dist * stretch * K_attract;
+      }
+    });
+
+    na.vx = (na.vx + fx) * damping;
+    na.vy = (na.vy + fy) * damping;
+    na.x += na.vx;
+    na.y += na.vy;
+
+    na.x = Math.max(na.width/2 + 10, Math.min(canvas.width - na.width/2 - 10, na.x));
+    na.y = Math.max(na.height/2 + 10, Math.min(canvas.height - na.height/2 - 10, na.y));
+  });
+}
+
+// ========== DESENHO ==========
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(state.pan.x, state.pan.y);
+  ctx.scale(state.zoom, state.zoom);
+
+  Object.values(state.files).forEach(file => {
+    file.imports.forEach(imp => {
+      const resolved = resolveImport(imp, file.name);
+      if (resolved && state.nodes[resolved] && state.nodes[file.name]) {
+        drawEdge(state.nodes[file.name], state.nodes[resolved], file.name, resolved);
+      }
+    });
+  });
+
+  Object.values(state.files).forEach(file => {
+    if (state.nodes[file.name]) {
+      drawNode(file, state.nodes[file.name]);
+    }
+  });
+
+  ctx.restore();
+}
+
+function drawEdge(from, to, fromName, toName) {
+  const isSelected = state.selected === fromName || state.selected === toName;
+  const isCycle = state.cycles.some(c => c.includes(fromName) && c.includes(toName));
+  
+  ctx.beginPath();
+  ctx.strokeStyle = isCycle ? '#f85149' : isSelected ? '#58a6ff' : '#30363d';
+  ctx.lineWidth = isCycle ? 2.5 : isSelected ? 2 : 1;
+  ctx.globalAlpha = isSelected || isCycle ? 1 : 0.5;
+  
+  const mx = (from.x + to.x) / 2;
+  const my = (from.y + to.y) / 2 - 20;
+  ctx.moveTo(from.x, from.y);
+  ctx.quadraticCurveTo(mx, my, to.x, to.y);
+  ctx.stroke();
+  
+  const angle = Math.atan2(to.y - my, to.x - mx);
+  ctx.fillStyle = isCycle ? '#f85149' : isSelected ? '#58a6ff' : '#30363d';
+  ctx.beginPath();
+  ctx.moveTo(to.x, to.y);
+  ctx.lineTo(to.x - 10 * Math.cos(angle - 0.4), to.y - 10 * Math.sin(angle - 0.4));
+  ctx.lineTo(to.x - 10 * Math.cos(angle + 0.4), to.y - 10 * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fill();
+  
+  ctx.globalAlpha = 1;
+}
+
+function drawNode(file, node) {
+  const isSelected = state.selected === file.name;
+  const hasConnections = file.imports.length > 0 || file.importedBy.length > 0;
+  const isInCycle = state.cycles.some(c => c.includes(file.name));
+  
+  const w = node.width;
+  const h = node.height;
+  const x = node.x - w/2;
+  const y = node.y - h/2;
+  const r = 8;
+
+  if (isSelected) {
+    ctx.shadowColor = '#58a6ff';
+    ctx.shadowBlur = 15;
+  } else if (isInCycle) {
+    ctx.shadowColor = '#f85149';
+    ctx.shadowBlur = 10;
+  }
+
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  
+  if (isSelected) {
+    ctx.fillStyle = '#1c2128';
+  } else if (isInCycle) {
+    ctx.fillStyle = '#3d1f1a';
+  } else if (hasConnections) {
+    ctx.fillStyle = '#161b22';
+  } else {
+    ctx.fillStyle = '#0d1117';
+  }
+  ctx.fill();
+
+  ctx.strokeStyle = isInCycle ? '#f85149' : isSelected ? '#58a6ff' : hasConnections ? '#1f6feb' : '#30363d';
+  ctx.lineWidth = isSelected ? 2 : isInCycle ? 2 : 1;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const ext = file.name.split('.').pop();
+  const icons = { ts: '🔷', tsx: '⚛️', js: '🟡', jsx: '⚛️', html: '🌐', vue: '💚', css: '🎨', json: '📋' };
+  const icon = icons[ext] || '📄';
+
+  ctx.fillStyle = isInCycle ? '#f85149' : isSelected ? '#e6edf3' : hasConnections ? '#79c0ff' : '#8b949e';
+  ctx.font = `${isSelected ? 'bold ' : ''}12px Segoe UI`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  const displayName = file.name.length > 18 ? file.name.substring(0, 16) + '…' : file.name;
+  ctx.fillText(icon + ' ' + displayName, node.x, node.y);
+
+  if (file.imports.length > 0) {
+    const bx = node.x + w/2 - 10;
+    const by = node.y - h/2 - 8;
+    ctx.beginPath();
+    ctx.arc(bx, by, 9, 0, Math.PI * 2);
+    ctx.fillStyle = '#238636';
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 9px Segoe UI';
+    ctx.fillText(file.imports.length, bx, by);
+  }
+}
+
+// ========== INTERAÇÃO ==========
+canvas.addEventListener('mousedown', e => {
+  const pos = getCanvasPos(e);
+  const hit = getNodeAt(pos.x, pos.y);
+  
+  if (hit) {
+    state.dragging = hit;
+    state.dragOffset.x = pos.x - state.nodes[hit].x;
+    state.dragOffset.y = pos.y - state.nodes[hit].y;
+    selectFile(hit);
+  } else {
+    state.panning = true;
+    state.panStart.x = e.clientX - state.pan.x;
+    state.panStart.y = e.clientY - state.pan.y;
+  }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const pos = getCanvasPos(e);
+  
+  if (state.dragging) {
+    state.nodes[state.dragging].x = pos.x - state.dragOffset.x;
+    state.nodes[state.dragging].y = pos.y - state.dragOffset.y;
+    draw();
+  } else if (state.panning) {
+    state.pan.x = e.clientX - state.panStart.x;
+    state.pan.y = e.clientY - state.panStart.y;
+    draw();
+  } else {
+    const hit = getNodeAt(pos.x, pos.y);
+    const tooltip = document.getElementById('tooltip');
+    if (hit) {
+      const file = state.files[hit];
+      const inCycle = state.cycles.some(c => c.includes(hit)) ? '⚠️ EM CICLO' : '';
+      tooltip.style.display = 'block';
+      tooltip.style.left = (e.clientX - canvas.getBoundingClientRect().left + 10) + 'px';
+      tooltip.style.top = (e.clientY - canvas.getBoundingClientRect().top + 10) + 'px';
+      tooltip.innerHTML = `<strong>${hit}</strong> ${inCycle}<br>📥 Importa: ${file.imports.length}<br>📤 Importado por: ${file.importedBy.length}`;
+    } else {
+      tooltip.style.display = 'none';
+    }
+  }
+});
+
+canvas.addEventListener('mouseup', () => {
+  state.dragging = null;
+  state.panning = false;
+});
+
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const delta = e.deltaY > 0 ? 0.9 : 1.1;
+  state.zoom = Math.max(0.3, Math.min(3, state.zoom * delta));
+  draw();
+}, { passive: false });
+
+function getCanvasPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left - state.pan.x) / state.zoom,
+    y: (e.clientY - rect.top - state.pan.y) / state.zoom
+  };
+}
+
+function getNodeAt(x, y) {
+  return Object.keys(state.nodes).find(name => {
+    const n = state.nodes[name];
+    return x >= n.x - n.width/2 && x <= n.x + n.width/2 &&
+           y >= n.y - n.height/2 && y <= n.y + n.height/2;
+  });
+}
+
+// ========== SELEÇÃO ==========
+function selectFile(name) {
+  state.selected = name;
+  updateInfoPanel(name);
+  updateSidebar();
+  updateStatus();
+  draw();
+}
+
+function updateInfoPanel(name) {
+  const file = state.files[name];
+  if (!file) return;
+  
+  const panel = document.getElementById('info-content');
+  const inCycle = state.cycles.find(c => c.includes(name));
+  
+  const resolvedImports = file.imports.map(imp => {
+    const resolved = resolveImport(imp, name);
+    return { raw: imp, resolved };
+  });
+
+  panel.innerHTML = `
+    <div class="info-section">
+      <h3>📄 Arquivo</h3>
+      <div class="info-tag">${name}</div>
+      ${inCycle ? `<div class="info-tag cycle-tag">⚠️ Ciclo: ${inCycle.join(' → ')}</div>` : ''}
+    </div>
+    
+    <div class="info-section">
+      <h3>📥 Importa (${file.imports.length})</h3>
+      ${resolvedImports.length === 0 ? '<span style="color:#8b949e;font-size:12px;">Nenhum import</span>' :
+        resolvedImports.map(i => `
+          <div class="info-tag import-tag" onclick="selectFile('${i.resolved || ''}')" 
+               title="${i.raw}" style="${i.resolved ? 'cursor:pointer' : 'opacity:0.5'}">
+            ${i.resolved ? '🔗 ' + i.resolved : '❓ ' + i.raw}
+          </div>
+        `).join('')}
+    </div>
+    
+    <div class="info-section">
+      <h3>📤 Importado por (${file.importedBy.length})</h3>
+      ${file.importedBy.length === 0 ? '<span style="color:#8b949e;font-size:12px;">Ninguém importa este arquivo</span>' :
+        file.importedBy.map(f => `
+          <div class="info-tag export-tag" onclick="selectFile('${f}')" style="cursor:pointer">
+            🔗 ${f}
+          </div>
+        `).join('')}
+    </div>
+
+    <div class="info-section">
+      <h3>📋 Imports Raw</h3>
+      ${file.imports.map(i => `<div style="font-size:11px;color:#8b949e;padding:2px 0;border-bottom:1px solid #21262d;word-break:break-all">${i}</div>`).join('') || '<span style="color:#8b949e;font-size:12px;">—</span>'}
+    </div>
+  `;
+}
+
+// ========== SIDEBAR ==========
+function updateSidebar() {
+  const list = document.getElementById('file-list');
+  const names = Object.keys(state.files).sort();
+  
+  document.getElementById('file-count').textContent = names.length;
+  
+  let totalConnections = 0;
+  Object.values(state.files).forEach(f => totalConnections += f.imports.length);
+  document.getElementById('import-count').textContent = totalConnections + ' conexões';
+
+  list.innerHTML = names.map(name => {
+    const file = state.files[name];
+    const hasImports = file.imports.length > 0;
+    const inCycle = state.cycles.some(c => c.includes(name));
+    return `
+      <div class="file-item ${state.selected === name ? 'selected' : ''} ${inCycle ? 'has-imports' : hasImports ? 'has-imports' : 'no-imports'}"
+           onclick="selectFile('${name}')" title="${inCycle ? '⚠️ Em ciclo' : ''}">
+        <span>${inCycle ? '⚠️ ' : ''}${name}</span>
+        ${hasImports ? `<span class="file-badge">${file.imports.length}</span>` : ''}
+      </div>
+    `;
+  }).join('');
+}
+
+function updateStatus() {
+  const names = Object.keys(state.files);
+  let connections = 0;
+  Object.values(state.files).forEach(f => connections += f.imports.length);
+  
+  document.getElementById('status-files').textContent = `Arquivos: ${names.length}`;
+  document.getElementById('status-connections').textContent = `Conexões: ${connections}`;
+  document.getElementById('status-cycles').textContent = `Ciclos: ${state.cycles.length}`;
+  document.getElementById('status-selected').textContent = `Selecionado: ${state.selected || '—'}`;
+}
+
+// ========== RELATÓRIOS ==========
+function showReport() {
+  const modal = document.getElementById('report-modal');
+  const content = document.getElementById('report-content');
+  
+  let html = '<div style="font-size:13px;color:#e6edf3;">';
+  
+  html += '<h3 style="color:#58a6ff;margin:16px 0 8px 0;">📊 Resumo Geral</h3>';
+  html += `<div style="background:#21262d;padding:10px;border-radius:6px;margin-bottom:16px;">
+    <div>Total de arquivos: <strong>${Object.keys(state.files).length}</strong></div>
+    <div>Total de conexões: <strong>${Object.values(state.files).reduce((a,f)=>a+f.imports.length,0)}</strong></div>
+    <div>Ciclos detectados: <strong>${state.cycles.length}</strong></div>
+  </div>`;
+  
+  if (state.cycles.length > 0) {
+    html += '<h3 style="color:#f85149;margin:16px 0 8px 0;">⚠️ Ciclos Encontrados</h3>';
+    state.cycles.forEach((cycle, i) => {
+      html += `<div style="background:#3d1f1a;padding:8px;border-radius:4px;margin-bottom:8px;border-left:3px solid #f85149;">
+        <strong>Ciclo ${i+1}:</strong> ${cycle.join(' → ')}
+      </div>`;
+    });
+  }
+  
+  html += '<h3 style="color:#58a6ff;margin:16px 0 8px 0;">📁 Arquivos e Dependências</h3>';
+  Object.keys(state.files).sort().forEach(name => {
+    const file = state.files[name];
+    const inCycle = state.cycles.some(c => c.includes(name));
+    html += `<div style="background:#21262d;padding:10px;border-radius:6px;margin-bottom:8px;border-left:3px solid ${inCycle ? '#f85149' : '#58a6ff'};">
+      <div><strong>${inCycle ? '⚠️ ' : ''}${name}</strong></div>
+      <div style="font-size:12px;color:#8b949e;margin-top:4px;">
+        📥 Importa ${file.imports.length} | 📤 Importado por ${file.importedBy.length}
+      </div>
+      ${file.imports.length > 0 ? `<div style="font-size:11px;color:#79c0ff;margin-top:4px;">Imports: ${file.imports.join(', ')}</div>` : ''}
+    </div>`;
+  });
+  
+  html += '</div>';
+  content.innerHTML = html;
+  modal.classList.add('active');
+}
+
+function showStats() {
+  const modal = document.getElementById('stats-modal');
+  const content = document.getElementById('stats-content');
+  
+  const files = Object.values(state.files);
+  const imports = files.map(f => f.imports.length);
+  const importedBy = files.map(f => f.importedBy.length);
+  
+  const avgImports = (imports.reduce((a,b)=>a+b,0) / files.length).toFixed(2);
+  const maxImports = Math.max(...imports);
+  const minImports = Math.min(...imports);
+  
+  const topImporters = Object.entries(state.files)
+    .sort((a, b) => b[1].imports.length - a[1].imports.length)
+    .slice(0, 5);
+  
+  const topImported = Object.entries(state.files)
+    .sort((a, b) => b[1].importedBy.length - a[1].importedBy.length)
+    .slice(0, 5);
+  
+  let html = '<div style="font-size:13px;color:#e6edf3;">';
+  
+  html += '<h3 style="color:#58a6ff;margin:16px 0 8px 0;">📈 Estatísticas Gerais</h3>';
+  html += `<div style="background:#21262d;padding:10px;border-radius:6px;margin-bottom:16px;">
+    <div>Média de imports por arquivo: <strong>${avgImports}</strong></div>
+    <div>Máximo de imports: <strong>${maxImports}</strong></div>
+    <div>Mínimo de imports: <strong>${minImports}</strong></div>
+    <div>Ciclos: <strong>${state.cycles.length}</strong></div>
+  </div>`;
+  
+  html += '<h3 style="color:#58a6ff;margin:16px 0 8px 0;">🔝 Top 5 Arquivos que Mais Importam</h3>';
+  topImporters.forEach(([name, file]) => {
+    html += `<div style="background:#21262d;padding:8px;border-radius:4px;margin-bottom:6px;">
+      <strong>${name}</strong>: ${file.imports.length} imports
+    </div>`;
+  });
+  
+  html += '<h3 style="color:#58a6ff;margin:16px 0 8px 0;">📌 Top 5 Arquivos Mais Importados</h3>';
+  topImported.forEach(([name, file]) => {
+    html += `<div style="background:#21262d;padding:8px;border-radius:4px;margin-bottom:6px;">
+      <strong>${name}</strong>: importado ${file.importedBy.length} vezes
+    </div>`;
+  });
+  
+  html += '</div>';
+  content.innerHTML = html;
+  modal.classList.add('active');
+}
+
+function exportReport() {
+  const reportContent = document.getElementById('report-content');
+  if (!reportContent.innerHTML) showReport();
+  
+  const element = document.getElementById('report-modal').querySelector('.modal-content');
+  const opt = {
+    margin: 10,
+    filename: 'relatorio-dependencias.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { orientation: 'portrait', unit: 'mm', format: 'a4' }
+  };
+  
+  html2pdf().set(opt).from(element).save();
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function togglePanel() {
+  const panel = document.getElementById('info-panel');
+  panel.classList.toggle('hidden');
+}
+
+function clearAll() {
+  if (!confirm('Limpar tudo?')) return;
+  Object.keys(state.files).forEach(k => delete state.files[k]);
+  Object.keys(state.nodes).forEach(k => delete state.nodes[k]);
+  state.selected = null;
+  state.pan = { x: 0, y: 0 };
+  state.zoom = 1;
+  state.cycles = [];
+  document.getElementById('empty-state').style.display = 'block';
+  updateSidebar();
+  updateStatus();
+  draw();
+  document.getElementById('info-content').innerHTML = '<p style="color:#8b949e; font-size:12px;">Clique em um arquivo para ver detalhes.</p>';
+}
+
+// ========== INIT ==========
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+draw();
+</script>
+</body>
+</html>

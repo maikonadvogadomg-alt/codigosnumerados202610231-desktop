@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Leitor de Projeto PRO - Com Memória</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #38bdf8;
+      margin-bottom: 10px;
+    }
+
+    .subtitulo {
+      color: #94a3b8;
+      margin-bottom: 20px;
+      font-size: 0.95em;
+    }
+
+    /* ZONA DE UPLOAD */
+    #zona-upload {
+      border: 2px dashed #38bdf8;
+      border-radius: 12px;
+      padding: 40px;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+    }
+
+    #zona-upload:hover {
+      background: #1e293b;
+      border-color: #4ade80;
+    }
+
+    #zona-upload input {
+      display: none;
+    }
+
+    /* PAINEL DE MEMÓRIA */
+    #painel-memoria {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 2px solid #f59e0b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .memoria-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .memoria-header h3 {
+      color: #f59e0b;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-limpar-memoria {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85em;
+    }
+
+    .btn-limpar-memoria:hover {
+      background: #ef4444;
+    }
+
+    .lista-notas {
+      display: grid;
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .nota-item {
+      background: #0f172a;
+      border-left: 4px solid #f59e0b;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .nota-item:hover {
+      background: #1e293b;
+      transform: translateX(5px);
+    }
+
+    .nota-info {
+      flex: 1;
+    }
+
+    .nota-nome {
+      font-weight: bold;
+      color: #38bdf8;
+      margin-bottom: 5px;
+    }
+
+    .nota-data {
+      font-size: 0.75em;
+      color: #64748b;
+    }
+
+    .nota-acoes {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-nota {
+      background: #1e3a5f;
+      color: #38bdf8;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8em;
+    }
+
+    .btn-nota:hover {
+      background: #2563eb;
+    }
+
+    .btn-nota.deletar {
+      background: #7f1d1d;
+      color: #fca5a5;
+    }
+
+    .btn-nota.deletar:hover {
+      background: #dc2626;
+    }
+
+    /* RESUMO */
+    #resumo {
+      display: none;
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .grid-resumo {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .card-resumo {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+    }
+
+    .numero-grande {
+      font-size: 2em;
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    /* BOTÕES DE AÇÃO */
+    .acoes-principais {
+      display: none;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn-acao {
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-acao:hover {
+      background: #2563eb;
+      transform: translateY(-2px);
+    }
+
+    .btn-acao.salvar {
+      background: #15803d;
+    }
+
+    .btn-acao.salvar:hover {
+      background: #16a34a;
+    }
+
+    /* FILTROS E BUSCA */
+    #barra-busca {
+      display: none;
+      width: 100%;
+      padding: 12px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: white;
+      font-size: 1em;
+      margin-bottom: 15px;
+    }
+
+    #filtros {
+      display: none;
+      margin-bottom: 20px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-filtro {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 0.85em;
+      transition: all 0.2s;
+    }
+
+    .btn-filtro.ativo {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+
+    .btn-filtro:not(.ativo) {
+      opacity: 0.4;
+    }
+
+    /* CARDS DE ELEMENTOS */
+    #lista-elementos {
+      display: none;
+    }
+
+    .elemento-card {
+      background: #1e293b;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      overflow: hidden;
+    }
+
+    .elemento-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      cursor: pointer;
+      border-left: 5px solid #38bdf8;
+    }
+
+    .elemento-header:hover {
+      background: #263548;
+    }
+
+    .elemento-header.funcao { border-left-color: #38bdf8; }
+    .elemento-header.html { border-left-color: #f97316; }
+    .elemento-header.css { border-left-color: #a78bfa; }
+    .elemento-header.cerebro { border-left-color: #f59e0b; }
+    .elemento-header.importante { border-left-color: #4ade80; }
+
+    .tag {
+      font-size: 0.75em;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+
+    .tag-funcao { background: #1e3a5f; color: #38bdf8; }
+    .tag-html { background: #7c2d12; color: #f97316; }
+    .tag-css { background: #4c1d95; color: #a78bfa; }
+    .tag-cerebro { background: #78350f; color: #f59e0b; }
+    .tag-importante { background: #166534; color: #4ade80; }
+
+    .elemento-corpo {
+      display: none;
+      padding: 15px;
+      border-top: 1px solid #334155;
+    }
+
+    .elemento-corpo.aberto {
+      display: block;
+    }
+
+    .explicacao {
+      background: #0f172a;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      font-size: 0.9em;
+      line-height: 1.6;
+    }
+
+    .explicacao strong {
+      color: #38bdf8;
+    }
+
+    pre {
+      background: #020617;
+      border-radius: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      font-size: 0.8em;
+      color: #94a3b8;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .btn-copiar {
+      background: #1d4ed8;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 0.9em;
+    }
+
+    .btn-copiar:hover {
+      background: #2563eb;
+    }
+
+    .btn-copiar.copiado {
+      background: #166534;
+    }
+
+    /* TOAST DE NOTIFICAÇÃO */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #15803d;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none;
+      animation: slideIn 0.3s ease;
+      z-index: 1000;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(400px); }
+      to { transform: translateX(0); }
+    }
+
+    .toast.erro {
+      background: #dc2626;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🔍 Leitor de Projeto PRO</h1>
+  <p class="subtitulo">
+    Importe qualquer arquivo e eu explico cada parte + salvo na memória para você usar depois
+  </p>
+
+  <!-- PAINEL DE MEMÓRIA -->
+  <div id="painel-memoria">
+    <div class="memoria-header">
+      <h3>🧠 Notas Salvas na Memória</h3>
+      <button class="btn-limpar-memoria" onclick="limparTodasNotas()">🗑️ Limpar Tudo</button>
+    </div>
+    <div class="lista-notas" id="lista-notas"></div>
+  </div>
+
+  <!-- ZONA DE UPLOAD -->
+  <div id="zona-upload" onclick="document.getElementById('input-arquivo').click()">
+    <input type="file" id="input-arquivo" accept=".js,.html,.css,.json,.txt" onchange="lerArquivo(event)">
+    <div style="font-size: 3em;">📂</div>
+    <p style="font-size: 1.2em; margin-top: 10px; color: #38bdf8;">
+      Clique aqui para importar o arquivo
+    </p>
+    <p style="color: #64748b; margin-top: 5px;">
+      Aceita .js, .html, .css, .json, .txt
+    </p>
+  </div>
+
+  <!-- RESUMO -->
+  <div id="resumo">
+    <h2 style="margin-bottom:15px;">📊 Resumo do Arquivo</h2>
+    <div class="grid-resumo">
+      <div class="card-resumo">
+        <div class="numero-grande" id="total-elementos">0</div>
+        <div>Elementos</div>
+      </div>
+      <div class="card-resumo">
+        <div class="numero-grande" id="total-linhas">0</div>
+        <div>Linhas</div>
+      </div>
+      <div class="card-resumo">
+        <div class="numero-grande" id="total-funcoes">0</div>
+        <div style="color:#38bdf8">Funções JS</div>
+      </div>
+      <div class="card-resumo">
+        <div class="numero-grande" id="total-html">0</div>
+        <div style="color:#f97316">Tags HTML</div>
+      </div>
+      <div class="card-resumo">
+        <div class="numero-grande" id="total-css">0</div>
+        <div style="color:#a78bfa">Regras CSS</div>
+      </div>
+      <div class="card-resumo">
+        <div class="numero-grande" id="total-cerebro">0</div>
+        <div style="color:#f59e0b">Cérebro</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AÇÕES PRINCIPAIS -->
+  <div class="acoes-principais" id="acoes-principais">
+    <button class="btn-acao salvar" onclick="salvarNaMemoria()">
+      💾 Salvar Análise na Memória
+    </button>
+    <button class="btn-acao" onclick="exportarJSON()">
+      📥 Exportar como JSON
+    </button>
+    <button class="btn-acao" onclick="copiarTudo()">
+      📋 Copiar Tudo
+    </button>
+  </div>
+
+  <!-- BUSCA -->
+  <input type="text" id="barra-busca" placeholder="🔎 Buscar por nome..." oninput="filtrarBusca(this.value)">
+
+  <!-- FILTROS -->
+  <div id="filtros" style="display:flex">
+    <button class="btn-filtro ativo" style="background:#1e3a5f;color:#38bdf8" onclick="filtrar('todos',this)">
+      Todos
+    </button>
+    <button class="btn-filtro" style="background:#1e3a5f;color:#38bdf8" onclick="filtrar('funcao',this)">
+      ⚡ Funções JS
+    </button>
+    <button class="btn-filtro" style="background:#7c2d12;color:#f97316" onclick="filtrar('html',this)">
+      🏗️ HTML
+    </button>
+    <button class="btn-filtro" style="background:#4c1d95;color:#a78bfa" onclick="filtrar('css',this)">
+      🎨 CSS
+    </button>
+    <button class="btn-filtro" style="background:#78350f;color:#f59e0b" onclick="filtrar('cerebro',this)">
+      🧠 Cérebro
+    </button>
+    <button class="btn-filtro" style="background:#166534;color:#4ade80" onclick="filtrar('importante',this)">
+      ⭐ Importantes
+    </button>
+  </div>
+
+  <!-- LISTA DE ELEMENTOS -->
+  <div id="lista-elementos"></div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    let todosElementos = [];
+    let arquivoAtual = null;
+    let filtroAtivo = 'todos';
+
+    // =====================
+    // INICIALIZAR
+    // =====================
+    window.onload = function() {
+      carregarNotas();
+    };
+
+    // =====================
+    // LER ARQUIVO
+    // =====================
+    function lerArquivo(event) {
+      const arquivo = event.target.files[0];
+      if (!arquivo) return;
+
+      arquivoAtual = arquivo.name;
+      const leitor = new FileReader();
+
+      leitor.onload = function(e) {
+        const conteudo = e.target.result;
+        analisarCodigo(conteudo, arquivo.name);
+      };
+
+      leitor.readAsText(arquivo);
+    }
+
+    // =====================
+    // ANALISAR CÓDIGO
+    // =====================
+    function analisarCodigo(texto, nomeArquivo) {
+      const linhas = texto.split('\n');
+      todosElementos = [];
+
+      const extensao = nomeArquivo.split('.').pop().toLowerCase();
+
+      // ANALISAR FUNÇÕES JAVASCRIPT
+      if (extensao === 'js' || extensao === 'html') {
+        analisarFuncoes(linhas);
+      }
+
+      // ANALISAR HTML
+      if (extensao === 'html') {
+        analisarHTML(texto);
+      }
+
+      // ANALISAR CSS
+      if (extensao === 'css' || extensao === 'html') {
+        analisarCSS(texto);
+      }
+
+      // Atualizar resumo
+      const funcoes = todosElementos.filter(e => e.tipo === 'funcao').length;
+      const html = todosElementos.filter(e => e.tipo === 'html').length;
+      const css = todosElementos.filter(e => e.tipo === 'css').length;
+      const cerebro = todosElementos.filter(e => e.cerebro).length;
+
+      document.getElementById('total-elementos').textContent = todosElementos.length;
+      document.getElementById('total-linhas').textContent = linhas.length;
+      document.getElementById('total-funcoes').textContent = funcoes;
+      document.getElementById('total-html').textContent = html;
+      document.getElementById('total-css').textContent = css;
+      document.getElementById('total-cerebro').textContent = cerebro;
+
+      document.getElementById('resumo').style.display = 'block';
+      document.getElementById('acoes-principais').style.display = 'flex';
+      document.getElementById('lista-elementos').style.display = 'block';
+      document.getElementById('barra-busca').style.display = 'block';
+      document.getElementById('filtros').style.display = 'flex';
+
+      renderizarElementos(todosElementos);
+      mostrarToast(`✅ ${todosElementos.length} elementos encontrados!`);
+    }
+
+    // =====================
+    // ANALISAR FUNÇÕES JS
+    // =====================
+    function analisarFuncoes(linhas) {
+      for (let i = 0; i < linhas.length; i++) {
+        const linha = linhas[i];
+        const padroes = [
+          /function\s+(\w+)\s*\(/,
+          /const\s+(\w+)\s*=\s*(?:async\s*)?\(/,
+          /const\s+(\w+)\s*=\s*(?:async\s*)?function/,
+          /(\w+)\s*:\s*(?:async\s*)?function/,
+          /(\w+)\s*=\s*(?:async\s*)?\(.*\)\s*=>/,
+        ];
+
+        for (const padrao of padroes) {
+          const match = linha.match(padrao);
+          if (match) {
+            const nome = match[1];
+            const corpo = pegarCorpo(linhas, i);
+            const cerebro = isCerebro(nome, corpo);
+            const importante = isImportante(nome, corpo);
+            const explicacao = explicarFuncao(nome, corpo, cerebro, importante);
+
+            todosElementos.push({
+              tipo: 'funcao',
+              nome,
+              linha: i + 1,
+              corpo,
+              cerebro,
+              importante,
+              explicacao
+            });
+            break;
+          }
+        }
+      }
+    }
+
+    // =====================
+    // ANALISAR HTML
+    // =====================
+    function analisarHTML(texto) {
+      const regex = /<(\w+)([^>]*)>/g;
+      let match;
+      const tagsIgnorar = ['html', 'head', 'body', 'meta', 'title'];
+
+      while ((match = regex.exec(texto)) !== null) {
+        const tag = match[1];
+        const atributos = match[2];
+
+        if (tagsIgnorar.includes(tag.toLowerCase())) continue;
+
+        const id = atributos.match(/id=["']([^"']+)["']/);
+        const classe = atributos.match(/class=["']([^"']+)["']/);
+
+        const nome = id ? `#${id[1]}` : (classe ? `.${classe[1].split(' ')[0]}` : `<${tag}>`);
+
+        todosElementos.push({
+          tipo: 'html',
+          nome,
+          tag,
+          atributos: atributos.trim(),
+          corpo: match[0],
+          cerebro: false,
+          importante: ['button', 'form', 'input'].includes(tag.toLowerCase()),
+          explicacao: explicarHTML(tag, atributos)
+        });
+      }
+    }
+
+    // =====================
+    // ANALISAR CSS
+    // =====================
+    function analisarCSS(texto) {
+      const regex = /([^{]+)\{([^}]+)\}/g;
+      let match;
+
+      while ((match = regex.exec(texto)) !== null) {
+        const seletor = match[1].trim();
+        const regras = match[2].trim();
+
+        if (seletor.startsWith('@') || seletor.startsWith('*')) continue;
+
+        todosElementos.push({
+          tipo: 'css',
+          nome: seletor,
+          corpo: match[0],
+          regras,
+          cerebro: false,
+          importante: seletor.includes('#') || seletor.includes('.btn'),
+          explicacao: explicarCSS(seletor, regras)
+        });
+      }
+    }
+
+    // =====================
+    // FUNÇÕES AUXILIARES
+    // =====================
+    function pegarCorpo(linhas, inicio) {
+      let corpo = '';
+      let abre = 0;
+      let comecou = false;
+
+      for (let i = inicio; i < Math.min(inicio + 60, linhas.length); i++) {
+        corpo += linhas[i] + '\n';
+        for (const char of linhas[i]) {
+          if (char === '{') { abre++; comecou = true; }
+          if (char === '}') abre--;
+        }
+        if (comecou && abre <= 0) break;
+      }
+      return corpo;
+    }
+
+    function isCerebro(nome, corpo) {
+      const nomeMin = nome.toLowerCase();
+      const corpoMin = corpo.toLowerCase();
+      return nomeMin.includes('memory') || nomeMin.includes('save') || 
+             nomeMin.includes('load') || nomeMin.includes('cerebro') ||
+             corpoMin.includes('localstorage') || corpoMin.includes('json.stringify');
+    }
+
+    function isImportante(nome, corpo) {
+      const nomeMin = nome.toLowerCase();
+      return nomeMin.includes('init') || nomeMin.includes('main') || 
+             nomeMin.includes('start') || nomeMin.includes('chat') ||
+             nomeMin.includes('send') || nomeMin.includes('api');
+    }
+
+    function explicarFuncao(nome, corpo, cerebro, importante) {
+      if (cerebro) {
+        return {
+          oque: `🧠 Função de MEMÓRIA: "${nome}"`,
+          quando: 'Salva ou carrega dados do localStorage',
+          dica: 'COPIE ESTA FUNÇÃO — é essencial para o sistema de memória'
+        };
+      }
+      if (importante) {
+        return {
+          oque: `⭐ Função IMPORTANTE: "${nome}"`,
+          quando: 'Faz parte da lógica principal do aplicativo',
+          dica: 'Recomendado copiar — é uma função central'
+        };
+      }
+      return {
+        oque: `⚡ Função: "${nome}"`,
+        quando: 'Função auxiliar ou de suporte',
+        dica: 'Copie se outras funções dependerem dela'
+      };
+    }
+
+    function explicarHTML(tag, atributos) {
+      const explicacoes = {
+        button: { oque: '🔘 Botão clicável', quando: 'Para ações do usuário', dica: 'Verifique os eventos onclick' },
+        input: { oque: '📝 Campo de entrada', quando: 'Para receber dados do usuário', dica: 'Importante para formulários' },
+        div: { oque: '📦 Container', quando: 'Para organizar layout', dica: 'Verifique o ID/classe para estilização' },
+        form: { oque: '📋 Formulário', quando: 'Para enviar dados', dica: 'Copie se precisar da estrutura de dados' }
+      };
+      return explicacoes[tag.toLowerCase()] || { oque: `🏗️ Tag HTML: <${tag}>`, quando: 'Elemento estrutural', dica: 'Parte da interface' };
+    }
+
+    function explicarCSS(seletor, regras) {
+      return {
+        oque: `🎨 Estilo para: ${seletor}`,
+        quando: 'Define aparência visual',
+        dica: regras.includes('display') ? 'Afeta o layout' : 'Afeta cores/tamanhos'
+      };
+    }
+
+    // =====================
+    // RENDERIZAR ELEMENTOS
+    // =====================
+    function renderizarElementos(lista) {
+      const container = document.getElementById('lista-elementos');
+      container.innerHTML = '';
+
+      if (lista.length === 0) {
+        container.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">Nenhum elemento encontrado</p>';
+        return;
+      }
+
+      lista.forEach((el, index) => {
+        const tipoClasse = el.cerebro ? 'cerebro' : (el.importante ? 'importante' : el.tipo);
+        const tagTexto = el.cerebro ? '🧠 Cérebro' : (el.importante ? '⭐ Importante' : 
+          { funcao: '⚡ Função', html: '🏗️ HTML', css: '🎨 CSS' }[el.tipo]);
+        const tagClasse = el.cerebro ? 'tag-cerebro' : (el.importante ? 'tag-importante' : `tag-${el.tipo}`);
+
+        const div = document.createElement('div');
+        div.className = 'elemento-card';
+        div.dataset.tipo = el.tipo;
+        div.dataset.nome = el.nome.toLowerCase();
+        if (el.cerebro) div.dataset.cerebro = 'true';
+        if (el.importante) div.dataset.importante = 'true';
+
+        div.innerHTML = `
+          <div class="elemento-header ${tipoClasse}" onclick="toggleCorpo(${index})">
+            <div>
+              <strong style="font-size:1.1em">${el.nome}</strong>
+              ${el.linha ? `<span style="color:#64748b;font-size:0.85em;margin-left:10px">linha ${el.linha}</span>` : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="tag ${tagClasse}">${tagTexto}</span>
+              <span id="seta-${index}">▼</span>
+            </div>
+          </div>
+          <div class="elemento-corpo" id="corpo-${index}">
+            <div class="explicacao">
+              <strong>O que é:</strong> ${el.explicacao.oque}<br><br>
+              <strong>Quando usar:</strong> ${el.explicacao.quando}<br><br>
+              <strong>💡 Dica:</strong> <span style="color:#fde68a">${el.explicacao.dica}</span>
+            </div>
+            <strong style="color:#94a3b8;font-size:0.85em">Código:</strong>
+            <pre id="pre-${index}">${escaparHtml(el.corpo)}</pre>
+            <button class="btn-copiar" onclick="copiar(${index}, this)">📋 Copiar este código</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // =====================
+    // TOGGLE ABRIR/FECHAR
+    // =====================
+    function toggleCorpo(index) {
+      const corpo = document.getElementById(`corpo-${index}`);
+      const seta = document.getElementById(`seta-${index}`);
+      const aberto = corpo.classList.contains('aberto');
+      corpo.classList.toggle('aberto');
+      seta.textContent = aberto ? '▼' : '▲';
+    }
+
+    // =====================
+    // COPIAR CÓDIGO
+    // =====================
+    function copiar(index, btn) {
+      const codigo = todosElementos[index].corpo;
+      navigator.clipboard.writeText(codigo).then(() => {
+        btn.textContent = '✅ Copiado!';
+        btn.classList.add('copiado');
+        setTimeout(() => {
+          btn.textContent = '📋 Copiar este código';
+          btn.classList.remove('copiado');
+        }, 2000);
+      });
+    }
+
+    function copiarTudo() {
+      const tudo = todosElementos.map(el => el.corpo).join('\n\n');
+      navigator.clipboard.writeText(tudo).then(() => {
+        mostrarToast('✅ Todo o código foi copiado!');
+      });
+    }
+
+    // =====================
+    // FILTROS E BUSCA
+    // =====================
+    function filtrar(tipo, btn) {
+      filtroAtivo = tipo;
+      document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
+      btn.classList.add('ativo');
+
+      let filtradas = todosElementos;
+      if (tipo === 'cerebro') filtradas = todosElementos.filter(e => e.cerebro);
+      else if (tipo === 'importante') filtradas = todosElementos.filter(e => e.importante);
+      else if (tipo !== 'todos') filtradas = todosElementos.filter(e => e.tipo === tipo);
+
+      renderizarElementos(filtradas);
+    }
+
+    function filtrarBusca(termo) {
+      const filtradas = termo 
+        ? todosElementos.filter(e => e.nome.toLowerCase().includes(termo.toLowerCase()))
+        : todosElementos;
+      renderizarElementos(filtradas);
+    }
+
+    // =====================
+    // SISTEMA DE MEMÓRIA
+    // =====================
+    function salvarNaMemoria() {
+      if (!arquivoAtual || todosElementos.length === 0) {
+        mostrarToast('❌ Nenhum arquivo analisado!', true);
+        return;
+      }
+
+      const nota = {
+        id: Date.now(),
+        nome: arquivoAtual,
+        data: new Date().toLocaleString('pt-BR'),
+        elementos: todosElementos,
+        resumo: {
+          total: todosElementos.length,
+          funcoes: todosElementos.filter(e => e.tipo === 'funcao').length,
+          html: todosElementos.filter(e => e.tipo === 'html').length,
+          css: todosElementos.filter(e => e.tipo === 'css').length,
+          cerebro: todosElementos.filter(e => e.cerebro).length
+        }
+      };
+
+      const notas = JSON.parse(localStorage.getItem('notasProjeto') || '[]');
+      notas.push(nota);
+      localStorage.setItem('notasProjeto', JSON.stringify(notas));
+
+      carregarNotas();
+      mostrarToast('💾 Análise salva na memória!');
+    }
+
+    function carregarNotas() {
+      const notas = JSON.parse(localStorage.getItem('notasProjeto') || '[]');
+      const container = document.getElementById('lista-notas');
+      const painel = document.getElementById('painel-memoria');
+
+      if (notas.length === 0) {
+        painel.style.display = 'none';
+        return;
+      }
+
+      painel.style.display = 'block';
+      container.innerHTML = '';
+
+      notas.reverse().forEach(nota => {
+        const div = document.createElement('div');
+        div.className = 'nota-item';
+        div.innerHTML = `
+          <div class="nota-info">
+            <div class="nota-nome">📄 ${nota.nome}</div>
+            <div class="nota-data">${nota.data} • ${nota.resumo.total} elementos</div>
+          </div>
+          <div class="nota-acoes">
+            <button class="btn-nota" onclick="carregarNota(${nota.id})">📂 Abrir</button>
+            <button class="btn-nota deletar" onclick="deletarNota(${nota.id})">🗑️</button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function carregarNota(id) {
+      const notas = JSON.parse(localStorage.getItem('notasProjeto') || '[]');
+      const nota = notas.find(n => n.id === id);
+      if (!nota) return;
+
+      todosElementos = nota.elementos;
+      arquivoAtual = nota.nome;
+
+      document.getElementById('total-elementos').textContent = nota.resumo.total;
+      document.getElementById('total-funcoes').textContent = nota.resumo.funcoes;
+      document.getElementById('total-html').textContent = nota.resumo.html;
+      document.getElementById('total-css').textContent = nota.resumo.css;
+      document.getElementById('total-cerebro').textContent = nota.resumo.cerebro;
+
+      document.getElementById('resumo').style.display = 'block';
+      document.getElementById('acoes-principais').style.display = 'flex';
+      document.getElementById('lista-elementos').style.display = 'block';
+      document.getElementById('barra-busca').style.display = 'block';
+      document.getElementById('filtros').style.display = 'flex';
+
+      renderizarElementos(todosElementos);
+      mostrarToast(`✅ Nota "${nota.nome}" carregada!`);
+      window.scrollTo({ top: 300, behavior: 'smooth' });
+    }
+
+    function deletarNota(id) {
+      if (!confirm('Tem certeza que deseja deletar esta nota?')) return;
+
+      let notas = JSON.parse(localStorage.getItem('notasProjeto') || '[]');
+      notas = notas.filter(n => n.id !== id);
+      localStorage.setItem('notasProjeto', JSON.stringify(notas));
+
+      carregarNotas();
+      mostrarToast('🗑️ Nota deletada!');
+    }
+
+    function limparTodasNotas() {
+      if (!confirm('Tem certeza que deseja limpar TODAS as notas da memória?')) return;
+
+      localStorage.removeItem('notasProjeto');
+      carregarNotas();
+      mostrarToast('🗑️ Memória limpa!');
+    }
+
+    // =====================
+    // EXPORTAR JSON
+    // =====================
+    function exportarJSON() {
+      const dados = {
+        arquivo: arquivoAtual,
+        data: new Date().toISOString(),
+        elementos: todosElementos
+      };
+
+      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `analise-${arquivoAtual}.json`;
+      a.click();
+
+      mostrarToast('📥 JSON exportado!');
+    }
+
+    // =====================
+    // TOAST
+    // =====================
+    function mostrarToast(mensagem, erro = false) {
+      const toast = document.getElementById('toast');
+      toast.textContent = mensagem;
+      toast.className = 'toast' + (erro ? ' erro' : '');
+      toast.style.display = 'block';
+
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+
+    // =====================
+    // ESCAPAR HTML
+    // =====================
+    function escaparHtml(texto) {
+      return texto
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,3430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Projetos PWA — Maikon Caldeira</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #0a0a0f; color: #e2e8f0; }
+
+.project-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #12121a;
+  border-bottom: 2px solid #a3a082;
+  padding: 12px 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  padding: 10px 18px;
+  background: #1a1a2e;
+  border: 1px solid #2d2d3a;
+  border-radius: 8px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #a3a082;
+  color: #000;
+  border-color: #a3a082;
+}
+
+.nav-btn.active {
+  background: #a3a082;
+  color: #000;
+  border-color: #d4d0a8;
+}
+
+.project-container {
+  display: none;
+  padding-top: 70px;
+  min-height: 100vh;
+}
+
+.project-container.active {
+  display: block;
+}
+
+/* Isola estilos de cada projeto */
+.project-container iframe {
+  width: 100%;
+  min-height: calc(100vh - 70px);
+  border: none;
+}
+</style>
+</head>
+<body>
+
+<!-- Navegação -->
+<div class="project-nav">
+  <span style="font-size:14px;font-weight:700;color:#a3a082;margin-right:10px;">📂</span>
+  <button class="nav-btn active" onclick="trocarProjeto(0)">Play</button><button class="nav-btn " onclick="trocarProjeto(1)">Filtrador</button><button class="nav-btn " onclick="trocarProjeto(2)">PWA_Jur_dico___Maikon_Caldeira (24)</button>
+</div>
+
+<!-- Projetos (cada um em iframe isolado) -->
+
+<div class="project-container active" id="projeto0">
+  <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;Playground Code Pro — Maikon Caldeira&lt;/title&gt;
+&lt;style&gt;
+:root {
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --bg3: #334155;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --accent: #a3a082;
+  --accent2: #d4d0a8;
+  --blue: #3b82f6;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --border: #334155;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 6px; }
+.header-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.header-right { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.logo { font-weight: 800; font-size: 14px; color: var(--accent); letter-spacing: -0.5px; }
+.logo small { font-size: 9px; color: var(--text2); font-weight: 400; letter-spacing: 1px; display: block; }
+
+/* Inputs */
+.title-input { background: transparent; border: 1px solid transparent; color: var(--text); font-size: 12px; padding: 4px 8px; border-radius: 6px; width: 180px; transition: border-color 0.2s; }
+.title-input:focus { outline: none; border-color: var(--accent); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.btn-icon { padding: 6px; border-radius: 6px; background: transparent; border: none; color: var(--text2); cursor: pointer; transition: all 0.15s; font-size: 14px; }
+.btn-icon:hover { background: var(--bg3); color: var(--text); }
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-ghost { background: transparent; color: var(--text2); }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+.btn-mode { padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; }
+.btn-mode.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+/* AI Button Special */
+.btn-ai { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; animation: aiPulse 2s infinite; }
+.btn-ai:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+@keyframes aiPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.85; } }
+
+/* Mode selector */
+.mode-group { display: flex; gap: 2px; background: var(--bg); padding: 2px; border-radius: 8px; border: 1px solid var(--border); }
+
+/* Tabs */
+.tabs-bar { display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.tabs { display: flex; gap: 2px; }
+.tab { padding: 5px 12px; font-size: 11px; font-weight: 600; border: none; background: transparent; color: var(--text2); cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+.tab.active { background: var(--bg3); color: var(--text); }
+.tab:hover:not(.active) { color: var(--text); }
+.tab-info { font-size: 10px; color: var(--text2); display: flex; gap: 8px; align-items: center; }
+
+/* Main layout */
+.main { display: flex; flex: 1; overflow: hidden; }
+.editor-panel { display: flex; flex-direction: column; width: 50%; border-right: 1px solid var(--border); transition: width 0.3s; }
+.editor-panel.collapsed { width: 0; overflow: hidden; border: none; }
+.editor-panel.expanded { width: 100%; }
+.preview-panel { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.preview-panel.hidden { display: none; }
+
+/* Editor */
+.editor-wrap { flex: 1; position: relative; overflow: hidden; display: flex; }
+.line-numbers { width: 50px; background: rgba(30,41,59,0.8); padding: 12px 8px 12px 0; text-align: right; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 12px; line-height: 1.65; color: var(--text2); overflow: hidden; user-select: none; border-right: 1px solid var(--border); flex-shrink: 0; }
+.line-numbers .line { padding: 0 4px; cursor: pointer; transition: all 0.15s; }
+.line-numbers .line:hover { background: rgba(163, 160, 130, 0.1); color: var(--accent); }
+.line-numbers .line.current { background: rgba(163, 160, 130, 0.2); color: var(--accent2); font-weight: 700; }
+.editor-textarea { flex: 1; resize: none; background: var(--bg); color: var(--text); font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; font-size: 13px; line-height: 1.65; padding: 12px; border: none; outline: none; tab-size: 2; }
+
+/* Syntax highlight hints (basic) */
+.editor-textarea::selection { background: rgba(163, 160, 130, 0.3); }
+
+/* Preview */
+.preview-header { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.preview-header .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.preview-frame { flex: 1; border: none; background: #fff; }
+
+/* Dialog/Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(6px); }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; position: relative; }
+.modal h3 { font-size: 18px; margin-bottom: 16px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+.modal-close { position: absolute; top: 16px; right: 16px; }
+
+/* Snippet list */
+.snippet-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; }
+.snippet-item:hover { border-color: var(--accent); background: var(--bg3); transform: translateX(4px); }
+.snippet-item .name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.snippet-item .meta { font-size: 10px; color: var(--text2); }
+.snippet-actions { display: flex; gap: 4px; }
+
+/* Search &amp; Go to Line */
+.search-input { width: 100%; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; margin-bottom: 16px; }
+.search-input:focus { outline: none; border-color: var(--accent); }
+
+.goto-line-box { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+.goto-line-box input { flex: 1; padding: 8px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 12px; }
+.goto-line-box input:focus { outline: none; border-color: var(--accent); }
+
+/* AI Helper */
+.ai-panel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 12px; }
+.ai-panel textarea { width: 100%; min-height: 100px; background: var(--bg2); border: 1px solid var(--border); border-radius: 6px; color: var(--text); padding: 10px; font-size: 12px; font-family: inherit; resize: vertical; }
+.ai-panel textarea:focus { outline: none; border-color: var(--accent); }
+.ai-response { margin-top: 12px; padding: 12px; background: var(--bg2); border-left: 3px solid var(--accent); border-radius: 6px; font-size: 12px; line-height: 1.6; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 20px; font-size: 12px; font-weight: 600; color: var(--accent2); z-index: 2000; transform: translateY(100px); opacity: 0; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* Status badge */
+.status-badge { font-size: 9px; padding: 3px 8px; border-radius: 4px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-badge.html { background: rgba(239,68,68,0.15); color: var(--red); }
+.status-badge.react { background: rgba(59,130,246,0.15); color: var(--blue); }
+.status-badge.python { background: rgba(251,191,36,0.15); color: var(--yellow); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main { flex-direction: column; }
+  .editor-panel { width: 100% !important; height: 50%; border-right: none; border-bottom: 1px solid var(--border); }
+  .editor-panel.collapsed { height: 0; }
+  .editor-panel.expanded { height: 100%; }
+  .preview-panel { height: 50%; }
+  .hide-mobile { display: none !important; }
+  .title-input { width: 120px; }
+}
+
+/* Loading indicator */
+.loading { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!-- Header --&gt;
+&lt;header class=&quot;header&quot;&gt;
+  &lt;div class=&quot;header-left&quot;&gt;
+    &lt;div class=&quot;logo&quot;&gt;⚡ Playground Pro &lt;small&gt;Maikon Caldeira — Advanced Code Editor&lt;/small&gt;&lt;/div&gt;
+    &lt;div class=&quot;mode-group&quot;&gt;
+      &lt;button class=&quot;btn-mode active&quot; id=&quot;modeHtml&quot; onclick=&quot;switchMode('html')&quot;&gt;🌐 HTML&lt;/button&gt;
+      &lt;button class=&quot;btn-mode&quot; id=&quot;modeReact&quot; onclick=&quot;switchMode('react')&quot;&gt;⚛️ React&lt;/button&gt;
+      &lt;button class=&quot;btn-mode&quot; id=&quot;modePython&quot; onclick=&quot;switchMode('python')&quot;&gt;🐍 Python&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;input type=&quot;text&quot; class=&quot;title-input&quot; id=&quot;projectTitle&quot; value=&quot;Sem titulo&quot; placeholder=&quot;Nome do projeto...&quot; /&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;header-right&quot;&gt;
+    &lt;button class=&quot;btn btn-ai&quot; onclick=&quot;openAIHelper()&quot; title=&quot;Ajuda com IA&quot;&gt;🤖 IA&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;openGotoLine()&quot; title=&quot;Ir para linha (Ctrl+G)&quot;&gt;🔍&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;importFile()&quot; title=&quot;Importar arquivo HTML/JS/CSS&quot;&gt;📂&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;toggleFullscreen()&quot; title=&quot;Tela cheia&quot;&gt;🔳&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;copyCode()&quot; title=&quot;Copiar código&quot;&gt;📋&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;downloadFile()&quot; title=&quot;Baixar&quot;&gt;⬇️&lt;/button&gt;
+    &lt;button class=&quot;btn btn-primary&quot; onclick=&quot;saveToLocal()&quot; title=&quot;Salvar projeto&quot;&gt;💾 Salvar&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;openSavedModal()&quot; title=&quot;Meus projetos&quot;&gt;📁&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;resetCode()&quot; title=&quot;Resetar&quot;&gt;🔄&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;clearCode()&quot; title=&quot;Limpar&quot;&gt;🗑️&lt;/button&gt;
+    &lt;button class=&quot;btn-icon&quot; onclick=&quot;toggleEditor()&quot; id=&quot;btnToggleEditor&quot; title=&quot;Ampliar/Reduzir editor&quot;&gt;⬜&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+
+&lt;!-- Tabs --&gt;
+&lt;div class=&quot;tabs-bar&quot;&gt;
+  &lt;div class=&quot;tabs&quot; id=&quot;tabsContainer&quot;&gt;
+    &lt;button class=&quot;tab active&quot; id=&quot;tabHtml&quot; onclick=&quot;switchTab('html')&quot;&gt;📄 HTML&lt;/button&gt;
+    &lt;button class=&quot;tab&quot; id=&quot;tabCss&quot; onclick=&quot;switchTab('css')&quot;&gt;🎨 CSS&lt;/button&gt;
+    &lt;button class=&quot;tab&quot; id=&quot;tabJs&quot; onclick=&quot;switchTab('js')&quot;&gt;⚙️ JS&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;tab-info&quot;&gt;
+    &lt;span id=&quot;lineCount&quot;&gt;1 linhas&lt;/span&gt;
+    &lt;span&gt;•&lt;/span&gt;
+    &lt;span id=&quot;cursorPos&quot;&gt;Ln 1, Col 1&lt;/span&gt;
+    &lt;span class=&quot;status-badge html&quot; id=&quot;modeBadge&quot;&gt;HTML&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Main --&gt;
+&lt;div class=&quot;main&quot;&gt;
+  &lt;div class=&quot;editor-panel&quot; id=&quot;editorPanel&quot;&gt;
+    &lt;div class=&quot;editor-wrap&quot;&gt;
+      &lt;div class=&quot;line-numbers&quot; id=&quot;lineNumbers&quot;&gt;&lt;/div&gt;
+      &lt;textarea class=&quot;editor-textarea&quot; id=&quot;editor&quot; spellcheck=&quot;false&quot; placeholder=&quot;Cole ou digite seu código aqui... (Ctrl+G para ir para linha)&quot;&gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;preview-panel&quot; id=&quot;previewPanel&quot;&gt;
+    &lt;div class=&quot;preview-header&quot;&gt;
+      &lt;div class=&quot;dot&quot;&gt;&lt;/div&gt;
+      &lt;span style=&quot;font-size:11px;color:var(--text2);font-weight:600;&quot;&gt;Resultado ao vivo&lt;/span&gt;
+      &lt;span id=&quot;autoLabel&quot; style=&quot;font-size:9px;color:var(--green);margin-left:auto;&quot;&gt;● AUTO&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;iframe class=&quot;preview-frame&quot; id=&quot;previewFrame&quot; sandbox=&quot;allow-scripts allow-modals allow-forms allow-popups&quot;&gt;&lt;/iframe&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Hidden file input --&gt;
+&lt;input type=&quot;file&quot; id=&quot;fileInput&quot; style=&quot;display:none&quot; accept=&quot;.html,.htm,.css,.js,.jsx,.tsx,.py,.txt,.svg,.xml&quot; /&gt;
+
+&lt;!-- Modal: Saved Projects --&gt;
+&lt;div class=&quot;modal-overlay&quot; id=&quot;savedModal&quot;&gt;
+  &lt;div class=&quot;modal&quot;&gt;
+    &lt;button class=&quot;btn-icon modal-close&quot; onclick=&quot;closeSavedModal()&quot;&gt;✕&lt;/button&gt;
+    &lt;h3&gt;📁 Meus Projetos Salvos&lt;/h3&gt;
+    &lt;input type=&quot;text&quot; class=&quot;search-input&quot; id=&quot;searchInput&quot; placeholder=&quot;🔍 Buscar por nome...&quot; oninput=&quot;renderSavedList()&quot; /&gt;
+    &lt;div id=&quot;savedList&quot;&gt;&lt;/div&gt;
+    &lt;div style=&quot;text-align:right;margin-top:16px;&quot;&gt;
+      &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;closeSavedModal()&quot;&gt;Fechar&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Modal: Go to Line --&gt;
+&lt;div class=&quot;modal-overlay&quot; id=&quot;gotoModal&quot;&gt;
+  &lt;div class=&quot;modal&quot; style=&quot;max-width:400px;&quot;&gt;
+    &lt;button class=&quot;btn-icon modal-close&quot; onclick=&quot;closeGotoLine()&quot;&gt;✕&lt;/button&gt;
+    &lt;h3&gt;🔍 Ir para Linha&lt;/h3&gt;
+    &lt;div class=&quot;goto-line-box&quot;&gt;
+      &lt;input type=&quot;number&quot; id=&quot;gotoLineInput&quot; placeholder=&quot;Número da linha...&quot; min=&quot;1&quot; /&gt;
+      &lt;button class=&quot;btn btn-primary&quot; onclick=&quot;gotoLine()&quot;&gt;Ir&lt;/button&gt;
+    &lt;/div&gt;
+    &lt;p style=&quot;font-size:11px;color:var(--text2);&quot;&gt;Dica: Use &lt;strong&gt;Ctrl+G&lt;/strong&gt; para abrir rapidamente&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Modal: AI Helper --&gt;
+&lt;div class=&quot;modal-overlay&quot; id=&quot;aiModal&quot;&gt;
+  &lt;div class=&quot;modal&quot;&gt;
+    &lt;button class=&quot;btn-icon modal-close&quot; onclick=&quot;closeAIHelper()&quot;&gt;✕&lt;/button&gt;
+    &lt;h3&gt;🤖 Assistente IA&lt;/h3&gt;
+    &lt;p style=&quot;font-size:12px;color:var(--text2);margin-bottom:12px;&quot;&gt;Descreva o que você precisa ou pergunte sobre seu código:&lt;/p&gt;
+    &lt;div class=&quot;ai-panel&quot;&gt;
+      &lt;textarea id=&quot;aiPrompt&quot; placeholder=&quot;Ex: Como posso centralizar essa div? Ou: Crie um botão animado...&quot;&gt;&lt;/textarea&gt;
+      &lt;div style=&quot;text-align:right;margin-top:12px;&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;closeAIHelper()&quot; style=&quot;margin-right:8px;&quot;&gt;Cancelar&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ai&quot; onclick=&quot;askAI()&quot;&gt;✨ Perguntar IA&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;aiResponse&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;p style=&quot;font-size:10px;color:var(--text2);margin-top:12px;&quot;&gt;💡 &lt;strong&gt;Nota:&lt;/strong&gt; Esta é uma interface para IA. Para funcionar, você precisaria integrar uma API (OpenAI, Claude, etc). Por enquanto, mostra exemplo de resposta.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Toast --&gt;
+&lt;div class=&quot;toast&quot; id=&quot;toast&quot;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+// ========== STATE ==========
+const LS_KEY = 'playground-projects-v3';
+const AUTOSAVE_KEY = 'playground-autosave-v3';
+
+let state = {
+  mode: 'html',
+  activeTab: 'html',
+  html: `&lt;div style=&quot;max-width:600px;margin:40px auto;padding:20px;font-family:sans-serif;&quot;&gt;
+  &lt;h1 style=&quot;color:#333;&quot;&gt;Bem-vindo ao Playground Pro&lt;/h1&gt;
+  &lt;p style=&quot;color:#666;margin:16px 0;&quot;&gt;Cole seu código HTML aqui e veja o resultado ao vivo!&lt;/p&gt;
+  &lt;button onclick=&quot;alert('Funcionou!')&quot; style=&quot;padding:10px 24px;font-size:16px;background:#2563eb;color:white;border:none;border-radius:6px;cursor:pointer;&quot;&gt;Clique aqui&lt;/button&gt;
+&lt;/div&gt;`,
+  css: '',
+  js: `// Seu JavaScript aqui\nconsole.log(&quot;Hello from Playground Pro!&quot;);`,
+  jsx: `function App() {\n  const [count, setCount] = React.useState(0);\n  return (\n    &lt;div style={{padding:40,fontFamily:'sans-serif',textAlign:'center'}}&gt;\n      &lt;h1&gt;⚛️ React no Playground&lt;/h1&gt;\n      &lt;p&gt;Contador: &lt;strong&gt;{count}&lt;/strong&gt;&lt;/p&gt;\n      &lt;button onClick={() =&gt; setCount(count + 1)} style={{padding:'10px 24px',fontSize:16,background:'#3b82f6',color:'white',border:'none',borderRadius:8,cursor:'pointer'}}&gt;\n        Incrementar\n      &lt;/button&gt;\n    &lt;/div&gt;\n  );\n}`,
+  python: `# Python — output aparece no preview\ndados = [&quot;João Silva&quot;, &quot;Maria Souza&quot;, &quot;Pedro Lima&quot;]\n\nprint(&quot;=== LISTA DE CLIENTES ===&quot;)\nfor i, nome in enumerate(dados, 1):\n    print(f&quot;{i}. {nome}&quot;)\n\nprint(f&quot;\\nTotal: {len(dados)} clientes&quot;)`,
+  title: 'Sem titulo',
+  editorState: 'normal',
+  currentLine: 1
+};
+
+// Load autosave
+try {
+  const saved = localStorage.getItem(AUTOSAVE_KEY);
+  if (saved) Object.assign(state, JSON.parse(saved));
+} catch(e) {}
+
+// ========== DOM REFS ==========
+const editor = document.getElementById('editor');
+const previewFrame = document.getElementById('previewFrame');
+const lineNumbers = document.getElementById('lineNumbers');
+const titleInput = document.getElementById('projectTitle');
+const editorPanel = document.getElementById('editorPanel');
+const previewPanel = document.getElementById('previewPanel');
+const fileInput = document.getElementById('fileInput');
+
+// ========== INIT ==========
+titleInput.value = state.title;
+updateTabs();
+loadEditorContent();
+updatePreview();
+
+// ========== EDITOR EVENTS ==========
+editor.addEventListener('input', () =&gt; {
+  saveCurrentTab();
+  updateLineNumbers();
+  updateCursorPosition();
+  autoSave();
+  debouncePreview();
+});
+
+editor.addEventListener('scroll', () =&gt; {
+  lineNumbers.scrollTop = editor.scrollTop;
+});
+
+editor.addEventListener('click', updateCursorPosition);
+editor.addEventListener('keyup', updateCursorPosition);
+
+editor.addEventListener('keydown', (e) =&gt; {
+  // Tab support
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = editor.selectionStart;
+    const end = editor.selectionEnd;
+    editor.value = editor.value.substring(0, start) + '  ' + editor.value.substring(end);
+    editor.selectionStart = editor.selectionEnd = start + 2;
+    saveCurrentTab();
+  }
+  
+  // Ctrl+G: Go to line
+  if ((e.ctrlKey || e.metaKey) &amp;&amp; e.key === 'g') {
+    e.preventDefault();
+    openGotoLine();
+  }
+  
+  // Ctrl+S: Save
+  if ((e.ctrlKey || e.metaKey) &amp;&amp; e.key === 's') {
+    e.preventDefault();
+    saveToLocal();
+  }
+});
+
+// Auto-detect on paste
+editor.addEventListener('paste', (e) =&gt; {
+  setTimeout(() =&gt; {
+    const content = editor.value;
+    if (state.activeTab === 'html' || state.mode === 'html') {
+      if (/import\s+React|from\s+['&quot;]react['&quot;]|useState|useEffect/.test(content)) {
+        switchMode('react');
+        state.jsx = content;
+        loadEditorContent();
+        showToast('⚛️ React/JSX detectado!');
+        return;
+      }
+      if (/^(def |class |import |from |print\(|#.*python)/im.test(content) &amp;&amp; !content.includes('&lt;')) {
+        switchMode('python');
+        state.python = content;
+        loadEditorContent();
+        showToast('🐍 Python detectado!');
+        return;
+      }
+    }
+    saveCurrentTab();
+    updatePreview();
+  }, 50);
+});
+
+titleInput.addEventListener('input', () =&gt; {
+  state.title = titleInput.value;
+  autoSave();
+});
+
+// ========== LINE NUMBERS ==========
+function updateLineNumbers() {
+  const lines = editor.value.split('\n');
+  const totalLines = lines.length;
+  document.getElementById('lineCount').textContent = totalLines + ' linhas';
+  
+  lineNumbers.innerHTML = lines.map((_, i) =&gt; {
+    const lineNum = i + 1;
+    const isCurrent = lineNum === state.currentLine;
+    return `&lt;div class=&quot;line ${isCurrent ? 'current' : ''}&quot; onclick=&quot;jumpToLine(${lineNum})&quot;&gt;${lineNum}&lt;/div&gt;`;
+  }).join('');
+}
+
+function updateCursorPosition() {
+  const pos = editor.selectionStart;
+  const textBefore = editor.value.substring(0, pos);
+  const lines = textBefore.split('\n');
+  const line = lines.length;
+  const col = lines[lines.length - 1].length + 1;
+  
+  state.currentLine = line;
+  document.getElementById('cursorPos').textContent = `Ln ${line}, Col ${col}`;
+  updateLineNumbers();
+}
+
+function jumpToLine(lineNum) {
+  const lines = editor.value.split('\n');
+  let pos = 0;
+  for (let i = 0; i &lt; lineNum - 1 &amp;&amp; i &lt; lines.length; i++) {
+    pos += lines[i].length + 1;
+  }
+  editor.focus();
+  editor.setSelectionRange(pos, pos);
+  updateCursorPosition();
+}
+
+// ========== GO TO LINE ==========
+function openGotoLine() {
+  document.getElementById('gotoModal').classList.add('open');
+  setTimeout(() =&gt; {
+    const input = document.getElementById('gotoLineInput');
+    input.value = '';
+    input.max = editor.value.split('\n').length;
+    input.focus();
+  }, 100);
+}
+
+function closeGotoLine() {
+  document.getElementById('gotoModal').classList.remove('open');
+}
+
+function gotoLine() {
+  const lineNum = parseInt(document.getElementById('gotoLineInput').value);
+  if (lineNum &amp;&amp; lineNum &gt; 0) {
+    jumpToLine(lineNum);
+    closeGotoLine();
+    showToast(`📍 Linha ${lineNum}`);
+  }
+}
+
+// Enter key in goto modal
+document.getElementById('gotoLineInput')?.addEventListener('keydown', (e) =&gt; {
+  if (e.key === 'Enter') gotoLine();
+});
+
+// ========== TABS &amp; MODES ==========
+function saveCurrentTab() {
+  const tab = state.activeTab;
+  if (state.mode === 'react' &amp;&amp; tab === 'jsx') state.jsx = editor.value;
+  else if (state.mode === 'python' &amp;&amp; tab === 'python') state.python = editor.value;
+  else if (tab === 'html') state.html = editor.value;
+  else if (tab === 'css') state.css = editor.value;
+  else if (tab === 'js') state.js = editor.value;
+}
+
+function loadEditorContent() {
+  const tab = state.activeTab;
+  if (state.mode === 'react' &amp;&amp; tab === 'jsx') editor.value = state.jsx;
+  else if (state.mode === 'python' &amp;&amp; tab === 'python') editor.value = state.python;
+  else if (tab === 'html') editor.value = state.html;
+  else if (tab === 'css') editor.value = state.css;
+  else if (tab === 'js') editor.value = state.js;
+  else editor.value = '';
+  updateLineNumbers();
+  updateCursorPosition();
+}
+
+function switchTab(tab) {
+  saveCurrentTab();
+  state.activeTab = tab;
+  document.querySelectorAll('.tab').forEach(t =&gt; t.classList.remove('active'));
+  const tabEl = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+  if (tabEl) tabEl.classList.add('active');
+  loadEditorContent();
+}
+
+function updateTabs() {
+  const container = document.getElementById('tabsContainer');
+  const badge = document.getElementById('modeBadge');
+  
+  if (state.mode === 'html') {
+    container.innerHTML = `
+      &lt;button class=&quot;tab ${state.activeTab==='html'?'active':''}&quot; id=&quot;tabHtml&quot; onclick=&quot;switchTab('html')&quot;&gt;📄 HTML&lt;/button&gt;
+      &lt;button class=&quot;tab ${state.activeTab==='css'?'active':''}&quot; id=&quot;tabCss&quot; onclick=&quot;switchTab('css')&quot;&gt;🎨 CSS&lt;/button&gt;
+      &lt;button class=&quot;tab ${state.activeTab==='js'?'active':''}&quot; id=&quot;tabJs&quot; onclick=&quot;switchTab('js')&quot;&gt;⚙️ JS&lt;/button&gt;
+    `;
+    badge.className = 'status-badge html';
+    badge.textContent = 'HTML';
+  } else if (state.mode === 'react') {
+    container.innerHTML = `
+      &lt;button class=&quot;tab ${state.activeTab==='jsx'?'active':''}&quot; id=&quot;tabJsx&quot; onclick=&quot;switchTab('jsx')&quot;&gt;⚛️ JSX&lt;/button&gt;
+      &lt;button class=&quot;tab ${state.activeTab==='css'?'active':''}&quot; id=&quot;tabCss&quot; onclick=&quot;switchTab('css')&quot;&gt;🎨 CSS&lt;/button&gt;
+    `;
+    badge.className = 'status-badge react';
+    badge.textContent = 'REACT';
+  } else if (state.mode === 'python') {
+    container.innerHTML = `&lt;button class=&quot;tab active&quot; id=&quot;tabPython&quot; onclick=&quot;switchTab('python')&quot;&gt;🐍 Python&lt;/button&gt;`;
+    badge.className = 'status-badge python';
+    badge.textContent = 'PYTHON';
+  }
+}
+
+function switchMode(mode) {
+  saveCurrentTab();
+  state.mode = mode;
+  
+  document.querySelectorAll('.btn-mode').forEach(b =&gt; b.classList.remove('active'));
+  document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  
+  if (mode === 'html') state.activeTab = 'html';
+  else if (mode === 'react') state.activeTab = 'jsx';
+  else if (mode === 'python') state.activeTab = 'python';
+  
+  updateTabs();
+  loadEditorContent();
+  updatePreview();
+  autoSave();
+}
+
+// ========== PREVIEW ==========
+let previewTimer = null;
+function debouncePreview() {
+  clearTimeout(previewTimer);
+  previewTimer = setTimeout(updatePreview, 400);
+}
+
+function buildDocument() {
+  if (state.mode === 'react') {
+    return `&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;script crossorigin src=&quot;https://unpkg.com/react@18/umd/react.development.js&quot;&gt;&lt;\/script&gt;
+&lt;script crossorigin src=&quot;https://unpkg.com/react-dom@18/umd/react-dom.development.js&quot;&gt;&lt;\/script&gt;
+&lt;script src=&quot;https://unpkg.com/@babel/standalone/babel.min.js&quot;&gt;&lt;\/script&gt;
+&lt;style&gt;*{box-sizing:border-box;}body{margin:0;font-family:sans-serif;}${state.css}&lt;/style&gt;
+&lt;/head&gt;&lt;body&gt;&lt;div id=&quot;root&quot;&gt;&lt;/div&gt;
+&lt;script type=&quot;text/babel&quot;&gt;
+const { useState, useEffect, useRef, useCallback, useMemo, useContext, createContext, Fragment } = React;
+${state.jsx}
+try {
+  const _root = ReactDOM.createRoot(document.getElementById('root'));
+  _root.render(&lt;App /&gt;);
+} catch(e) {
+  document.getElementById('root').innerHTML = '&lt;div style=&quot;color:red;padding:20px;font-family:monospace;white-space:pre-wrap&quot;&gt;Erro: '+e.message+'&lt;/div&gt;';
+}
+&lt;\/script&gt;&lt;/body&gt;&lt;/html&gt;`;
+  }
+  
+  if (state.mode === 'python') {
+    const escapedCode = state.python.replace(/\\/g,'\\\\').replace(/`/g,'\\`').replace(/&lt;\/script&gt;/g,'&lt;\\/script&gt;');
+    return `&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;style&gt;
+body{margin:0;background:#0f172a;color:#e2e8f0;font-family:'Consolas',monospace;padding:20px;}
+#output{white-space:pre-wrap;font-size:13px;line-height:1.6;}
+.loading{color:#60a5fa;}
+.error{color:#f87171;}
+.success{color:#4ade80;}
+&lt;/style&gt;
+&lt;/head&gt;&lt;body&gt;
+&lt;div id=&quot;output&quot;&gt;&lt;span class=&quot;loading&quot;&gt;⟳ Carregando Pyodide...&lt;/span&gt;&lt;/div&gt;
+&lt;script src=&quot;https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js&quot;&gt;&lt;\/script&gt;
+&lt;script&gt;
+async function main() {
+  const out = document.getElementById('output');
+  try {
+    const pyodide = await loadPyodide();
+    out.innerHTML = '';
+    pyodide.runPython(\`
+import sys
+from io import StringIO
+sys.stdout = StringIO()
+\`);
+    pyodide.runPython(\`${escapedCode}\`);
+    const stdout = pyodide.runPython('sys.stdout.getvalue()');
+    out.innerHTML = '&lt;span class=&quot;success&quot;&gt;$ python3 script.py&lt;/span&gt;\\n' + stdout;
+  } catch(e) {
+    out.innerHTML = '&lt;span class=&quot;error&quot;&gt;Erro: ' + e.message + '&lt;/span&gt;';
+  }
+}
+main();
+&lt;\/script&gt;&lt;/body&gt;&lt;/html&gt;`;
+  }
+  
+  // HTML mode
+  const lower = state.html.trim().toLowerCase();
+  const isComplete = lower.includes('&lt;!doctype') || (lower.includes('&lt;html') &amp;&amp; lower.includes('&lt;/html&gt;'));
+  
+  if (isComplete) return state.html;
+  
+  return `&lt;!DOCTYPE html&gt;
+&lt;html&gt;&lt;head&gt;&lt;meta charset=&quot;UTF-8&quot;&gt;&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1.0&quot;&gt;
+&lt;style&gt;${state.css}&lt;/style&gt;
+&lt;/head&gt;&lt;body&gt;
+${state.html}
+&lt;script&gt;${state.js}&lt;\/script&gt;
+&lt;/body&gt;&lt;/html&gt;`;
+}
+
+function updatePreview() {
+  const doc = buildDocument();
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  previewFrame.src = url;
+  setTimeout(() =&gt; URL.revokeObjectURL(url), 5000);
+}
+
+function autoSave() {
+  try {
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(state));
+  } catch(e) {}
+}
+
+// ========== FILE OPERATIONS ==========
+function copyCode() {
+  const doc = buildDocument();
+  navigator.clipboard.writeText(doc).then(() =&gt; showToast('📋 Código copiado!'));
+}
+
+function downloadFile() {
+  let content, ext, mime;
+  if (state.mode === 'python') { content = state.python; ext = 'py'; mime = 'text/plain'; }
+  else if (state.mode === 'react') { content = state.jsx; ext = 'jsx'; mime = 'text/plain'; }
+  else { content = buildDocument(); ext = 'html'; mime = 'text/html'; }
+  
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (state.title || 'playground') + '.' + ext;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('⬇️ Arquivo baixado!');
+}
+
+function toggleFullscreen() {
+  const doc = buildDocument();
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() =&gt; URL.revokeObjectURL(url), 5000);
+}
+
+function importFile() {
+  fileInput.click();
+}
+
+fileInput.addEventListener('change', (e) =&gt; {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) =&gt; {
+    const content = ev.target.result;
+    const ext = file.name.split('.').pop().toLowerCase();
+    const name = file.name.replace(/\.[^.]+$/, '');
+    
+    if (ext === 'py') {
+      switchMode('python');
+      state.python = content;
+    } else if (ext === 'jsx' || ext === 'tsx') {
+      switchMode('react');
+      state.jsx = content;
+    } else if (ext === 'css') {
+      state.css = content;
+      if (state.mode === 'html') switchTab('css');
+    } else if (ext === 'js') {
+      state.js = content;
+      if (state.mode === 'html') switchTab('js');
+    } else {
+      // HTML or text
+      const lower = content.trim().toLowerCase();
+      if (lower.includes('&lt;!doctype') || lower.includes('&lt;html')) {
+        // Complete HTML document - extract parts
+        const htmlMatch = content.match(/&lt;body[^&gt;]*&gt;([\s\S]*)&lt;\/body&gt;/i);
+        const cssMatch = content.match(/&lt;style[^&gt;]*&gt;([\s\S]*?)&lt;\/style&gt;/i);
+        const jsMatch = content.match(/&lt;script[^&gt;]*&gt;([\s\S]*?)&lt;\/script&gt;/i);
+        
+        state.html = htmlMatch ? htmlMatch[1].trim() : content;
+        state.css = cssMatch ? cssMatch[1].trim() : '';
+        state.js = jsMatch ? jsMatch[1].trim() : '';
+      } else {
+        state.html = content;
+      }
+      switchMode('html');
+    }
+    
+    state.title = name;
+    titleInput.value = name;
+    loadEditorContent();
+    updatePreview();
+    autoSave();
+    showToast('📂 &quot;' + file.name + '&quot; importado!');
+  };
+  reader.readAsText(file);
+  fileInput.value = '';
+});
+
+function toggleEditor() {
+  if (state.editorState === 'normal') {
+    state.editorState = 'expanded';
+    editorPanel.classList.add('expanded');
+    previewPanel.classList.add('hidden');
+    document.getElementById('btnToggleEditor').textContent = '◧';
+  } else if (state.editorState === 'expanded') {
+    state.editorState = 'collapsed';
+    editorPanel.classList.remove('expanded');
+    editorPanel.classList.add('collapsed');
+    previewPanel.classList.remove('hidden');
+    document.getElementById('btnToggleEditor').textContent = '◨';
+  } else {
+    state.editorState = 'normal';
+    editorPanel.classList.remove('collapsed', 'expanded');
+    previewPanel.classList.remove('hidden');
+    document.getElementById('btnToggleEditor').textContent = '⬜';
+  }
+}
+
+function clearCode() {
+  if (!confirm('Limpar todo o código atual?')) return;
+  if (state.mode === 'react') state.jsx = '';
+  else if (state.mode === 'python') state.python = '';
+  else { state.html = ''; state.css = ''; state.js = ''; }
+  loadEditorContent();
+  updatePreview();
+  autoSave();
+  showToast('🗑️ Código limpo!');
+}
+
+function resetCode() {
+  if (!confirm('Resetar para o código padrão?')) return;
+  if (state.mode === 'react') {
+    state.jsx = `function App() {\n  const [count, setCount] = React.useState(0);\n  return (\n    &lt;div style={{padding:40,fontFamily:'sans-serif',textAlign:'center'}}&gt;\n      &lt;h1&gt;⚛️ React no Playground&lt;/h1&gt;\n      &lt;p&gt;Contador: &lt;strong&gt;{count}&lt;/strong&gt;&lt;/p&gt;\n      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;\n        Incrementar\n      &lt;/button&gt;\n    &lt;/div&gt;\n  );\n}`;
+  } else if (state.mode === 'python') {
+    state.python = `# Python\ndados = [&quot;João&quot;, &quot;Maria&quot;, &quot;Pedro&quot;]\nfor i, nome in enumerate(dados, 1):\n    print(f&quot;{i}. {nome}&quot;)`;
+  } else {
+    state.html = `&lt;div style=&quot;max-width:600px;margin:40px auto;padding:20px;&quot;&gt;\n  &lt;h1&gt;Bem-vindo!&lt;/h1&gt;\n  &lt;p&gt;Cole seu código aqui.&lt;/p&gt;\n&lt;/div&gt;`;
+    state.css = '';
+    state.js = '';
+  }
+  loadEditorContent();
+  updatePreview();
+  autoSave();
+  showToast('🔄 Código resetado!');
+}
+
+// ========== PROJECT MANAGEMENT ==========
+function getProjects() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function setProjects(list) {
+  localStorage.setItem(LS_KEY, JSON.stringify(list));
+}
+
+function saveToLocal() {
+  const projects = getProjects();
+  const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const item = {
+    id,
+    title: state.title || 'Sem titulo',
+    mode: state.mode,
+    html: state.html,
+    css: state.css,
+    js: state.js,
+    jsx: state.jsx,
+    python: state.python,
+    date: new Date().toISOString()
+  };
+  projects.unshift(item);
+  setProjects(projects);
+  showToast('💾 Projeto salvo!');
+}
+
+function openSavedModal() {
+  document.getElementById('savedModal').classList.add('open');
+  renderSavedList();
+}
+
+function closeSavedModal() {
+  document.getElementById('savedModal').classList.remove('open');
+}
+
+function renderSavedList() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  const projects = getProjects().filter(s =&gt; s.title.toLowerCase().includes(query));
+  const container = document.getElementById('savedList');
+  
+  if (projects.length === 0) {
+    container.innerHTML = '&lt;p style=&quot;text-align:center;color:var(--text2);font-size:12px;padding:20px;&quot;&gt;Nenhum projeto salvo.&lt;/p&gt;';
+    return;
+  }
+  
+  container.innerHTML = projects.map(s =&gt; `
+    &lt;div class=&quot;snippet-item&quot; onclick=&quot;loadProject('${s.id}')&quot;&gt;
+      &lt;div&gt;
+        &lt;div class=&quot;name&quot;&gt;${escapeHtml(s.title)}&lt;/div&gt;
+        &lt;div class=&quot;meta&quot;&gt;${s.mode || 'html'} • ${new Date(s.date).toLocaleDateString('pt-BR')} ${new Date(s.date).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;div class=&quot;snippet-actions&quot;&gt;
+        &lt;button class=&quot;btn-icon&quot; onclick=&quot;event.stopPropagation();renameProject('${s.id}')&quot; title=&quot;Renomear&quot;&gt;✏️&lt;/button&gt;
+        &lt;button class=&quot;btn-icon&quot; onclick=&quot;event.stopPropagation();deleteProject('${s.id}')&quot; title=&quot;Excluir&quot;&gt;🗑️&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  `).join('');
+}
+
+function loadProject(id) {
+  const projects = getProjects();
+  const p = projects.find(x =&gt; x.id === id);
+  if (!p) return;
+  
+  Object.assign(state, {
+    title: p.title,
+    mode: p.mode || 'html',
+    html: p.html || '',
+    css: p.css || '',
+    js: p.js || '',
+    jsx: p.jsx || '',
+    python: p.python || ''
+  });
+  
+  titleInput.value = state.title;
+  switchMode(state.mode);
+  closeSavedModal();
+  showToast('📂 &quot;' + p.title + '&quot; carregado!');
+}
+
+function deleteProject(id) {
+  if (!confirm('Excluir este projeto?')) return;
+  const projects = getProjects().filter(s =&gt; s.id !== id);
+  setProjects(projects);
+  renderSavedList();
+  showToast('🗑️ Projeto excluído!');
+}
+
+function renameProject(id) {
+  const projects = getProjects();
+  const p = projects.find(x =&gt; x.id === id);
+  if (!p) return;
+  const newName = prompt('Novo nome:', p.title);
+  if (newName &amp;&amp; newName.trim()) {
+    p.title = newName.trim();
+    setProjects(projects);
+    renderSavedList();
+    showToast('✏️ Renomeado!');
+  }
+}
+
+// ========== AI HELPER ==========
+function openAIHelper() {
+  document.getElementById('aiModal').classList.add('open');
+  document.getElementById('aiResponse').innerHTML = '';
+  setTimeout(() =&gt; document.getElementById('aiPrompt').focus(), 100);
+}
+
+function closeAIHelper() {
+  document.getElementById('aiModal').classList.remove('open');
+}
+
+function askAI() {
+  const prompt = document.getElementById('aiPrompt').value.trim();
+  if (!prompt) {
+    showToast('⚠️ Digite uma pergunta primeiro');
+    return;
+  }
+  
+  const responseDiv = document.getElementById('aiResponse');
+  responseDiv.innerHTML = '&lt;div class=&quot;loading&quot;&gt;&lt;/div&gt; &lt;span style=&quot;color:var(--text2);&quot;&gt;Pensando...&lt;/span&gt;';
+  
+  // Simulate AI response (replace with real API call)
+  setTimeout(() =&gt; {
+    const mockResponse = `🤖 Resposta da IA:\n\nPara &quot;${prompt}&quot;, aqui está uma sugestão:\n\n// Exemplo de código\nconst elemento = document.querySelector('.minha-div');\nelemento.style.display = 'flex';\nelemento.style.justifyContent = 'center';\nelemento.style.alignItems = 'center';\n\n💡 Dica: Você também pode usar Flexbox ou Grid para centralização mais robusta!\n\n⚠️ Nota: Esta é uma resposta simulada. Para respostas reais, integre uma API de IA (OpenAI, Claude, Gemini, etc).`;
+    
+    responseDiv.innerHTML = `&lt;div class=&quot;ai-response&quot;&gt;${escapeHtml(mockResponse)}&lt;/div&gt;`;
+  }, 1500);
+}
+
+// ========== UTILS ==========
+function escapeHtml(str) {
+  return str.replace(/&amp;/g,'&amp;amp;').replace(/&lt;/g,'&amp;lt;').replace(/&gt;/g,'&amp;gt;').replace(/&quot;/g,'&amp;quot;');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() =&gt; toast.classList.remove('show'), 2800);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay =&gt; {
+  overlay.addEventListener('click', (e) =&gt; {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</div>
+
+<div class="project-container " id="projeto1">
+  <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+    &lt;meta charset=&quot;utf-8&quot; /&gt;
+    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot; /&gt;
+    &lt;title&gt;Filtrador Jurídico Avançado (Atualizado)&lt;/title&gt;
+    &lt;!-- PDF.js --&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js&quot;&gt;&lt;/script&gt;
+    &lt;script&gt;
+        window.pdfjsLib &amp;&amp; (pdfjsLib.GlobalWorkerOptions.workerSrc = 
+        &quot;https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js&quot;);
+    &lt;/script&gt;
+    &lt;!-- Mammoth (DOCX -&gt; texto) --&gt;
+    &lt;script src=&quot;https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js&quot;&gt;&lt;/script&gt;
+    &lt;!-- Tesseract.js para OCR (opcional) --&gt;
+    &lt;script src=&quot;https://unpkg.com/tesseract.js@4.0.1/dist/tesseract.min.js&quot;&gt;&lt;/script&gt;
+    &lt;!-- IndexedDB para salvamento robusto --&gt;
+    &lt;script src=&quot;https://unpkg.com/idb@7.0.2/build/umd.js&quot;&gt;&lt;/script&gt;
+    &lt;style&gt;
+        :root {
+            --primary: #5d5e53;
+            --secondary: #a3a082;
+            --bg: #3d3e37;
+            --panel: #161614;
+            --txt: #e5e7eb;
+            --accent: #c49f45;
+            --good: #22c55e;
+            --bad: #ef4444;
+            --info: #60a5fa;
+            --paper: #ffffff;
+            --nuvem: #2563eb;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #e5e7eb; }
+        .wrap { display: flex; height: 100vh; gap: 14px; padding: 14px; }
+        .left { width: 38%; min-width: 340px; background: var(--panel); color: var(--txt); border-radius: 12px; padding: 14px; overflow: auto; }
+        .right { flex: 1; background: #cbd5e1; border-radius: 12px; padding: 14px; overflow: auto; }
+        h1 { font-size: 14px; margin: 0 0 10px; color: var(--accent); letter-spacing: .5px; text-transform: uppercase; }
+        h2 { font-size: 12px; margin: 14px 0 8px; color: var(--txt); text-transform: uppercase; letter-spacing: .5px; }
+        .hint { font-size: 12px; color: var(--txt); line-height: 1.35; background: rgba(96,165,250,.08); border-left: 3px solid var(--info); padding: 10px; border-radius: 8px; }
+        textarea, input[type=&quot;text&quot;], input[type=&quot;number&quot;] {
+            width: 100%; background: rgba(0,0,0,.3); color: var(--txt); border: 1px solid rgba(255,255,255,.14);
+            border-radius: 8px; padding: 10px; outline: none;
+        }
+        textarea { min-height: 180px; resize: vertical; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, &quot;Liberation Mono&quot;, &quot;Courier New&quot;, monospace; }
+        label { font-size: 12px; color: var(--txt); display: block; margin: 8px 0 6px; }
+        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btnrow { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .btnrow-export { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+        button {
+            border: 0; border-radius: 10px; padding: 11px 10px; font-weight: 700; cursor: pointer;
+            text-transform: uppercase; letter-spacing: .3px; font-size: 11px;
+        }
+        .b1 { background: var(--accent); color: #111827; }
+        .b2 { background: var(--bad); color: white; }
+        .b3 { background: var(--good); color: #052e16; }
+        .b4 { background: var(--info); color: #0b1220; }
+        .b-copy { background: #fff; color: #000; border: 1px solid #ccc; }
+        .b-nuvem { background: var(--nuvem); color: white; width: 100%; padding: 13px; font-size: 12px; border-radius: 10px; border: 0; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: .3px; margin-top: 8px; }
+        .b-nuvem:hover { filter: brightness(1.15); }
+        .box { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.10); border-radius: 10px; padding: 10px; }
+        .box-nuvem { background: rgba(37,99,235,0.12); border: 1px solid #2563eb; border-radius: 10px; padding: 10px; margin-top: 4px; }
+        .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .checks label { margin: 0; color: var(--txt); font-size: 12px; }
+        .checks input { transform: translateY(1px); }
+        .status { white-space: pre-wrap; font-size: 12px; color: var(--txt); background: rgba(0,0,0,.18); border: 1px solid rgba(255,255,255,.08); padding: 10px; border-radius: 10px; }
+        .paper { background: var(--paper); border-radius: 12px; padding: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; height: 100%; }
+        .paper h3 { margin: 0 0 10px; font-size: 14px; }
+        .out { white-space: pre-wrap; font-family: &quot;Times New Roman&quot;, Times, serif; font-size: 12pt; line-height: 1.5; flex: 1; overflow: auto; border: 1px solid #ddd; padding: 10px; margin-top: 10px; }
+        .small { font-size: 11px; color: var(--txt); }
+        details { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.10); padding: 10px; border-radius: 10px; }
+        summary { cursor: pointer; font-weight: 700; color: var(--txt); }
+        .removedItem { padding: 8px; border-left: 3px solid var(--bad); background: rgba(239,68,68,.08); border-radius: 8px; margin-top: 8px; color: var(--txt); font-size: 12px; }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: none; align-items: center; justify-content: center; z-index: 9999; }
+        .ovbox { background: white; border-radius: 12px; padding: 16px 18px; min-width: 280px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+        .spin { width: 18px; height: 18px; border: 3px solid #cbd5e1; border-top-color: var(--accent); border-radius: 50%; display: inline-block; animation: sp 1s linear infinite; vertical-align: middle; margin-right: 10px; }
+        @keyframes sp { to { transform: rotate(360deg); } }
+        select {
+            width: 100%; background: rgba(0,0,0,.3); color: var(--txt); border: 1px solid rgba(255,255,255,.14);
+            border-radius: 8px; padding: 10px; outline: none; font-size: 12px; margin-top: 4px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;div class=&quot;overlay&quot; id=&quot;ov&quot;&gt;
+        &lt;div class=&quot;ovbox&quot;&gt;
+            &lt;div&gt;&lt;span class=&quot;spin&quot;&gt;&lt;/span&gt;&lt;b id=&quot;ovMsg&quot;&gt;Processando…&lt;/b&gt;&lt;/div&gt;
+            &lt;div class=&quot;small&quot; id=&quot;ovSub&quot; style=&quot;margin-top:6px;color:#475569&quot;&gt;Aguarde.&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;wrap&quot;&gt;
+        &lt;div class=&quot;left&quot;&gt;
+            &lt;h1&gt;Filtrador Jurídico Avançado (Atualizado)&lt;/h1&gt;
+            &lt;div class=&quot;hint&quot;&gt;
+                Objetivo: &lt;b&gt;cortar repetição&lt;/b&gt; (modelos duplicados, citações repetidas), limpar sujeira e gerar texto enxuto.
+            &lt;/div&gt;
+            &lt;h2&gt;1) Importar&lt;/h2&gt;
+            &lt;input id=&quot;files&quot; type=&quot;file&quot; multiple accept=&quot;.txt,.pdf,.docx,.json,.md&quot; /&gt;
+            &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;useOCR&quot;&gt; Usar OCR para PDFs digitalizados (lento)&lt;/label&gt;
+            &lt;h2&gt;2) Texto Bruto&lt;/h2&gt;
+            &lt;textarea id=&quot;raw&quot; placeholder=&quot;Cole aqui o texto gigante…&quot;&gt;&lt;/textarea&gt;
+            &lt;h2&gt;3) Configurações Gerais&lt;/h2&gt;
+            &lt;div class=&quot;box&quot;&gt;
+                &lt;div class=&quot;checks&quot;&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanSymbols&quot; checked&gt; Limpar , #, markdown&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;dedupeExact&quot; checked&gt; Remover duplicatas exatas&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;dedupeNear&quot; checked&gt; Remover duplicatas aproximadas&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;keepOrder&quot; checked&gt; Manter ordem original&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;splitLarge&quot; checked&gt; Dividir trechos grandes antes de excluir&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanAsterisk1&quot; checked&gt; Limpar * (1x)&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanAsterisk2&quot; checked&gt; Limpar ** (2x)&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanAsterisk3&quot; checked&gt; Limpar *** (3x)&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanHash1&quot; checked&gt; Limpar # (1x)&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanHash2&quot; checked&gt; Limpar ## (2x)&lt;/label&gt;
+                    &lt;label&gt;&lt;input type=&quot;checkbox&quot; id=&quot;cleanHash3&quot; checked&gt; Limpar ### (3x)&lt;/label&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;row&quot; style=&quot;margin-top:10px&quot;&gt;
+                    &lt;div&gt;
+                        &lt;label&gt;Mínimo caracteres&lt;/label&gt;
+                        &lt;input id=&quot;minChars&quot; type=&quot;number&quot; value=&quot;20&quot; /&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label&gt;Similaridade (0.50-0.95)&lt;/label&gt;
+                        &lt;input id=&quot;sim&quot; type=&quot;number&quot; step=&quot;0.01&quot; value=&quot;0.72&quot; /&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;row&quot; style=&quot;margin-top:10px&quot;&gt;
+                    &lt;div&gt;
+                        &lt;label&gt;Shingle (2-5)&lt;/label&gt;
+                        &lt;input id=&quot;shingle&quot; type=&quot;number&quot; value=&quot;3&quot; /&gt;
+                    &lt;/div&gt;
+                    &lt;div&gt;
+                        &lt;label&gt;Janela (parágrafos)&lt;/label&gt;
+                        &lt;input id=&quot;windowN&quot; type=&quot;number&quot; value=&quot;250&quot; /&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;h2&gt;4) Regras de Exclusão (Filtro)&lt;/h2&gt;
+            &lt;div class=&quot;box&quot;&gt;
+                &lt;label&gt;Excluir se contiver (1 por linha)&lt;/label&gt;
+                &lt;textarea id=&quot;banWords&quot; placeholder=&quot;Ex.: modelo padrão&amp;#10;pede deferimento&quot;&gt;&lt;/textarea&gt;
+                &lt;label&gt;Excluir por REGEX&lt;/label&gt;
+                &lt;textarea id=&quot;banRegex&quot; placeholder=&quot;Ex.: ^\s{3,}.$&quot;&gt;&lt;/textarea&gt;
+                &lt;div class=&quot;row&quot; style=&quot;margin-top:10px&quot;&gt;
+                    &lt;button class=&quot;b4&quot; id=&quot;btnSaveRules&quot;&gt;Salvar Regras&lt;/button&gt;
+                    &lt;button class=&quot;b2&quot; id=&quot;btnClearRules&quot;&gt;Limpar&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;h2&gt;5) Regras de Manutenção (VIP)&lt;/h2&gt;
+            &lt;div class=&quot;box&quot;&gt;
+                &lt;label&gt;Manter se contiver (Whitelist)&lt;/label&gt;
+                &lt;textarea id=&quot;keepWords&quot; placeholder=&quot;Ex.: importante&amp;#10;urgente&quot;&gt;&lt;/textarea&gt;
+                &lt;label&gt;Manter por REGEX&lt;/label&gt;
+                &lt;textarea id=&quot;keepRegex&quot; placeholder=&quot;Ex.: ^URGENTE.$&quot;&gt;&lt;/textarea&gt;
+                &lt;div class=&quot;row&quot; style=&quot;margin-top:10px&quot;&gt;
+                    &lt;button class=&quot;b4&quot; id=&quot;btnSaveKeepRules&quot;&gt;Salvar VIP&lt;/button&gt;
+                    &lt;button class=&quot;b2&quot; id=&quot;btnClearKeepRules&quot;&gt;Limpar VIP&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+            &lt;h2&gt;6) Regras de Captura (Extrator)&lt;/h2&gt;
+            &lt;div class=&quot;box&quot;&gt;
+                &lt;label&gt;Capturar se contiver (1 por linha)&lt;/label&gt;
+                &lt;textarea id=&quot;captureWords&quot; placeholder=&quot;Ex.: falsificação&amp;#10;estelionato&quot;&gt;&lt;/textarea&gt;
+                &lt;label&gt;Capturar por REGEX&lt;/label&gt;
+                &lt;textarea id=&quot;captureRegex&quot; placeholder=&quot;Ex.: \\b(falsificação|fraude)\\b[\\s\\S]{0,500}&quot;&gt;&lt;/textarea&gt;
+                &lt;div class=&quot;row&quot; style=&quot;margin-top:10px&quot;&gt;
+                    &lt;button class=&quot;b4&quot; id=&quot;btnSaveCaptureRules&quot;&gt;Salvar Captura&lt;/button&gt;
+                    &lt;button class=&quot;b2&quot; id=&quot;btnClearCaptureRules&quot;&gt;Limpar Captura&lt;/button&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+
+            &lt;!-- ☁️ SEÇÃO NOVA: EXPORTAR PARA NUVEM --&gt;
+            &lt;h2&gt;7) ☁️ Exportar para Nuvem&lt;/h2&gt;
+            &lt;div class=&quot;box-nuvem&quot;&gt;
+                &lt;label&gt;Destino:&lt;/label&gt;
+                &lt;select id=&quot;destinoNuvem&quot;&gt;
+                    &lt;option value=&quot;drive&quot;&gt;Google Drive (Documento)&lt;/option&gt;
+                    &lt;option value=&quot;gmail&quot;&gt;Gmail (E-mail)&lt;/option&gt;
+                    &lt;option value=&quot;outro&quot;&gt;Outro (API Genérica)&lt;/option&gt;
+                &lt;/select&gt;
+                &lt;label style=&quot;margin-top:8px;&quot;&gt;Link do Webhook / API:&lt;/label&gt;
+                &lt;input type=&quot;text&quot; id=&quot;apiLink&quot; placeholder=&quot;https://script.google.com/macros/s/SEU_ID/exec&quot; /&gt;
+                &lt;p style=&quot;font-size:10px; color:#93c5fd; margin:6px 0 0;&quot;&gt;Cole o link gerado no Google Apps Script ou outra API para enviar direto para a nuvem.&lt;/p&gt;
+                &lt;button class=&quot;b-nuvem&quot; onclick=&quot;enviarParaNuvem()&quot;&gt;☁️ ENVIAR RESULTADO PARA A NUVEM&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;!-- FIM DA SEÇÃO NOVA --&gt;
+
+            &lt;div class=&quot;btnrow&quot; style=&quot;margin-top:14px;&quot;&gt;
+                &lt;button class=&quot;b1&quot; id=&quot;btnRun&quot;&gt;Filtrar Agora&lt;/button&gt;
+                &lt;button class=&quot;b2&quot; id=&quot;btnClearAll&quot;&gt;Limpar Tudo&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;h2&gt;Status&lt;/h2&gt;
+            &lt;div class=&quot;status&quot; id=&quot;status&quot;&gt;Pronto.&lt;/div&gt;
+            &lt;h2&gt;Removidos&lt;/h2&gt;
+            &lt;details&gt;
+                &lt;summary&gt;Ver removidos&lt;/summary&gt;
+                &lt;div id=&quot;removedBox&quot;&gt;&lt;/div&gt;
+            &lt;/details&gt;
+            &lt;h2&gt;Exportar Itens Removidos&lt;/h2&gt;
+            &lt;div class=&quot;btnrow-export&quot;&gt;
+                &lt;button class=&quot;b3&quot; id=&quot;btnExportRemovedWord&quot;&gt;Exportar Word&lt;/button&gt;
+                &lt;button class=&quot;b3&quot; id=&quot;btnExportRemovedTxt&quot;&gt;Exportar TXT&lt;/button&gt;
+                &lt;button class=&quot;b4&quot; id=&quot;btnExportRemovedJson&quot;&gt;Exportar JSON&lt;/button&gt;
+                &lt;button class=&quot;b4&quot; id=&quot;btnExportRemovedMarkdown&quot;&gt;Exportar Markdown&lt;/button&gt;
+            &lt;/div&gt;
+            &lt;h2&gt;Manual de Regex (Guia Rápido)&lt;/h2&gt;
+            &lt;details&gt;
+                &lt;summary&gt;Como criar regras de captura/exclusão&lt;/summary&gt;
+                &lt;div style=&quot;font-size:12px; color:var(--txt); line-height:1.4;&quot;&gt;
+                    &lt;p&gt;&lt;b&gt;Regex (Expressões Regulares)&lt;/b&gt; são padrões para buscar ou excluir texto.&lt;/p&gt;
+                    &lt;h3&gt;Comandos Básicos:&lt;/h3&gt;
+                    &lt;ul style=&quot;padding-left:20px;&quot;&gt;
+                        &lt;li&gt;&lt;b&gt;\b&lt;/b&gt;: Limite de palavra (ex.: &lt;code&gt;\bFraude\b&lt;/code&gt;).&lt;/li&gt;
+                        &lt;li&gt;&lt;b&gt;^&lt;/b&gt;: Início de linha (ex.: &lt;code&gt;^Modelo&lt;/code&gt;).&lt;/li&gt;
+                        &lt;li&gt;&lt;b&gt;$&lt;/b&gt;: Fim de linha (ex.: &lt;code&gt;deferimento$&lt;/code&gt;).&lt;/li&gt;
+                        &lt;li&gt;&lt;b&gt;|&lt;/b&gt;: Ou (ex.: &lt;code&gt;Fraude|Estelionato&lt;/code&gt;).&lt;/li&gt;
+                        &lt;li&gt;&lt;b&gt;[\\s\\S]{0,500}&lt;/b&gt;: Pega até 500 caracteres após o termo.&lt;/li&gt;
+                        &lt;li&gt;&lt;b&gt;.*?&lt;/b&gt;: Pega qualquer texto até o próximo padrão.&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;h3&gt;Exemplos para Captura:&lt;/h3&gt;
+                    &lt;ul style=&quot;padding-left:20px;&quot;&gt;
+                        &lt;li&gt;&lt;code&gt;\b(Falsificação|Fraude)\b[\\s\\S]{0,500}&lt;/code&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;code&gt;\bSentença\b[\\s\\S]*?(?=\bId\s+no\s+PJE|\bEvento\s+\d+|$)&lt;/code&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;h3&gt;Exemplos para Exclusão:&lt;/h3&gt;
+                    &lt;ul style=&quot;padding-left:20px;&quot;&gt;
+                        &lt;li&gt;&lt;code&gt;^Modelo\s+Padrão&lt;/code&gt;&lt;/li&gt;
+                        &lt;li&gt;&lt;code&gt;^(?=\s{3,})&lt;/code&gt;&lt;/li&gt;
+                    &lt;/ul&gt;
+                    &lt;p&gt;&lt;b&gt;Dica:&lt;/b&gt; Teste em regex101.com antes de usar aqui.&lt;/p&gt;
+                &lt;/div&gt;
+            &lt;/details&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;right&quot;&gt;
+            &lt;div class=&quot;paper&quot;&gt;
+                &lt;div style=&quot;display:flex; justify-content:space-between; align-items:center;&quot;&gt;
+                    &lt;h3&gt;Resultado Filtrado&lt;/h3&gt;
+                    &lt;button class=&quot;b-copy&quot; id=&quot;btnCopyText&quot; title=&quot;Copia o texto limpo para colar no Word&quot;&gt;&amp;#x1F4CB; Copiar Texto Limpo&lt;/button&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;small&quot;&gt;Use o botão acima para copiar ou os botões abaixo para baixar arquivo.&lt;/div&gt;
+                &lt;div class=&quot;btnrow-export&quot;&gt;
+                    &lt;button class=&quot;b3&quot; id=&quot;btnExportWord&quot;&gt;Exportar Word&lt;/button&gt;
+                    &lt;button class=&quot;b3&quot; id=&quot;btnExportTxt&quot;&gt;Exportar TXT&lt;/button&gt;
+                    &lt;button class=&quot;b4&quot; id=&quot;btnExportJson&quot;&gt;Exportar JSON&lt;/button&gt;
+                    &lt;button class=&quot;b4&quot; id=&quot;btnExportMarkdown&quot;&gt;Exportar Markdown&lt;/button&gt;
+                &lt;/div&gt;
+                &lt;hr style=&quot;margin:10px 0; border:0; border-top:1px solid #ddd;&quot; /&gt;
+                &lt;div id=&quot;out&quot; class=&quot;out&quot;&gt;[O texto filtrado aparece aqui]&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // Banco de dados IndexedDB para salvamento robusto
+        const dbPromise = idb.openDB(&quot;FiltradorDB&quot;, 1, {
+            upgrade(db) {
+                db.createObjectStore(&quot;state&quot;, { keyPath: &quot;id&quot; });
+            }
+        });
+
+        async function loadState() {
+            const db = await dbPromise;
+            const state = await db.get(&quot;state&quot;, &quot;current&quot;);
+            if (!state) return;
+            if (state.raw != null) document.getElementById(&quot;raw&quot;).value = state.raw;
+            if (state.banWords != null) document.getElementById(&quot;banWords&quot;).value = state.banWords;
+            if (state.banRegex != null) document.getElementById(&quot;banRegex&quot;).value = state.banRegex;
+            if (state.keepWords != null) document.getElementById(&quot;keepWords&quot;).value = state.keepWords;
+            if (state.keepRegex != null) document.getElementById(&quot;keepRegex&quot;).value = state.keepRegex;
+            if (state.captureWords != null) document.getElementById(&quot;captureWords&quot;).value = state.captureWords;
+            if (state.captureRegex != null) document.getElementById(&quot;captureRegex&quot;).value = state.captureRegex;
+            if (state.apiLink != null) document.getElementById(&quot;apiLink&quot;).value = state.apiLink;
+            if (state.destinoNuvem != null) document.getElementById(&quot;destinoNuvem&quot;).value = state.destinoNuvem;
+            if (state.cfg) {
+                for (const [k, v] of Object.entries(state.cfg)) {
+                    const el = document.getElementById(k);
+                    if (!el) continue;
+                    if (el.type === &quot;checkbox&quot;) el.checked = !!v;
+                    else el.value = v;
+                }
+            }
+            if (state.lastOut != null) document.getElementById(&quot;out&quot;).textContent = state.lastOut;
+        }
+
+        async function saveState(extra = {}) {
+            const db = await dbPromise;
+            const cfgIds = [&quot;cleanSymbols&quot;, &quot;dedupeExact&quot;, &quot;dedupeNear&quot;, &quot;keepOrder&quot;, &quot;splitLarge&quot;, &quot;minChars&quot;, &quot;sim&quot;, &quot;shingle&quot;, &quot;windowN&quot;, &quot;cleanAsterisk1&quot;, &quot;cleanAsterisk2&quot;, &quot;cleanAsterisk3&quot;, &quot;cleanHash1&quot;, &quot;cleanHash2&quot;, &quot;cleanHash3&quot;, &quot;useOCR&quot;];
+            const cfg = {};
+            for (const id of cfgIds) {
+                const el = document.getElementById(id);
+                cfg[id] = (el.type === &quot;checkbox&quot;) ? el.checked : el.value;
+            }
+            const st = {
+                id: &quot;current&quot;,
+                raw: document.getElementById(&quot;raw&quot;).value,
+                banWords: document.getElementById(&quot;banWords&quot;).value,
+                banRegex: document.getElementById(&quot;banRegex&quot;).value,
+                keepWords: document.getElementById(&quot;keepWords&quot;).value,
+                keepRegex: document.getElementById(&quot;keepRegex&quot;).value,
+                captureWords: document.getElementById(&quot;captureWords&quot;).value,
+                captureRegex: document.getElementById(&quot;captureRegex&quot;).value,
+                apiLink: document.getElementById(&quot;apiLink&quot;).value,
+                destinoNuvem: document.getElementById(&quot;destinoNuvem&quot;).value,
+                cfg,
+                lastOut: document.getElementById(&quot;out&quot;).textContent,
+                ...extra
+            };
+            await db.put(&quot;state&quot;, st);
+        }
+
+        [&quot;raw&quot;, &quot;banWords&quot;, &quot;banRegex&quot;, &quot;keepWords&quot;, &quot;keepRegex&quot;, &quot;captureWords&quot;, &quot;captureRegex&quot;, &quot;minChars&quot;, &quot;sim&quot;, &quot;shingle&quot;, &quot;windowN&quot;, &quot;cleanSymbols&quot;, &quot;dedupeExact&quot;, &quot;dedupeNear&quot;, &quot;keepOrder&quot;, &quot;splitLarge&quot;, &quot;cleanAsterisk1&quot;, &quot;cleanAsterisk2&quot;, &quot;cleanAsterisk3&quot;, &quot;cleanHash1&quot;, &quot;cleanHash2&quot;, &quot;cleanHash3&quot;, &quot;useOCR&quot;, &quot;apiLink&quot;, &quot;destinoNuvem&quot;]
+            .forEach(id =&gt; {
+                const el = document.getElementById(id);
+                el &amp;&amp; el.addEventListener(&quot;input&quot;, () =&gt; saveState());
+                el &amp;&amp; el.addEventListener(&quot;change&quot;, () =&gt; saveState());
+            });
+
+        // UI helpers
+        function setStatus(s) { document.getElementById(&quot;status&quot;).textContent = s; }
+        function ov(on, msg, sub) {
+            const o = document.getElementById(&quot;ov&quot;);
+            o.style.display = on ? &quot;flex&quot; : &quot;none&quot;;
+            if (msg) document.getElementById(&quot;ovMsg&quot;).textContent = msg;
+            if (sub) document.getElementById(&quot;ovSub&quot;).textContent = sub;
+        }
+        function download(filename, text, mime = &quot;text/plain&quot;) {
+            const blob = new Blob([text], { type: mime });
+            const a = document.createElement(&quot;a&quot;);
+            a.href = URL.createObjectURL(blob);
+            a.download = filename;
+            a.click();
+            setTimeout(() =&gt; URL.revokeObjectURL(a.href), 2000);
+        }
+
+        // ☁️ FUNÇÃO DE ENVIO PARA NUVEM
+        async function enviarParaNuvem() {
+            const linkApi = document.getElementById(&quot;apiLink&quot;).value.trim();
+            const textoFinal = document.getElementById(&quot;out&quot;).textContent;
+            const destino = document.getElementById(&quot;destinoNuvem&quot;).value;
+
+            if (!linkApi) {
+                alert(&quot;Maikon, cole o link do Webhook/API no campo acima primeiro!&quot;);
+                return;
+            }
+            if (!textoFinal || textoFinal === &quot;[O texto filtrado aparece aqui]&quot;) {
+                alert(&quot;Filtre o texto primeiro antes de enviar para a nuvem!&quot;);
+                return;
+            }
+
+            ov(true, &quot;Enviando para a Nuvem…&quot;, &quot;Aguarde enquanto o documento é exportado.&quot;);
+
+            let corpo = {};
+            if (destino === &quot;drive&quot;) {
+                corpo = { tipo: &quot;drive&quot;, titulo: &quot;Documento_Filtrado_Maikon_&quot; + new Date().toISOString().slice(0,10), conteudo: textoFinal };
+            } else if (destino === &quot;gmail&quot;) {
+                corpo = { tipo: &quot;gmail&quot;, assunto: &quot;Documento Filtrado - Maikon Caldeira&quot;, corpo: textoFinal };
+            } else {
+                corpo = { tipo: &quot;outro&quot;, dados: textoFinal };
+            }
+
+            try {
+                await fetch(linkApi, {
+                    method: &quot;POST&quot;,
+                    mode: &quot;no-cors&quot;,
+                    headers: { &quot;Content-Type&quot;: &quot;application/json&quot; },
+                    body: JSON.stringify(corpo)
+                });
+                ov(false);
+                setStatus(&quot;✅ Enviado para a nuvem com sucesso!&quot;);
+                alert(&quot;✅ Documento enviado para a nuvem!&quot;);
+            } catch (erro) {
+                ov(false);
+                setStatus(&quot;❌ Erro ao enviar para a nuvem. Verifique o link.&quot;);
+                alert(&quot;❌ Erro ao enviar. Verifique se o link está correto.&quot;);
+                console.error(erro);
+            }
+        }
+        // FIM DA FUNÇÃO DE ENVIO
+
+        // Text utilities
+        function cleanMarkdownNoise(t) {
+            let s = t || &quot;&quot;;
+            if (document.getElementById(&quot;cleanAsterisk1&quot;).checked) s = s.replace(/\*/g, &quot;&quot;);
+            if (document.getElementById(&quot;cleanAsterisk2&quot;).checked) s = s.replace(/\*\*/g, &quot;&quot;);
+            if (document.getElementById(&quot;cleanAsterisk3&quot;).checked) s = s.replace(/\*\*\*/g, &quot;&quot;);
+            if (document.getElementById(&quot;cleanHash1&quot;).checked) s = s.replace(/#/g, &quot;&quot;);
+            if (document.getElementById(&quot;cleanHash2&quot;).checked) s = s.replace(/##/g, &quot;&quot;);
+            if (document.getElementById(&quot;cleanHash3&quot;).checked) s = s.replace(/###/g, &quot;&quot;);
+            if (document.getElementById(&quot;cleanSymbols&quot;).checked) {
+                s = s.replace(/^\s{0,6}(?:[•\-–—]+|#{1,6}|&gt;+)\s+/gm, &quot;&quot;);
+                s = s.replace(/[#~]{2,}/g, &quot; &quot;);
+            }
+            s = s.replace(/[&quot;&quot;]/g, '&quot;').replace(/[']/g, &quot;'&quot;);
+            s = s.replace(/[ \t]+/g, &quot; &quot;);
+            s = s.replace(/\n{3,}/g, &quot;\n\n&quot;);
+            return s;
+        }
+        function splitParagraphs(t, splitLarge = false) {
+            const paragraphs = (t || &quot;&quot;)
+                .replace(/\r\n/g, &quot;\n&quot;)
+                .split(/\n{2,}|\n(?=\s*[A-ZÁÀÂÃÉÊÍÓÔÕÚÇ]{3,}[\s:])/g)
+                .map(p =&gt; p.trim())
+                .filter(Boolean);
+            if (splitLarge) {
+                const splitSize = 500;
+                const result = [];
+                paragraphs.forEach(p =&gt; {
+                    if (p.length &gt; splitSize) {
+                        let start = 0;
+                        while (start &lt; p.length) {
+                            result.push(p.slice(start, start + splitSize));
+                            start += splitSize;
+                        }
+                    } else {
+                        result.push(p);
+                    }
+                });
+                return result;
+            }
+            return paragraphs;
+        }
+        function normalizeForCompare(s) {
+            return (s || &quot;&quot;).toLowerCase().normalize(&quot;NFD&quot;).replace(/[\u0300-\u036f]/g, &quot;&quot;).replace(/[^a-z0-9\s]/g, &quot; &quot;).replace(/\s+/g, &quot; &quot;).trim();
+        }
+        function makeShingles(words, size) {
+            const out = [];
+            for (let i = 0; i + size &lt;= words.length; i++) out.push(words.slice(i, i + size).join(&quot; &quot;));
+            return out;
+        }
+        function signature(norm, shingleSize) {
+            const words = norm.split(&quot; &quot;).filter(Boolean);
+            const sh = makeShingles(words, shingleSize);
+            const limited = sh.length &gt; 250 ? sh.slice(0, 250) : sh;
+            return new Set(limited);
+        }
+        function jaccard(a, b) {
+            if (!a.size || !b.size) return 0;
+            let inter = 0;
+            const small = a.size &lt; b.size ? a : b;
+            const big = a.size &lt; b.size ? b : a;
+            for (const x of small) if (big.has(x)) inter++;
+            const uni = a.size + b.size - inter;
+            return uni ? inter / uni : 0;
+        }
+        function parseLines(text) {
+            return (text || &quot;&quot;).split(&quot;\n&quot;).map(s =&gt; s.trim()).filter(Boolean);
+        }
+        function buildRegexList(lines) {
+            const out = [];
+            for (const l of lines) {
+                try { out.push(new RegExp(l, &quot;i&quot;)); } catch (e) {}
+            }
+            return out;
+        }
+
+        // Importers
+        async function extractTextFromPDF(file, useOCR) {
+            const buf = await file.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+            let full = &quot;&quot;;
+            for (let i = 1; i &lt;= pdf.numPages; i++) {
+                const page = await pdf.getPage(i);
+                const content = await page.getTextContent();
+                if (content.items.length &gt; 0) {
+                    full += `--- Página ${i} ---\n` + content.items.map(it =&gt; it.str).join(&quot; &quot;) + &quot;\n\n&quot;;
+                } else if (useOCR) {
+                    ov(true, `OCR: Processando Página ${i}...`, &quot;Isso pode demorar um pouco.&quot;);
+                    try {
+                        const viewport = page.getViewport({ scale: 2.0 });
+                        const canvas = document.createElement(&quot;canvas&quot;);
+                        const context = canvas.getContext(&quot;2d&quot;);
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+                        await page.render({ canvasContext: context, viewport }).promise;
+                        const imageData = canvas.toDataURL(&quot;image/png&quot;);
+                        const worker = await Tesseract.createWorker('por');
+                        const result = await worker.recognize(imageData);
+                        await worker.terminate();
+                        full += `--- Página ${i} (OCR) ---\n` + result.data.text + &quot;\n\n&quot;;
+                    } catch (e) {
+                        full += `--- Página ${i} (Erro OCR) ---\nNão foi possível extrair texto.\n\n`;
+                    } finally {
+                        ov(false);
+                    }
+                } else {
+                    full += `--- Página ${i} ---\nTexto não extraído (ative OCR se necessário).\n\n`;
+                }
+            }
+            return full;
+        }
+        async function extractTextFromDOCX(file) {
+            const buf = await file.arrayBuffer();
+            const res = await mammoth.extractRawText({ arrayBuffer: buf });
+            return res.value || &quot;&quot;;
+        }
+        async function extractTextFromJSON(file) {
+            const txt = await file.text();
+            let obj;
+            try { obj = JSON.parse(txt); } catch (e) { return txt; }
+            const parts = [];
+            (function walk(x) {
+                if (x == null) return;
+                if (typeof x === &quot;string&quot;) { if (x.trim().length &gt; 0) parts.push(x); return; }
+                if (Array.isArray(x)) { x.forEach(walk); return; }
+                if (typeof x === &quot;object&quot;) { Object.values(x).forEach(walk); return; }
+            })(obj);
+            return parts.join(&quot;\n\n&quot;);
+        }
+
+        // Core filtering
+        let res = { removed: [], outText: &quot;&quot;, outPars: [], stats: { total: 0, kept: 0, removed: 0 } };
+        function applyBanRules(par, banWords, banRegexList, keepWords, keepRegexList) {
+            const low = par.toLowerCase();
+            for (const w of keepWords) if (w &amp;&amp; low.includes(w.toLowerCase())) return { drop: false, reason: `mantido por palavra: &quot;${w}&quot;` };
+            for (const rx of keepRegexList) if (rx.test(par)) return { drop: false, reason: `mantido por regex: /${rx.source}/i` };
+            for (const w of banWords) if (w &amp;&amp; low.includes(w.toLowerCase())) return { drop: true, reason: `regra palavra: &quot;${w}&quot;` };
+            for (const rx of banRegexList) if (rx.test(par)) return { drop: true, reason: `regex: /${rx.source}/i` };
+            return { drop: false };
+        }
+        function applyCaptureRules(par, captureWords, captureRegexList) {
+            const low = par.toLowerCase();
+            for (const w of captureWords) if (w &amp;&amp; low.includes(w.toLowerCase())) return { highlight: true, reason: `capturado por palavra: &quot;${w}&quot;` };
+            for (const rx of captureRegexList) if (rx.test(par)) return { highlight: true, reason: `capturado por regex: /${rx.source}/i` };
+            return { highlight: false };
+        }
+        function filterText(rawText, cfg) {
+            const removed = [];
+            let text = rawText || &quot;&quot;;
+            if (cfg.cleanSymbols) text = cleanMarkdownNoise(text);
+            let pars = splitParagraphs(text, cfg.splitLarge)
+                .map(p =&gt; p.replace(/\s+/g, &quot; &quot;).trim())
+                .filter(p =&gt; p.length &gt;= cfg.minChars);
+            const exactSet = new Set();
+            const kept = [];
+            const out = [];
+            for (const p of pars) {
+                const rule = applyBanRules(p, cfg.banWords, cfg.banRegexList, cfg.keepWords, cfg.keepRegexList);
+                if (rule.drop) {
+                    removed.push({ motivo: rule.reason, texto: p });
+                    continue;
+                }
+                const capture = applyCaptureRules(p, cfg.captureWords, cfg.captureRegexList);
+                const norm = normalizeForCompare(p);
+                if (cfg.dedupeExact) {
+                    if (exactSet.has(norm)) {
+                        removed.push({ motivo: &quot;duplicata exata&quot;, texto: p });
+                        continue;
+                    }
+                    exactSet.add(norm);
+                }
+                if (cfg.dedupeNear) {
+                    const sig = signature(norm, cfg.shingleSize);
+                    let dup = false;
+                    const start = Math.max(0, kept.length - cfg.windowN);
+                    for (let i = start; i &lt; kept.length; i++) {
+                        if (jaccard(sig, kept[i].sig) &gt;= cfg.sim) {
+                            dup = true;
+                            break;
+                        }
+                    }
+                    if (dup) {
+                        removed.push({ motivo: &quot;duplicata aproximada&quot;, texto: p });
+                        continue;
+                    }
+                    kept.push({ raw: p, norm, sig });
+                }
+                out.push(capture.highlight ? `**${p}** (Destacado: ${capture.reason})` : p);
+            }
+            return {
+                outText: out.join(&quot;\n\n&quot;),
+                outPars: out,
+                removed,
+                stats: { total: pars.length, kept: out.length, removed: removed.length }
+            };
+        }
+
+        // Event Listeners
+        document.getElementById(&quot;btnSaveRules&quot;).addEventListener(&quot;click&quot;, () =&gt; { saveState(); setStatus(&quot;Regras salvas.&quot;); });
+        document.getElementById(&quot;btnClearRules&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            document.getElementById(&quot;banWords&quot;).value = &quot;&quot;;
+            document.getElementById(&quot;banRegex&quot;).value = &quot;&quot;;
+            saveState();
+            setStatus(&quot;Regras limpas.&quot;);
+        });
+        document.getElementById(&quot;btnSaveKeepRules&quot;).addEventListener(&quot;click&quot;, () =&gt; { saveState(); setStatus(&quot;VIP salvo.&quot;); });
+        document.getElementById(&quot;btnClearKeepRules&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            document.getElementById(&quot;keepWords&quot;).value = &quot;&quot;;
+            document.getElementById(&quot;keepRegex&quot;).value = &quot;&quot;;
+            saveState();
+            setStatus(&quot;VIP limpo.&quot;);
+        });
+        document.getElementById(&quot;btnSaveCaptureRules&quot;).addEventListener(&quot;click&quot;, () =&gt; { saveState(); setStatus(&quot;Regras de Captura salvas.&quot;); });
+        document.getElementById(&quot;btnClearCaptureRules&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            document.getElementById(&quot;captureWords&quot;).value = &quot;&quot;;
+            document.getElementById(&quot;captureRegex&quot;).value = &quot;&quot;;
+            saveState();
+            setStatus(&quot;Regras de Captura limpas.&quot;);
+        });
+        document.getElementById(&quot;btnClearAll&quot;).addEventListener(&quot;click&quot;, async () =&gt; {
+            if (!confirm(&quot;Limpar tudo?&quot;)) return;
+            document.getElementById(&quot;raw&quot;).value = &quot;&quot;;
+            document.getElementById(&quot;out&quot;).textContent = &quot;[O texto filtrado aparece aqui]&quot;;
+            document.getElementById(&quot;removedBox&quot;).innerHTML = &quot;&quot;;
+            setStatus(&quot;Pronto.&quot;);
+            await saveState({ lastOut: &quot;[O texto filtrado aparece aqui]&quot; });
+        });
+        document.getElementById(&quot;btnExportTxt&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            download(&quot;filtrado.txt&quot;, document.getElementById(&quot;out&quot;).textContent, &quot;text/plain;charset=utf-8&quot;);
+        });
+        document.getElementById(&quot;btnExportJson&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            const payload = { createdAt: new Date().toISOString(), rawPreview: document.getElementById(&quot;raw&quot;).value, output: document.getElementById(&quot;out&quot;).textContent };
+            download(&quot;filtrado.json&quot;, JSON.stringify(payload, null, 2), &quot;application/json;charset=utf-8&quot;);
+        });
+        document.getElementById(&quot;btnExportWord&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            const content = document.getElementById(&quot;out&quot;).textContent || &quot;&quot;;
+            const paragraphs = content.split(/\n\n+/);
+            let htmlBody = &quot;&quot;;
+            for (let p of paragraphs) {
+                if (!p.trim()) continue;
+                const safeP = p.replace(/[&amp;&lt;&gt;&quot;']/g, c =&gt; ({&quot;&amp;&quot;:&quot;&amp;amp;&quot;,&quot;&lt;&quot;:&quot;&amp;lt;&quot;,&quot;&gt;&quot;:&quot;&amp;gt;&quot;,'&quot;':&quot;&amp;quot;&quot;,&quot;'&quot;:&quot;&amp;#39;&quot;}[c]));
+                htmlBody += `&lt;p style=&quot;margin-bottom:12pt; font-family:'Times New Roman', serif; font-size:12pt; line-height:1.5;&quot;&gt;${safeP}&lt;/p&gt;`;
+            }
+            const htmlContent = `&lt;html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'&gt;&lt;head&gt;&lt;meta charset='utf-8'&gt;&lt;title&gt;Filtrado&lt;/title&gt;&lt;/head&gt;&lt;body&gt;${htmlBody}&lt;/body&gt;&lt;/html&gt;`;
+            download(&quot;filtrado.doc&quot;, htmlContent, &quot;application/msword&quot;);
+        });
+        document.getElementById(&quot;btnExportMarkdown&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            download(&quot;filtrado.md&quot;, document.getElementById(&quot;out&quot;).textContent, &quot;text/markdown;charset=utf-8&quot;);
+        });
+        document.getElementById(&quot;btnCopyText&quot;).addEventListener(&quot;click&quot;, async () =&gt; {
+            const text = document.getElementById(&quot;out&quot;).textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                setStatus(&quot;✅ Texto copiado! Pode colar no Word (Ctrl+V).&quot;);
+                const btn = document.getElementById(&quot;btnCopyText&quot;);
+                const originalText = btn.textContent;
+                btn.textContent = &quot;Copiado!&quot;;
+                setTimeout(() =&gt; btn.textContent = originalText, 2000);
+            } catch (err) {
+                setStatus(&quot;❌ Erro ao copiar. Tente selecionar e copiar manualmente.&quot;);
+            }
+        });
+        document.getElementById(&quot;btnRun&quot;).addEventListener(&quot;click&quot;, async () =&gt; {
+            const raw = document.getElementById(&quot;raw&quot;).value;
+            if (!raw.trim()) { alert(&quot;Cole o texto ou importe arquivos primeiro.&quot;); return; }
+            const cfg = {
+                cleanSymbols: document.getElementById(&quot;cleanSymbols&quot;).checked,
+                dedupeExact: document.getElementById(&quot;dedupeExact&quot;).checked,
+                dedupeNear: document.getElementById(&quot;dedupeNear&quot;).checked,
+                keepOrder: document.getElementById(&quot;keepOrder&quot;).checked,
+                splitLarge: document.getElementById(&quot;splitLarge&quot;).checked,
+                minChars: Math.max(0, Number(document.getElementById(&quot;minChars&quot;).value || 0)),
+                sim: Math.max(0.50, Math.min(0.95, Number(document.getElementById(&quot;sim&quot;).value || 0.72))),
+                shingleSize: Math.max(2, Math.min(5, Number(document.getElementById(&quot;shingle&quot;).value || 3))),
+                windowN: Math.max(10, Math.min(2000, Number(document.getElementById(&quot;windowN&quot;).value || 250))),
+                banWords: parseLines(document.getElementById(&quot;banWords&quot;).value),
+                banRegexList: buildRegexList(parseLines(document.getElementById(&quot;banRegex&quot;).value)),
+                keepWords: parseLines(document.getElementById(&quot;keepWords&quot;).value),
+                keepRegexList: buildRegexList(parseLines(document.getElementById(&quot;keepRegex&quot;).value)),
+                captureWords: parseLines(document.getElementById(&quot;captureWords&quot;).value),
+                captureRegexList: buildRegexList(parseLines(document.getElementById(&quot;captureRegex&quot;).value))
+            };
+            ov(true, &quot;Filtrando…&quot;, &quot;Removendo repetição e aplicando regras.&quot;);
+            setTimeout(async () =&gt; {
+                try {
+                    res = filterText(raw, cfg);
+                    document.getElementById(&quot;out&quot;).textContent = res.outText || &quot;&quot;;
+                    const rb = document.getElementById(&quot;removedBox&quot;);
+                    rb.innerHTML = &quot;&quot;;
+                    const sample = res.removed.slice(0, 300);
+                    for (let i = 0; i &lt; sample.length; i++) {
+                        const r = sample[i];
+                        const div = document.createElement(&quot;div&quot;);
+                        div.className = &quot;removedItem&quot;;
+                        div.innerHTML = `&lt;b&gt;${i+1}. ${escapeHtml(r.motivo)}&lt;/b&gt;&lt;br&gt;${escapeHtml(r.texto)}`;
+                        rb.appendChild(div);
+                    }
+                    if (res.removed.length &gt; sample.length) {
+                        const more = document.createElement(&quot;div&quot;);
+                        more.className = &quot;small&quot;;
+                        more.style.marginTop = &quot;10px&quot;;
+                        more.textContent = `… (${res.removed.length} removidos no total)`;
+                        rb.appendChild(more);
+                    }
+                    setStatus(`Concluído. Mantidos: ${res.stats.kept} | Removidos: ${res.stats.removed}`);
+                    await saveState({ lastOut: res.outText });
+                } catch (e) {
+                    console.error(e);
+                    alert(&quot;Erro: &quot; + e.message);
+                } finally {
+                    ov(false);
+                }
+            }, 30);
+        });
+        function escapeHtml(s) {
+            return (s || &quot;&quot;).replace(/[&amp;&lt;&gt;&quot;']/g, c =&gt; ({&quot;&amp;&quot;:&quot;&amp;amp;&quot;,&quot;&lt;&quot;:&quot;&amp;lt;&quot;,&quot;&gt;&quot;:&quot;&amp;gt;&quot;,'&quot;':&quot;&amp;quot;&quot;,&quot;'&quot;:&quot;&amp;#39;&quot;}[c]));
+        }
+        document.getElementById(&quot;files&quot;).addEventListener(&quot;change&quot;, async (e) =&gt; {
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+            const useOCR = document.getElementById(&quot;useOCR&quot;).checked;
+            ov(true, &quot;Importando…&quot;, useOCR ? &quot;Lendo arquivos com OCR (pode demorar).&quot; : &quot;Lendo arquivos.&quot;);
+            try {
+                let combined = document.getElementById(&quot;raw&quot;).value || &quot;&quot;;
+                for (const f of files) {
+                    const name = (f.name || &quot;&quot;).toLowerCase();
+                    let text = &quot;&quot;;
+                    if (name.endsWith(&quot;.txt&quot;) || name.endsWith(&quot;.md&quot;)) text = await f.text();
+                    else if (name.endsWith(&quot;.pdf&quot;)) text = await extractTextFromPDF(f, useOCR);
+                    else if (name.endsWith(&quot;.docx&quot;)) text = await extractTextFromDOCX(f);
+                    else if (name.endsWith(&quot;.json&quot;)) text = await extractTextFromJSON(f);
+                    else text = await f.text();
+                    combined += (combined.trim() ? &quot;\n\n&quot; : &quot;&quot;) + `--- ARQUIVO: ${f.name} ---\n` + text;
+                }
+                document.getElementById(&quot;raw&quot;).value = combined;
+                await saveState();
+                setStatus(`Importação concluída: ${files.length} arquivo(s).`);
+            } catch (err) {
+                alert(&quot;Falha ao importar: &quot; + err.message);
+            } finally {
+                ov(false);
+                e.target.value = &quot;&quot;;
+            }
+        });
+
+        // Exportação de itens removidos
+        document.getElementById(&quot;btnExportRemovedTxt&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            const removedText = res.removed.map((r, i) =&gt; `${i+1}. Motivo: ${r.motivo}\n${r.texto}\n\n`).join(&quot;&quot;);
+            download(&quot;removidos.txt&quot;, removedText, &quot;text/plain;charset=utf-8&quot;);
+        });
+        document.getElementById(&quot;btnExportRemovedJson&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            const payload = { createdAt: new Date().toISOString(), removedItems: res.removed };
+            download(&quot;removidos.json&quot;, JSON.stringify(payload, null, 2), &quot;application/json;charset=utf-8&quot;);
+        });
+        document.getElementById(&quot;btnExportRemovedMarkdown&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            const removedMd = res.removed.map((r, i) =&gt; `**${i+1}. Motivo: ${r.motivo}**\n\n${r.texto}\n\n---`).join(&quot;\n&quot;);
+            download(&quot;removidos.md&quot;, removedMd, &quot;text/markdown;charset=utf-8&quot;);
+        });
+        document.getElementById(&quot;btnExportRemovedWord&quot;).addEventListener(&quot;click&quot;, () =&gt; {
+            let htmlBody = &quot;&quot;;
+            res.removed.forEach((r, i) =&gt; {
+                const safeMotivo = r.motivo.replace(/[&amp;&lt;&gt;&quot;']/g, c =&gt; ({&quot;&amp;&quot;:&quot;&amp;amp;&quot;,&quot;&lt;&quot;:&quot;&amp;lt;&quot;,&quot;&gt;&quot;:&quot;&amp;gt;&quot;,'&quot;':&quot;&amp;quot;&quot;,&quot;'&quot;:&quot;&amp;#39;&quot;}[c]));
+                const safeTexto = r.texto.replace(/[&amp;&lt;&gt;&quot;']/g, c =&gt; ({&quot;&amp;&quot;:&quot;&amp;amp;&quot;,&quot;&lt;&quot;:&quot;&amp;lt;&quot;,&quot;&gt;&quot;:&quot;&amp;gt;&quot;,'&quot;':&quot;&amp;quot;&quot;,&quot;'&quot;:&quot;&amp;#39;&quot;}[c]));
+                htmlBody += `&lt;p style=&quot;margin-bottom:12pt; font-family:'Times New Roman', serif; font-size:12pt; line-height:1.5;&quot;&gt;&lt;b&gt;${i+1}. Motivo: ${safeMotivo}&lt;/b&gt;&lt;/p&gt;`;
+                htmlBody += `&lt;p style=&quot;margin-bottom:12pt; font-family:'Times New Roman', serif; font-size:12pt; line-height:1.5;&quot;&gt;${safeTexto}&lt;/p&gt;&lt;hr&gt;`;
+            });
+            const htmlContent = `&lt;html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'&gt;&lt;head&gt;&lt;meta charset='utf-8'&gt;&lt;title&gt;Removidos&lt;/title&gt;&lt;/head&gt;&lt;body&gt;${htmlBody}&lt;/body&gt;&lt;/html&gt;`;
+            download(&quot;removidos.doc&quot;, htmlContent, &quot;application/msword&quot;);
+        });
+
+        loadState();
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+</div>
+
+<div class="project-container " id="projeto2">
+  <iframe srcdoc="&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;PWA Jurídico — Maikon Caldeira&lt;/title&gt;
+&lt;style&gt;
+/* === CSS BASE === */
+
+
+/* === MÓDULOS CSS === */
+
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+
+&lt;!-- === MÓDULO: Montador 4 === --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;🛠️ Workstation Completa — Maikon Caldeira&lt;/title&gt;
+&lt;style&gt;
+:root {
+  --bg: #0a0a0f;
+  --bg2: #12121a;
+  --bg3: #1a1a2e;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --accent: #a3a082;
+  --accent2: #d4d0a8;
+  --green: #4ade80;
+  --blue: #60a5fa;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --border: #2d2d3a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* === NAVEGAÇÃO PRINCIPAL === */
+.main-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg2);
+  border-bottom: 2px solid var(--accent);
+  padding: 12px 20px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.5);
+  flex-wrap: wrap;
+}
+
+.main-nav .logo {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab {
+  padding: 10px 18px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text2);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-tab:hover {
+  background: var(--bg3);
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.nav-tab.active {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent2);
+}
+
+/* === WORKSPACES === */
+.workspace {
+  display: none;
+  padding: 80px 20px 20px;
+  min-height: 100vh;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.workspace.active {
+  display: block;
+}
+
+/* === COMPONENTES === */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-primary { background: var(--accent); color: #000; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-success { background: var(--green); color: #000; }
+.btn-success:hover { opacity: 0.9; }
+.btn-danger { background: rgba(248,113,113,0.2); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+.btn-sm { padding: 6px 12px; font-size: 10px; }
+
+.input, .textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  margin-bottom: 12px;
+}
+
+.input:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.textarea {
+  font-family: 'Consolas', 'Fira Code', monospace;
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.code-display {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.split-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 1024px) {
+  .split-view { grid-template-columns: 1fr; }
+}
+
+.preview-frame {
+  width: 100%;
+  height: 500px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+}
+
+.status {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-info { background: rgba(96,165,250,0.1); color: var(--blue); border: 1px solid rgba(96,165,250,0.2); }
+.status-success { background: rgba(74,222,128,0.1); color: var(--green); border: 1px solid rgba(74,222,128,0.2); }
+.status-warning { background: rgba(251,191,36,0.1); color: var(--yellow); border: 1px solid rgba(251,191,36,0.2); }
+
+.file-item {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-item:hover {
+  border-color: var(--accent);
+  background: var(--bg2);
+}
+
+.tag {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tag-html { background: rgba(239,68,68,0.2); color: var(--red); }
+.tag-css { background: rgba(59,130,246,0.2); color: var(--blue); }
+.tag-js { background: rgba(251,191,36,0.2); color: var(--yellow); }
+.tag-func { background: rgba(74,222,128,0.2); color: var(--green); }
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: var(--bg2);
+  border: 2px solid var(--accent);
+  border-radius: 10px;
+  padding: 14px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent2);
+  z-index: 2000;
+  transform: translateY(100px);
+  opacity: 0;
+  transition: all 0.3s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.action-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;!-- NAVEGAÇÃO PRINCIPAL --&gt;
+&lt;div class=&quot;main-nav&quot;&gt;
+  &lt;div class=&quot;logo&quot;&gt;
+    &lt;span&gt;🛠️&lt;/span&gt;
+    &lt;span&gt;WORKSTATION&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;button class=&quot;nav-tab active&quot; onclick=&quot;trocarAba('scanner')&quot;&gt;
+    🔍 Scanner
+  &lt;/button&gt;
+  &lt;button class=&quot;nav-tab&quot; onclick=&quot;trocarAba('montador')&quot;&gt;
+    🧩 Montador
+  &lt;/button&gt;
+  &lt;button class=&quot;nav-tab&quot; onclick=&quot;trocarAba('playground')&quot;&gt;
+    ⚡ Playground
+  &lt;/button&gt;
+  &lt;button class=&quot;nav-tab&quot; onclick=&quot;trocarAba('arquivos')&quot;&gt;
+    📂 Arquivos
+  &lt;/button&gt;
+&lt;/div&gt;
+
+&lt;!-- ========================================
+     WORKSPACE 1: SCANNER
+     ======================================== --&gt;
+&lt;div id=&quot;ws-scanner&quot; class=&quot;workspace active&quot;&gt;
+  &lt;div class=&quot;status status-info&quot;&gt;
+    🔍 &lt;strong&gt;Scanner:&lt;/strong&gt; Cole um código HTML completo para analisar sua estrutura, extrair funções, estilos e elementos.
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;panel-header&quot;&gt;
+      &lt;div class=&quot;panel-title&quot;&gt;📄 Código para Analisar&lt;/div&gt;
+      &lt;div style=&quot;display:flex;gap:6px;&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;importarParaScanner()&quot;&gt;📂 Importar&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;limparScanner()&quot;&gt;🗑️ Limpar&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;textarea class=&quot;textarea&quot; id=&quot;scannerInput&quot; placeholder=&quot;Cole aqui o código HTML completo...&quot; style=&quot;min-height:300px;&quot;&gt;&lt;/textarea&gt;
+    &lt;div class=&quot;action-bar&quot;&gt;
+      &lt;button class=&quot;btn btn-primary&quot; onclick=&quot;analisarCodigo()&quot;&gt;🔍 Analisar Código&lt;/button&gt;
+      &lt;button class=&quot;btn btn-success&quot; onclick=&quot;extrairTudo()&quot;&gt;📦 Extrair Tudo&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div id=&quot;scannerResults&quot;&gt;&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ========================================
+     WORKSPACE 2: MONTADOR
+     ======================================== --&gt;
+&lt;div id=&quot;ws-montador&quot; class=&quot;workspace&quot;&gt;
+  &lt;div class=&quot;status status-info&quot;&gt;
+    🧩 &lt;strong&gt;Montador:&lt;/strong&gt; Adicione pedaços de código como módulos e monte seu projeto final.
+  &lt;/div&gt;
+
+  &lt;div class=&quot;split-view&quot;&gt;
+    &lt;!-- Adicionar Módulo --&gt;
+    &lt;div class=&quot;panel&quot;&gt;
+      &lt;div class=&quot;panel-header&quot;&gt;
+        &lt;div class=&quot;panel-title&quot;&gt;➕ Adicionar Módulo&lt;/div&gt;
+      &lt;/div&gt;
+      &lt;input type=&quot;text&quot; class=&quot;input&quot; id=&quot;modNome&quot; placeholder=&quot;Nome do módulo (ex: Botão Exportar PDF)&quot; /&gt;
+      &lt;select class=&quot;input&quot; id=&quot;modTipo&quot;&gt;
+        &lt;option value=&quot;html&quot;&gt;📄 HTML&lt;/option&gt;
+        &lt;option value=&quot;css&quot;&gt;💅 CSS&lt;/option&gt;
+        &lt;option value=&quot;js&quot;&gt;⚡ JavaScript&lt;/option&gt;
+        &lt;option value=&quot;funcao&quot;&gt;🔧 Função&lt;/option&gt;
+      &lt;/select&gt;
+      &lt;textarea class=&quot;textarea&quot; id=&quot;modCodigo&quot; placeholder=&quot;Cole o código do módulo...&quot;&gt;&lt;/textarea&gt;
+      &lt;div class=&quot;action-bar&quot;&gt;
+        &lt;button class=&quot;btn btn-primary&quot; onclick=&quot;salvarModulo()&quot;&gt;💾 Salvar Módulo&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;limparModulo()&quot;&gt;🗑️ Limpar&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Lista de Módulos --&gt;
+    &lt;div class=&quot;panel&quot;&gt;
+      &lt;div class=&quot;panel-header&quot;&gt;
+        &lt;div class=&quot;panel-title&quot;&gt;📦 Módulos Salvos (&lt;span id=&quot;modCount&quot;&gt;0&lt;/span&gt;)&lt;/div&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;renderModulos()&quot;&gt;🔄&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div id=&quot;modulosList&quot;&gt;&lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;!-- Gerar Projeto --&gt;
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;panel-header&quot;&gt;
+      &lt;div class=&quot;panel-title&quot;&gt;🔨 Montar Projeto Final&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;input type=&quot;text&quot; class=&quot;input&quot; id=&quot;projetoNome&quot; placeholder=&quot;Nome do projeto&quot; value=&quot;Meu Projeto PWA&quot; /&gt;
+    &lt;div id=&quot;montadorChecklist&quot;&gt;&lt;/div&gt;
+    &lt;div class=&quot;action-bar&quot;&gt;
+      &lt;button class=&quot;btn btn-success&quot; onclick=&quot;gerarProjetoFinal()&quot;&gt;📦 Gerar HTML Final&lt;/button&gt;
+      &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;selecionarTodos()&quot;&gt;✅ Selecionar Todos&lt;/button&gt;
+      &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;desselecionarTodos()&quot;&gt;⬜ Desmarcar&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ========================================
+     WORKSPACE 3: PLAYGROUND
+     ======================================== --&gt;
+&lt;div id=&quot;ws-playground&quot; class=&quot;workspace&quot;&gt;
+  &lt;div class=&quot;status status-info&quot;&gt;
+    ⚡ &lt;strong&gt;Playground:&lt;/strong&gt; Teste código em tempo real. Edite e veja o resultado instantaneamente.
+  &lt;/div&gt;
+
+  &lt;div class=&quot;split-view&quot;&gt;
+    &lt;!-- Editor --&gt;
+    &lt;div class=&quot;panel&quot;&gt;
+      &lt;div class=&quot;panel-header&quot;&gt;
+        &lt;div class=&quot;panel-title&quot;&gt;✏️ Editor&lt;/div&gt;
+        &lt;div style=&quot;display:flex;gap:6px;&quot;&gt;
+          &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;importarParaPlayground()&quot;&gt;📂 Importar&lt;/button&gt;
+          &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;limparPlayground()&quot;&gt;🗑️ Limpar&lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+      &lt;textarea class=&quot;textarea&quot; id=&quot;playgroundCode&quot; placeholder=&quot;Cole ou escreva código HTML aqui...&quot; style=&quot;min-height:400px;&quot;&gt;&lt;/textarea&gt;
+      &lt;div class=&quot;action-bar&quot;&gt;
+        &lt;button class=&quot;btn btn-primary&quot; onclick=&quot;executarPlayground()&quot;&gt;▶️ Executar&lt;/button&gt;
+        &lt;button class=&quot;btn btn-success&quot; onclick=&quot;salvarDePlayground()&quot;&gt;💾 Salvar como Módulo&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;copiarPlayground()&quot;&gt;📋 Copiar&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Preview --&gt;
+    &lt;div class=&quot;panel&quot;&gt;
+      &lt;div class=&quot;panel-header&quot;&gt;
+        &lt;div class=&quot;panel-title&quot;&gt;👁️ Preview&lt;/div&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;abrirPreviewNovo()&quot;&gt;🔳 Nova Aba&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;iframe class=&quot;preview-frame&quot; id=&quot;playgroundPreview&quot;&gt;&lt;/iframe&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- ========================================
+     WORKSPACE 4: ARQUIVOS
+     ======================================== --&gt;
+&lt;div id=&quot;ws-arquivos&quot; class=&quot;workspace&quot;&gt;
+  &lt;div class=&quot;status status-info&quot;&gt;
+    📂 &lt;strong&gt;Arquivos:&lt;/strong&gt; Gerencie todos os códigos salvos. Exporte, importe e organize.
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;panel-header&quot;&gt;
+      &lt;div class=&quot;panel-title&quot;&gt;💾 Backup &amp; Importação&lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;action-bar&quot;&gt;
+      &lt;button class=&quot;btn btn-primary&quot; onclick=&quot;exportarTudo()&quot;&gt;📥 Exportar Tudo (JSON)&lt;/button&gt;
+      &lt;button class=&quot;btn btn-ghost&quot; onclick=&quot;importarTudo()&quot;&gt;📤 Importar Backup&lt;/button&gt;
+      &lt;button class=&quot;btn btn-danger&quot; onclick=&quot;limparTudo()&quot;&gt;🗑️ Limpar Tudo&lt;/button&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class=&quot;panel&quot;&gt;
+    &lt;div class=&quot;panel-header&quot;&gt;
+      &lt;div class=&quot;panel-title&quot;&gt;📋 Módulos Salvos&lt;/div&gt;
+      &lt;input type=&quot;text&quot; class=&quot;input&quot; style=&quot;width:200px;margin:0;&quot; placeholder=&quot;🔍 Buscar...&quot; oninput=&quot;filtrarArquivos(this.value)&quot; /&gt;
+    &lt;/div&gt;
+    &lt;div id=&quot;arquivosList&quot;&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- Hidden inputs --&gt;
+&lt;input type=&quot;file&quot; id=&quot;fileInput&quot; style=&quot;display:none&quot; accept=&quot;.html,.htm,.js,.css,.txt&quot; /&gt;
+&lt;input type=&quot;file&quot; id=&quot;backupInput&quot; style=&quot;display:none&quot; accept=&quot;.json&quot; /&gt;
+
+&lt;div class=&quot;toast&quot; id=&quot;toast&quot;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+// ========== STORAGE ==========
+const LS_MODULOS = 'workstation-modulos-v1';
+const LS_SELECTED = 'workstation-selected-v1';
+
+function getModulos() {
+  try { return JSON.parse(localStorage.getItem(LS_MODULOS) || '[]'); }
+  catch { return []; }
+}
+
+function setModulos(list) {
+  localStorage.setItem(LS_MODULOS, JSON.stringify(list));
+  atualizarContador();
+}
+
+function getSelected() {
+  try { return JSON.parse(localStorage.getItem(LS_SELECTED) || '[]'); }
+  catch { return []; }
+}
+
+function setSelected(list) {
+  localStorage.setItem(LS_SELECTED, JSON.stringify(list));
+}
+
+// ========== NAVEGAÇÃO ==========
+function trocarAba(nome) {
+  // Esconde todas
+  document.querySelectorAll('.workspace').forEach(w =&gt; w.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t =&gt; t.classList.remove('active'));
+  
+  // Mostra a selecionada
+  document.getElementById('ws-' + nome).classList.add('active');
+  event.target.classList.add('active');
+  
+  // Atualiza conteúdo
+  if (nome === 'montador') renderModulos();
+  if (nome === 'arquivos') renderArquivos();
+}
+
+// ========== SCANNER ==========
+function analisarCodigo() {
+  const codigo = document.getElementById('scannerInput').value;
+  if (!codigo.trim()) {
+    toast('❌ Cole um código primeiro!');
+    return;
+  }
+
+  const analise = {
+    funcoes: extrairFuncoes(codigo),
+    estilos: extrairEstilos(codigo),
+    elementos: extrairElementos(codigo),
+    scripts: extrairScripts(codigo)
+  };
+
+  renderAnalise(analise);
+}
+
+function extrairFuncoes(codigo) {
+  const regex = /function\s+(\w+)\s*\([^)]*\)\s*\{/g;
+  const funcoes = [];
+  let match;
+  while ((match = regex.exec(codigo)) !== null) {
+    const inicio = match.index;
+    const fim = encontrarFimFuncao(codigo, inicio);
+    funcoes.push({
+      nome: match[1],
+      codigo: codigo.substring(inicio, fim)
+    });
+  }
+  return funcoes;
+}
+
+function encontrarFimFuncao(codigo, inicio) {
+  let nivel = 0;
+  for (let i = inicio; i &lt; codigo.length; i++) {
+    if (codigo[i] === '{') nivel++;
+    if (codigo[i] === '}') {
+      nivel--;
+      if (nivel === 0) return i + 1;
+    }
+  }
+  return codigo.length;
+}
+
+function extrairEstilos(codigo) {
+  const regex = /&lt;style[^&gt;]*&gt;([\s\S]*?)&lt;\/style&gt;/gi;
+  const estilos = [];
+  let match;
+  while ((match = regex.exec(codigo)) !== null) {
+    estilos.push(match[1].trim());
+  }
+  return estilos;
+}
+
+function extrairElementos(codigo) {
+  const regex = /&lt;(\w+)[^&gt;]*id=[&quot;']([^&quot;']+)[&quot;'][^&gt;]*&gt;/g;
+  const elementos = [];
+  let match;
+  while ((match = regex.exec(codigo)) !== null) {
+    elementos.push({ tag: match[1], id: match[2] });
+  }
+  return elementos;
+}
+
+function extrairScripts(codigo) {
+  const regex = /&lt;script[^&gt;]*&gt;([\s\S]*?)&lt;\/script&gt;/gi;
+  const scripts = [];
+  let match;
+  while ((match = regex.exec(codigo)) !== null) {
+    scripts.push(match[1].trim());
+  }
+  return scripts;
+}
+
+function renderAnalise(analise) {
+  const container = document.getElementById('scannerResults');
+  
+  let html = '';
+  
+  // Funções
+  if (analise.funcoes.length &gt; 0) {
+    html += `
+      &lt;div class=&quot;panel&quot;&gt;
+        &lt;div class=&quot;panel-header&quot;&gt;
+          &lt;div class=&quot;panel-title&quot;&gt;🔧 Funções Encontradas (${analise.funcoes.length})&lt;/div&gt;
+        &lt;/div&gt;
+        ${analise.funcoes.map((f, i) =&gt; `
+          &lt;div class=&quot;file-item&quot;&gt;
+            &lt;div&gt;
+              &lt;strong style=&quot;color:var(--green);&quot;&gt;${escHtml(f.nome)}()&lt;/strong&gt;
+              &lt;span class=&quot;tag tag-func&quot;&gt;função&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;display:flex;gap:4px;&quot;&gt;
+              &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;verCodigo(${i}, 'funcao')&quot;&gt;👁️&lt;/button&gt;
+              &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;copiarParaPlayground('${escHtml(f.codigo).replace(/'/g, &quot;\\'&quot;)}')&quot;&gt;⚡ Playground&lt;/button&gt;
+              &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;salvarComoModulo('${escHtml(f.nome)}', 'funcao', \`${f.codigo.replace(/`/g, '\\`')}\`)&quot;&gt;💾 Salvar&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        `).join('')}
+      &lt;/div&gt;
+    `;
+  }
+  
+  // Estilos
+  if (analise.estilos.length &gt; 0) {
+    html += `
+      &lt;div class=&quot;panel&quot;&gt;
+        &lt;div class=&quot;panel-header&quot;&gt;
+          &lt;div class=&quot;panel-title&quot;&gt;💅 Estilos CSS (${analise.estilos.length})&lt;/div&gt;
+        &lt;/div&gt;
+        ${analise.estilos.map((css, i) =&gt; `
+          &lt;div class=&quot;file-item&quot;&gt;
+            &lt;div&gt;
+              &lt;strong style=&quot;color:var(--blue);&quot;&gt;Bloco CSS ${i + 1}&lt;/strong&gt;
+              &lt;span class=&quot;tag tag-css&quot;&gt;css&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;display:flex;gap:4px;&quot;&gt;
+              &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;copiarParaPlayground(\`${css.replace(/`/g, '\\`')}\`)&quot;&gt;⚡ Playground&lt;/button&gt;
+              &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;salvarComoModulo('CSS_${i + 1}', 'css', \`${css.replace(/`/g, '\\`')}\`)&quot;&gt;💾 Salvar&lt;/button&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        `).join('')}
+      &lt;/div&gt;
+    `;
+  }
+  
+  container.innerHTML = html || '&lt;div class=&quot;status status-warning&quot;&gt;⚠️ Nenhum elemento extraível encontrado&lt;/div&gt;';
+  toast('✅ Análise concluída!');
+}
+
+function extrairTudo() {
+  const codigo = document.getElementById('scannerInput').value;
+  if (!codigo.trim()) {
+    toast('❌ Cole um código primeiro!');
+    return;
+  }
+
+  const analise = {
+    funcoes: extrairFuncoes(codigo),
+    estilos: extrairEstilos(codigo)
+  };
+
+  let contador = 0;
+  
+  analise.funcoes.forEach(f =&gt; {
+    salvarComoModulo(f.nome, 'funcao', f.codigo);
+    contador++;
+  });
+  
+  analise.estilos.forEach((css, i) =&gt; {
+    salvarComoModulo(`CSS_${i + 1}`, 'css', css);
+    contador++;
+  });
+
+  toast(`✅ ${contador} módulos extraídos e salvos!`);
+  renderModulos();
+}
+
+function copiarParaPlayground(codigo) {
+  document.getElementById('playgroundCode').value = codigo;
+  trocarAba('playground');
+  document.querySelectorAll('.nav-tab')[2].classList.add('active');
+  toast('✅ Código copiado para o Playground!');
+}
+
+function salvarComoModulo(nome, tipo, codigo) {
+  const modulos = getModulos();
+  modulos.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    nome,
+    tipo,
+    codigo,
+    data: new Date().toISOString()
+  });
+  setModulos(modulos);
+}
+
+// ========== MONTADOR ==========
+function salvarModulo() {
+  const nome = document.getElementById('modNome').value.trim();
+  const tipo = document.getElementById('modTipo').value;
+  const codigo = document.getElementById('modCodigo').value;
+
+  if (!nome || !codigo.trim()) {
+    toast('❌ Preencha nome e código!');
+    return;
+  }
+
+  salvarComoModulo(nome, tipo, codigo);
+  limparModulo();
+  renderModulos();
+  toast('✅ Módulo salvo!');
+}
+
+function limparModulo() {
+  document.getElementById('modNome').value = '';
+  document.getElementById('modCodigo').value = '';
+}
+
+function renderModulos() {
+  const modulos = getModulos();
+  const selected = getSelected();
+  const container = document.getElementById('modulosList');
+  const checklist = document.getElementById('montadorChecklist');
+
+  if (modulos.length === 0) {
+    container.innerHTML = '&lt;p style=&quot;color:var(--text2);font-size:12px;text-align:center;padding:20px;&quot;&gt;Nenhum módulo salvo&lt;/p&gt;';
+    if (checklist) checklist.innerHTML = '';
+    return;
+  }
+
+  // Lista de módulos
+  container.innerHTML = modulos.slice(-10).reverse().map(m =&gt; `
+    &lt;div class=&quot;file-item&quot;&gt;
+      &lt;div&gt;
+        &lt;strong&gt;${escHtml(m.nome)}&lt;/strong&gt;
+        &lt;span class=&quot;tag tag-${m.tipo}&quot;&gt;${m.tipo}&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div style=&quot;display:flex;gap:4px;&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;editarModulo('${m.id}')&quot;&gt;✏️&lt;/button&gt;
+        &lt;button class=&quot;btn btn-danger btn-sm&quot; onclick=&quot;deletarModulo('${m.id}')&quot;&gt;🗑️&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  `).join('');
+
+  // Checklist para montagem
+  if (checklist) {
+    checklist.innerHTML = '&lt;div style=&quot;max-height:300px;overflow-y:auto;&quot;&gt;' + modulos.map(m =&gt; `
+      &lt;label style=&quot;display:flex;align-items:center;gap:8px;padding:8px;cursor:pointer;border-bottom:1px solid var(--border);&quot;&gt;
+        &lt;input type=&quot;checkbox&quot; ${selected.includes(m.id) ? 'checked' : ''} onchange=&quot;toggleModulo('${m.id}')&quot; /&gt;
+        &lt;strong style=&quot;font-size:12px;&quot;&gt;${escHtml(m.nome)}&lt;/strong&gt;
+        &lt;span class=&quot;tag tag-${m.tipo}&quot;&gt;${m.tipo}&lt;/span&gt;
+      &lt;/label&gt;
+    `).join('') + '&lt;/div&gt;';
+  }
+}
+
+function toggleModulo(id) {
+  let selected = getSelected();
+  if (selected.includes(id)) {
+    selected = selected.filter(x =&gt; x !== id);
+  } else {
+    selected.push(id);
+  }
+  setSelected(selected);
+}
+
+function selecionarTodos() {
+  setSelected(getModulos().map(m =&gt; m.id));
+  renderModulos();
+}
+
+function desselecionarTodos() {
+  setSelected([]);
+  renderModulos();
+}
+
+function deletarModulo(id) {
+  if (!confirm('Deletar este módulo?')) return;
+  setModulos(getModulos().filter(m =&gt; m.id !== id));
+  renderModulos();
+  toast('🗑️ Módulo deletado!');
+}
+
+function editarModulo(id) {
+  const modulo = getModulos().find(m =&gt; m.id === id);
+  if (!modulo) return;
+  
+  document.getElementById('modNome').value = modulo.nome;
+  document.getElementById('modTipo').value = modulo.tipo;
+  document.getElementById('modCodigo').value = modulo.codigo;
+  
+  deletarModulo(id);
+  toast('✏️ Editando módulo...');
+}
+
+function gerarProjetoFinal() {
+  const modulos = getModulos();
+  const selected = getSelected();
+  const escolhidos = modulos.filter(m =&gt; selected.includes(m.id));
+
+  if (escolhidos.length === 0) {
+    toast('❌ Selecione pelo menos um módulo!');
+    return;
+  }
+
+  const nome = document.getElementById('projetoNome').value || 'Projeto';
+  
+  const html = escolhidos.filter(m =&gt; m.tipo === 'html').map(m =&gt; m.codigo).join('\n\n');
+  const css = escolhidos.filter(m =&gt; m.tipo === 'css').map(m =&gt; m.codigo).join('\n\n');
+  const js = escolhidos.filter(m =&gt; m.tipo === 'js' || m.tipo === 'funcao').map(m =&gt; m.codigo).join('\n\n');
+
+  const projeto = `&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;UTF-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+&lt;title&gt;${escHtml(nome)}&lt;/title&gt;
+&lt;style&gt;
+${css}
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+${html}
+
+&lt;script&gt;
+${js}
+&lt;\/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;`;
+
+  baixarArquivo(projeto, nome.replace(/[^a-z0-9]/gi, '_') + '.html', 'text/html');
+  toast('✅ Projeto gerado!');
+}
+
+// ========== PLAYGROUND ==========
+function executarPlayground() {
+  const codigo = document.getElementById('playgroundCode').value;
+  const iframe = document.getElementById('playgroundPreview');
+  
+  const blob = new Blob([codigo], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  iframe.src = url;
+  setTimeout(() =&gt; URL.revokeObjectURL(url), 5000);
+  
+  toast('▶️ Executando...');
+}
+
+function salvarDePlayground() {
+  const codigo = document.getElementById('playgroundCode').value;
+  if (!codigo.trim()) {
+    toast('❌ Nada para salvar!');
+    return;
+  }
+  
+  const nome = prompt('Nome do módulo:');
+  if (!nome) return;
+  
+  salvarComoModulo(nome, 'html', codigo);
+  toast('✅ Salvo como módulo!');
+}
+
+function copiarPlayground() {
+  const codigo = document.getElementById('playgroundCode').value;
+  navigator.clipboard.writeText(codigo);
+  toast('📋 Código copiado!');
+}
+
+function abrirPreviewNovo() {
+  const codigo = document.getElementById('playgroundCode').value;
+  const blob = new Blob([codigo], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+function limparPlayground() {
+  document.getElementById('playgroundCode').value = '';
+  document.getElementById('playgroundPreview').src = '';
+}
+
+// ========== ARQUIVOS ==========
+function renderArquivos() {
+  const modulos = getModulos();
+  const container = document.getElementById('arquivosList');
+
+  if (modulos.length === 0) {
+    container.innerHTML = '&lt;p style=&quot;color:var(--text2);text-align:center;padding:40px;&quot;&gt;Nenhum arquivo salvo&lt;/p&gt;';
+    return;
+  }
+
+  container.innerHTML = modulos.map(m =&gt; `
+    &lt;div class=&quot;file-item&quot;&gt;
+      &lt;div&gt;
+        &lt;strong&gt;${escHtml(m.nome)}&lt;/strong&gt;
+        &lt;span class=&quot;tag tag-${m.tipo}&quot;&gt;${m.tipo}&lt;/span&gt;
+        &lt;span style=&quot;font-size:10px;color:var(--text2);margin-left:8px;&quot;&gt;${new Date(m.data).toLocaleDateString('pt-BR')}&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div style=&quot;display:flex;gap:4px;&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;copiarParaPlayground(\`${m.codigo.replace(/`/g, '\\`')}\`)&quot;&gt;⚡&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;baixarModulo('${m.id}')&quot;&gt;📥&lt;/button&gt;
+        &lt;button class=&quot;btn btn-danger btn-sm&quot; onclick=&quot;deletarModulo('${m.id}'); renderArquivos();&quot;&gt;🗑️&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  `).join('');
+}
+
+function filtrarArquivos(busca) {
+  const modulos = getModulos().filter(m =&gt; 
+    m.nome.toLowerCase().includes(busca.toLowerCase())
+  );
+  
+  const container = document.getElementById('arquivosList');
+  container.innerHTML = modulos.map(m =&gt; `
+    &lt;div class=&quot;file-item&quot;&gt;
+      &lt;div&gt;
+        &lt;strong&gt;${escHtml(m.nome)}&lt;/strong&gt;
+        &lt;span class=&quot;tag tag-${m.tipo}&quot;&gt;${m.tipo}&lt;/span&gt;
+      &lt;/div&gt;
+      &lt;div style=&quot;display:flex;gap:4px;&quot;&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;copiarParaPlayground(\`${m.codigo.replace(/`/g, '\\`')}\`)&quot;&gt;⚡&lt;/button&gt;
+        &lt;button class=&quot;btn btn-ghost btn-sm&quot; onclick=&quot;baixarModulo('${m.id}')&quot;&gt;📥&lt;/button&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  `).join('');
+}
+
+function baixarModulo(id) {
+  const modulo = getModulos().find(m =&gt; m.id === id);
+  if (!modulo) return;
+  
+  const ext = { html: '.html', css: '.css', js: '.js', funcao: '.js' }[modulo.tipo] || '.txt';
+  baixarArquivo(modulo.codigo, modulo.nome + ext, 'text/plain');
+}
+
+function exportarTudo() {
+  const data = {
+    modulos: getModulos(),
+    selected: getSelected(),
+    data: new Date().toISOString()
+  };
+  
+  baixarArquivo(JSON.stringify(data, null, 2), 'backup-workstation-' + new Date().toISOString().slice(0, 10) + '.json', 'application/json');
+  toast('💾 Backup exportado!');
+}
+
+function importarTudo() {
+  document.getElementById('backupInput').click();
+}
+
+document.getElementById('backupInput').addEventListener('change', (e) =&gt; {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  const reader = new FileReader();
+  reader.onload = (ev) =&gt; {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.modulos) {
+        setModulos(data.modulos);
+        if (data.selected) setSelected(data.selected);
+        toast('✅ Backup importado!');
+        renderModulos();
+        renderArquivos();
+      }
+    } catch (err) {
+      toast('❌ Arquivo inválido!');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+function limparTudo() {
+  if (!confirm('⚠️ ATENÇÃO: Isso vai apagar TUDO! Tem certeza?')) return;
+  if (!confirm('Última chance! Realmente deseja apagar tudo?')) return;
+  
+  localStorage.clear();
+  toast('🗑️ Tudo limpo!');
+  renderModulos();
+  renderArquivos();
+}
+
+// ========== IMPORT ==========
+function importarParaScanner() {
+  document.getElementById('fileInput').click();
+  document.getElementById('fileInput').onchange = (e) =&gt; {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) =&gt; {
+      document.getElementById('scannerInput').value = ev.target.result;
+      toast('📂 Arquivo importado!');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+}
+
+function importarParaPlayground() {
+  document.getElementById('fileInput').click();
+  document.getElementById('fileInput').onchange = (e) =&gt; {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) =&gt; {
+      document.getElementById('playgroundCode').value = ev.target.result;
+      executarPlayground();
+      toast('📂 Arquivo importado!');
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+}
+
+function limparScanner() {
+  document.getElementById('scannerInput').value = '';
+  document.getElementById('scannerResults').innerHTML = '';
+}
+
+// ========== UTILS ==========
+function escHtml(s) {
+  return String(s).replace(/&amp;/g, '&amp;amp;').replace(/&lt;/g, '&amp;lt;').replace(/&gt;/g, '&amp;gt;').replace(/&quot;/g, '&amp;quot;');
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.transform = 'translateY(0)';
+  t.style.opacity = '1';
+  setTimeout(() =&gt; {
+    t.style.transform = 'translateY(100px)';
+    t.style.opacity = '0';
+  }, 2500);
+}
+
+function baixarArquivo(conteudo, nome, tipo) {
+  const blob = new Blob([conteudo], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function atualizarContador() {
+  const count = getModulos().length;
+  const el = document.getElementById('modCount');
+  if (el) el.textContent = count;
+}
+
+// Init
+atualizarContador();
+renderModulos();
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+&lt;!-- === MÓDULO: 11. Leitor de Projeto (1) === --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;pt-BR&quot;&gt;
+&lt;head&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+    &lt;meta charset=&quot;UTF-8&quot;&gt;
+    &lt;title&gt;Leitor de Projeto&lt;/title&gt;
+    &lt;style&gt;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: sans-serif; 
+            background: #0f172a; 
+            color: #f8fafc; 
+            padding: 20px;
+        }
+        h1 { color: #38bdf8; margin-bottom: 20px; }
+        
+        #zona-upload {
+            border: 2px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+        #zona-upload:hover { background: #1e293b; }
+        #zona-upload input { display: none; }
+        
+        #resumo {
+            display: none;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .numero-grande {
+            font-size: 2em;
+            color: #38bdf8;
+            font-weight: bold;
+        }
+        .grid-resumo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .card-resumo {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        #lista-funcoes { display: none; }
+        
+        .funcao-card {
+            background: #1e293b;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .funcao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            cursor: pointer;
+            border-left: 5px solid #38bdf8;
+        }
+        .funcao-header:hover { background: #263548; }
+        .funcao-header.importante { border-left-color: #4ade80; }
+        .funcao-header.cerebro { border-left-color: #f59e0b; }
+        .funcao-header.visual { border-left-color: #a78bfa; }
+        
+        .tag {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .tag-importante { background: #166534; color: #4ade80; }
+        .tag-cerebro { background: #78350f; color: #f59e0b; }
+        .tag-visual { background: #4c1d95; color: #a78bfa; }
+        .tag-normal { background: #1e3a5f; color: #38bdf8; }
+        
+        .funcao-corpo {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #334155;
+        }
+        .funcao-corpo.aberto { display: block; }
+        
+        .explicacao {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .explicacao strong { color: #38bdf8; }
+        
+        pre {
+            background: #020617;
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+            font-size: 0.8em;
+            color: #94a3b8;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .btn-copiar {
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .btn-copiar:hover { background: #2563eb; }
+        .btn-copiar.copiado { background: #166534; }
+        
+        #filtros {
+            display: none;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-filtro {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        .btn-filtro.ativo { opacity: 1; }
+        .btn-filtro:not(.ativo) { opacity: 0.4; }
+        
+        #aviso-cerebro {
+            display: none;
+            background: #78350f;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #fde68a;
+        }
+
+        #barra-busca {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;h1&gt;🔍 Leitor de Projeto&lt;/h1&gt;
+&lt;p style=&quot;color:#94a3b8; margin-bottom:20px;&quot;&gt;
+    Importe qualquer arquivo do seu projeto e eu explico o que cada parte faz
+&lt;/p&gt;
+
+&lt;!-- ZONA DE UPLOAD --&gt;
+&lt;div id=&quot;zona-upload&quot; onclick=&quot;document.getElementById('input-arquivo').click()&quot;&gt;
+    &lt;input type=&quot;file&quot; id=&quot;input-arquivo&quot; accept=&quot;.js,.html,.json,.txt&quot; onchange=&quot;lerArquivo(event)&quot;&gt;
+    &lt;div style=&quot;font-size: 3em;&quot;&gt;📂&lt;/div&gt;
+    &lt;p style=&quot;font-size: 1.2em; margin-top: 10px; color: #38bdf8;&quot;&gt;
+        Clique aqui para importar o arquivo
+    &lt;/p&gt;
+    &lt;p style=&quot;color: #64748b; margin-top: 5px;&quot;&gt;
+        Aceita arquivos .js, .html, .json, .txt
+    &lt;/p&gt;
+&lt;/div&gt;
+
+&lt;!-- AVISO SE ACHAR O CÉREBRO --&gt;
+&lt;div id=&quot;aviso-cerebro&quot;&gt;
+    🧠 &lt;strong&gt;Cérebro encontrado!&lt;/strong&gt; Este arquivo contém o sistema de memória da IA. 
+    As funções marcadas em &lt;span style=&quot;color:#f59e0b&quot;&gt;amarelo&lt;/span&gt; são as mais importantes para você copiar.
+&lt;/div&gt;
+
+&lt;!-- RESUMO DO ARQUIVO --&gt;
+&lt;div id=&quot;resumo&quot;&gt;
+    &lt;h2 style=&quot;margin-bottom:15px;&quot;&gt;📊 Resumo do Arquivo&lt;/h2&gt;
+    &lt;div class=&quot;grid-resumo&quot;&gt;
+        &lt;div class=&quot;card-resumo&quot;&gt;
+            &lt;div class=&quot;numero-grande&quot; id=&quot;total-funcoes&quot;&gt;0&lt;/div&gt;
+            &lt;div&gt;Funções&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;card-resumo&quot;&gt;
+            &lt;div class=&quot;numero-grande&quot; id=&quot;total-linhas&quot;&gt;0&lt;/div&gt;
+            &lt;div&gt;Linhas&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;card-resumo&quot;&gt;
+            &lt;div class=&quot;numero-grande&quot; id=&quot;total-importantes&quot;&gt;0&lt;/div&gt;
+            &lt;div style=&quot;color:#4ade80&quot;&gt;Importantes&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div class=&quot;card-resumo&quot;&gt;
+            &lt;div class=&quot;numero-grande&quot; id=&quot;total-cerebro&quot;&gt;0&lt;/div&gt;
+            &lt;div style=&quot;color:#f59e0b&quot;&gt;Do Cérebro&lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;!-- BUSCA --&gt;
+&lt;input type=&quot;text&quot; id=&quot;barra-busca&quot; placeholder=&quot;🔎 Buscar função pelo nome...&quot; oninput=&quot;filtrarBusca(this.value)&quot;&gt;
+
+&lt;!-- FILTROS --&gt;
+&lt;div id=&quot;filtros&quot; style=&quot;display:none; margin-bottom:20px; gap:10px; flex-wrap:wrap; display:flex&quot;&gt;
+    &lt;button class=&quot;btn-filtro ativo&quot; style=&quot;background:#1e3a5f;color:#38bdf8&quot; onclick=&quot;filtrar('todos',this)&quot;&gt;
+        Todas
+    &lt;/button&gt;
+    &lt;button class=&quot;btn-filtro&quot; style=&quot;background:#166534;color:#4ade80&quot; onclick=&quot;filtrar('importante',this)&quot;&gt;
+        ⭐ Importantes
+    &lt;/button&gt;
+    &lt;button class=&quot;btn-filtro&quot; style=&quot;background:#78350f;color:#f59e0b&quot; onclick=&quot;filtrar('cerebro',this)&quot;&gt;
+        🧠 Cérebro / Memória
+    &lt;/button&gt;
+    &lt;button class=&quot;btn-filtro&quot; style=&quot;background:#4c1d95;color:#a78bfa&quot; onclick=&quot;filtrar('visual',this)&quot;&gt;
+        🎨 Visual / Tela
+    &lt;/button&gt;
+&lt;/div&gt;
+
+&lt;!-- LISTA DE FUNÇÕES --&gt;
+&lt;div id=&quot;lista-funcoes&quot;&gt;&lt;/div&gt;
+
+&lt;script&gt;
+    let todasFuncoes = [];
+    let filtroAtivo = 'todos';
+
+    // =====================
+    // LER O ARQUIVO
+    // =====================
+    function lerArquivo(event) {
+        const arquivo = event.target.files[0];
+        if (!arquivo) return;
+
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
+            const conteudo = e.target.result;
+            analisarCodigo(conteudo, arquivo.name);
+        };
+        leitor.readAsText(arquivo);
+    }
+
+    // =====================
+    // ANALISAR O CÓDIGO
+    // =====================
+    function analisarCodigo(texto, nomeArquivo) {
+        const linhas = texto.split('\n');
+        todasFuncoes = [];
+
+        // Detectar funções
+        for (let i = 0; i &lt; linhas.length; i++) {
+            const linha = linhas[i];
+
+            // Padrões de função
+            const padroes = [
+                /function\s+(\w+)\s*\(/,
+                /const\s+(\w+)\s*=\s*(?:async\s*)?\(/,
+                /const\s+(\w+)\s*=\s*(?:async\s*)?function/,
+                /(\w+)\s*:\s*(?:async\s*)?function/,
+                /(\w+)\s*=\s*(?:async\s*)?\(.*\)\s*=&gt;/,
+            ];
+
+            for (const padrao of padroes) {
+                const match = linha.match(padrao);
+                if (match) {
+                    const nome = match[1];
+                    const corpo = pegarCorpo(linhas, i);
+                    const tipo = classificar(nome, corpo);
+                    const explicacao = explicar(nome, corpo, tipo);
+
+                    todasFuncoes.push({
+                        nome,
+                        linha: i + 1,
+                        corpo,
+                        tipo,
+                        explicacao
+                    });
+                    break;
+                }
+            }
+        }
+
+        // Verificar se tem cérebro
+        const temCerebro = texto.includes('localStorage') || 
+                           texto.includes('memory') || 
+                           texto.includes('memoria') ||
+                           texto.includes('cerebro') ||
+                           texto.includes('checkpoint');
+
+        // Mostrar aviso do cérebro
+        document.getElementById('aviso-cerebro').style.display = temCerebro ? 'block' : 'none';
+
+        // Atualizar resumo
+        const importantes = todasFuncoes.filter(f =&gt; f.tipo === 'importante').length;
+        const cerebro = todasFuncoes.filter(f =&gt; f.tipo === 'cerebro').length;
+
+        document.getElementById('total-funcoes').textContent = todasFuncoes.length;
+        document.getElementById('total-linhas').textContent = linhas.length;
+        document.getElementById('total-importantes').textContent = importantes;
+        document.getElementById('total-cerebro').textContent = cerebro;
+
+        document.getElementById('resumo').style.display = 'block';
+        document.getElementById('lista-funcoes').style.display = 'block';
+        document.getElementById('barra-busca').style.display = 'block';
+        document.getElementById('filtros').style.display = 'flex';
+
+        renderizarFuncoes(todasFuncoes);
+    }
+
+    // =====================
+    // PEGAR CORPO DA FUNÇÃO
+    // =====================
+    function pegarCorpo(linhas, inicio) {
+        let corpo = '';
+        let abre = 0;
+        let comecou = false;
+
+        for (let i = inicio; i &lt; Math.min(inicio + 60, linhas.length); i++) {
+            corpo += linhas[i] + '\n';
+            for (const char of linhas[i]) {
+                if (char === '{') { abre++; comecou = true; }
+                if (char === '}') abre--;
+            }
+            if (comecou &amp;&amp; abre &lt;= 0) break;
+        }
+        return corpo;
+    }
+
+    // =====================
+    // CLASSIFICAR FUNÇÃO
+    // =====================
+    function classificar(nome, corpo) {
+        const nomeMin = nome.toLowerCase();
+        const corpoMin = corpo.toLowerCase();
+
+        // Cérebro / Memória
+        if (
+            nomeMin.includes('memory') || nomeMin.includes('memoria') ||
+            nomeMin.includes('cerebro') || nomeMin.includes('brain') ||
+            nomeMin.includes('save') || nomeMin.includes('salvar') ||
+            nomeMin.includes('load') || nomeMin.includes('carregar') ||
+            nomeMin.includes('checkpoint') || nomeMin.includes('task') ||
+            corpoMin.includes('localstorage') || corpoMin.includes('json.stringify') ||
+            corpoMin.includes('json.parse')
+        ) return 'cerebro';
+
+        // Visual / Tela
+        if (
+            nomeMin.includes('render') || nomeMin.includes('show') ||
+            nomeMin.includes('display') || nomeMin.includes('draw') ||
+            nomeMin.includes('update') || nomeMin.includes('mostrar') ||
+            corpoMin.includes('innerhtml') || corpoMin.includes('classlist') ||
+            corpoMin.includes('style.')
+        ) return 'visual';
+
+        // Importante (lógica principal)
+        if (
+            nomeMin.includes('init') || nomeMin.includes('start') ||
+            nomeMin.includes('main') || nomeMin.includes('run') ||
+            nomeMin.includes('process') || nomeMin.includes('handle') ||
+            nomeMin.includes('send') || nomeMin.includes('receive') ||
+            nomeMin.includes('chat') || nomeMin.includes('message') ||
+            nomeMin.includes('ia') || nomeMin.includes('ai') ||
+            nomeMin.includes('gpt') || nomeMin.includes('api')
+        ) return 'importante';
+
+        return 'normal';
+    }
+
+    // =====================
+    // EXPLICAR EM PORTUGUÊS
+    // =====================
+    function explicar(nome, corpo, tipo) {
+        const nomeMin = nome.toLowerCase();
+        const corpoMin = corpo.toLowerCase();
+
+        // Explicações específicas
+        if (nomeMin.includes('save') || nomeMin.includes('salvar')) {
+            return {
+                oque: '💾 Esta função SALVA dados',
+                quando: 'É chamada quando algo precisa ser guardado (mensagens, configurações, memória da IA)',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — ela é responsável por guardar o estado do seu app'
+            };
+        }
+        if (nomeMin.includes('load') || nomeMin.includes('carregar')) {
+            return {
+                oque: '📂 Esta função CARREGA dados salvos',
+                quando: 'É chamada quando o app abre para recuperar o que estava salvo',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — ela recupera a memória da IA'
+            };
+        }
+        if (corpoMin.includes('localstorage.setitem')) {
+            return {
+                oque: '🧠 Esta função GRAVA no Cérebro (localStorage)',
+                quando: 'Toda vez que a IA aprende algo novo ou você faz uma ação',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — é o coração do sistema de memória'
+            };
+        }
+        if (corpoMin.includes('localstorage.getitem')) {
+            return {
+                oque: '🧠 Esta função LÊ o Cérebro (localStorage)',
+                quando: 'Quando o app precisa lembrar o que aconteceu antes',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — sem ela a IA não lembra de nada'
+            };
+        }
+        if (nomeMin.includes('init') || nomeMin.includes('start')) {
+            return {
+                oque: '🚀 Esta função INICIA o aplicativo',
+                quando: 'É a primeira coisa que roda quando você abre o app',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — é o ponto de partida de tudo'
+            };
+        }
+        if (nomeMin.includes('render') || corpoMin.includes('innerhtml')) {
+            return {
+                oque: '🎨 Esta função DESENHA algo na tela',
+                quando: 'Quando precisa mostrar ou atualizar algo visualmente',
+                copiar: false,
+                dica: 'Copie só se precisar do visual. Pode recriar depois'
+            };
+        }
+        if (nomeMin.includes('chat') || nomeMin.includes('message') || nomeMin.includes('send')) {
+            return {
+                oque: '💬 Esta função PROCESSA mensagens do chat',
+                quando: 'Quando você ou a IA envia uma mensagem',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — é a lógica principal do chat com a IA'
+            };
+        }
+
+        // Explicação genérica por tipo
+        if (tipo === 'cerebro') {
+            return {
+                oque: `🧠 Função relacionada à MEMÓRIA: &quot;${nome}&quot;`,
+                quando: 'Faz parte do sistema de memória da IA',
+                copiar: true,
+                dica: 'Provavelmente importante. Verifique o código antes de copiar'
+            };
+        }
+        if (tipo === 'visual') {
+            return {
+                oque: `🎨 Função VISUAL: &quot;${nome}&quot;`,
+                quando: 'Controla algo que aparece na tela',
+                copiar: false,
+                dica: 'Copie só se precisar do visual exato. Pode recriar depois'
+            };
+        }
+        if (tipo === 'importante') {
+            return {
+                oque: `⭐ Função IMPORTANTE: &quot;${nome}&quot;`,
+                quando: 'Faz parte da lógica principal do app',
+                copiar: true,
+                dica: 'Verifique o código — provavelmente vale copiar'
+            };
+        }
+
+        return {
+            oque: `📦 Função auxiliar: &quot;${nome}&quot;`,
+            quando: 'Ajuda outras funções a funcionar',
+            copiar: false,
+            dica: 'Copie só se outra função importante depender dela'
+        };
+    }
+
+    // =====================
+    // RENDERIZAR NA TELA
+    // =====================
+    function renderizarFuncoes(lista) {
+        const container = document.getElementById('lista-funcoes');
+        container.innerHTML = '';
+
+        if (lista.length === 0) {
+            container.innerHTML = '&lt;p style=&quot;color:#64748b; text-align:center; padding:20px&quot;&gt;Nenhuma função encontrada com esse filtro&lt;/p&gt;';
+            return;
+        }
+
+        lista.forEach((f, index) =&gt; {
+            const corBorda = {
+                cerebro: '#f59e0b',
+                importante: '#4ade80',
+                visual: '#a78bfa',
+                normal: '#38bdf8'
+            }[f.tipo];
+
+            const tagTexto = {
+                cerebro: '🧠 Cérebro/Memória',
+                importante: '⭐ Importante',
+                visual: '🎨 Visual',
+                normal: '📦 Auxiliar'
+            }[f.tipo];
+
+            const tagClasse = {
+                cerebro: 'tag-cerebro',
+                importante: 'tag-importante',
+                visual: 'tag-visual',
+                normal: 'tag-normal'
+            }[f.tipo];
+
+            const div = document.createElement('div');
+            div.className = 'funcao-card';
+            div.dataset.tipo = f.tipo;
+            div.dataset.nome = f.nome.toLowerCase();
+
+            div.innerHTML = `
+                &lt;div class=&quot;funcao-header ${f.tipo}&quot; 
+                     style=&quot;border-left-color:${corBorda}&quot;
+                     onclick=&quot;toggleCorpo(${index})&quot;&gt;
+                    &lt;div&gt;
+                        &lt;strong style=&quot;font-size:1.1em&quot;&gt;${f.nome}&lt;/strong&gt;
+                        &lt;span style=&quot;color:#64748b; font-size:0.85em; margin-left:10px&quot;&gt;
+                            linha ${f.linha}
+                        &lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;div style=&quot;display:flex; align-items:center; gap:10px&quot;&gt;
+                        &lt;span class=&quot;tag ${tagClasse}&quot;&gt;${tagTexto}&lt;/span&gt;
+                        ${f.explicacao.copiar ? '&lt;span style=&quot;color:#4ade80; font-size:0.8em&quot;&gt;✅ Copiar&lt;/span&gt;' : ''}
+                        &lt;span id=&quot;seta-${index}&quot;&gt;▼&lt;/span&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                &lt;div class=&quot;funcao-corpo&quot; id=&quot;corpo-${index}&quot;&gt;
+                    &lt;div class=&quot;explicacao&quot;&gt;
+                        &lt;strong&gt;O que faz:&lt;/strong&gt; ${f.explicacao.oque}&lt;br&gt;&lt;br&gt;
+                        &lt;strong&gt;Quando é usada:&lt;/strong&gt; ${f.explicacao.quando}&lt;br&gt;&lt;br&gt;
+                        &lt;strong&gt;💡 Dica:&lt;/strong&gt; &lt;span style=&quot;color:#fde68a&quot;&gt;${f.explicacao.dica}&lt;/span&gt;
+                    &lt;/div&gt;
+                    &lt;strong style=&quot;color:#94a3b8; font-size:0.85em&quot;&gt;Código:&lt;/strong&gt;
+                    &lt;pre id=&quot;pre-${index}&quot;&gt;${escaparHtml(f.corpo)}&lt;/pre&gt;
+                    &lt;button class=&quot;btn-copiar&quot; onclick=&quot;copiar(${index}, this)&quot;&gt;
+                        📋 Copiar este código
+                    &lt;/button&gt;
+                &lt;/div&gt;
+            `;
+
+            container.appendChild(div);
+        });
+    }
+
+    // =====================
+    // TOGGLE ABRIR/FECHAR
+    // =====================
+    function toggleCorpo(index) {
+        const corpo = document.getElementById(`corpo-${index}`);
+        const seta = document.getElementById(`seta-${index}`);
+        const aberto = corpo.classList.contains('aberto');
+        corpo.classList.toggle('aberto');
+        seta.textContent = aberto ? '▼' : '▲';
+    }
+
+    // =====================
+    // COPIAR CÓDIGO
+    // =====================
+    function copiar(index, btn) {
+        const codigo = todasFuncoes[index].corpo;
+        navigator.clipboard.writeText(codigo).then(() =&gt; {
+            btn.textContent = '✅ Copiado!';
+            btn.classList.add('copiado');
+            setTimeout(() =&gt; {
+                btn.textContent = '📋 Copiar este código';
+                btn.classList.remove('copiado');
+            }, 2000);
+        });
+    }
+
+    // =====================
+    // FILTRAR POR TIPO
+    // =====================
+    function filtrar(tipo, btn) {
+        filtroAtivo = tipo;
+        document.querySelectorAll('.btn-filtro').forEach(b =&gt; b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+
+        const filtradas = tipo === 'todos' 
+            ? todasFuncoes 
+            : todasFuncoes.filter(f =&gt; f.tipo === tipo);
+
+        renderizarFuncoes(filtradas);
+    }
+
+    // =====================
+    // BUSCAR POR NOME
+    // =====================
+    function filtrarBusca(termo) {
+        const base = filtroAtivo === 'todos' 
+            ? todasFuncoes 
+            : todasFuncoes.filter(f =&gt; f.tipo === filtroAtivo);
+
+        const filtradas = termo 
+            ? base.filter(f =&gt; f.nome.toLowerCase().includes(termo.toLowerCase()))
+            : base;
+
+        renderizarFuncoes(filtradas);
+    }
+
+    // =====================
+    // ESCAPAR HTML
+    // =====================
+    function escaparHtml(texto) {
+        return texto
+            .replace(/&amp;/g, '&amp;amp;')
+            .replace(/&lt;/g, '&amp;lt;')
+            .replace(/&gt;/g, '&amp;gt;');
+    }
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+
+&lt;script&gt;
+
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;"></iframe>
+</div>
+
+
+<script>
+function trocarProjeto(index) {
+  // Esconde todos
+  document.querySelectorAll('.project-container').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  
+  // Mostra o selecionado
+  document.getElementById('projeto' + index).classList.add('active');
+  document.querySelectorAll('.nav-btn')[index].classList.add('active');
+  
+  // Salva preferência
+  localStorage.setItem('ultimo-projeto', index);
+}
+
+// Restaura último projeto aberto
+window.onload = function() {
+  const ultimo = localStorage.getItem('ultimo-projeto');
+  if (ultimo !== null) trocarProjeto(parseInt(ultimo));
+};
+</script>
+</body>
+</html>

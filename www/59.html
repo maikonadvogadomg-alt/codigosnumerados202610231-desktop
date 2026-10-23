@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔍 Scanner de Dependências — SK Editor</title>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:  #0a0f1e;
+    --bg2: #0d1626;
+    --bg3: #111827;
+    --bg4: #1e2d45;
+    --blue:  #38bdf8;
+    --blue2: #0284c7;
+    --red:   #ef4444;
+    --green: #22c55e;
+    --yellow:#facc15;
+    --txt:  #e2e8f0;
+    --txt2: #94a3b8;
+    --txt3: #475569;
+    --rad: 10px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--blue2); }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--bg4);
+    padding: 0 16px;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  header h1 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--blue);
+    flex: 1;
+  }
+
+  header span.sub {
+    font-size: 11px;
+    color: var(--txt3);
+  }
+
+  /* ── ABAS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    padding: 10px 16px 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--bg4);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  .tab-btn {
+    padding: 7px 16px;
+    border: none;
+    border-radius: 8px 8px 0 0;
+    background: transparent;
+    color: var(--txt3);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+  }
+
+  .tab-btn.active {
+    background: var(--bg3);
+    color: var(--blue);
+  }
+
+  /* ── CORPO ── */
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* ── PAINÉIS ── */
+  .panel {
+    background: var(--bg3);
+    border: 1px solid var(--bg4);
+    border-radius: var(--rad);
+    padding: 16px;
+  }
+
+  /* ── DROP ZONE ── */
+  .dropzone {
+    border: 2px dashed var(--bg4);
+    border-radius: 12px;
+    padding: 36px 16px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--bg2);
+    transition: all .15s;
+    user-select: none;
+  }
+
+  .dropzone:hover, .dropzone.over {
+    border-color: var(--blue);
+    background: #0a2040;
+  }
+
+  .dropzone .icon { font-size: 2.5rem; }
+  .dropzone p.main { color: var(--txt); font-weight: 700; margin-top: 8px; }
+  .dropzone p.sub  { color: var(--txt3); font-size: 12px; margin-top: 4px; }
+  .dropzone p.note { color: #2d3f55; font-size: 11px; margin-top: 6px; }
+
+  /* ── INPUTS ── */
+  .inp {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--bg4);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--txt);
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 8px;
+    transition: border-color .15s;
+  }
+
+  .inp:focus { border-color: var(--blue); }
+  .inp::placeholder { color: var(--txt3); }
+
+  label.lbl {
+    display: block;
+    font-size: 12px;
+    color: var(--txt2);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+
+  /* ── BOTÕES ── */
+  .btn {
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all .15s;
+  }
+
+  .btn-blue  { background: var(--blue2); color: #fff; }
+  .btn-blue:hover { background: var(--blue); color: var(--bg); }
+  .btn-ghost { background: var(--bg4); color: var(--txt2); border: 1px solid #2d3f55; }
+  .btn-ghost:hover { background: var(--bg3); color: var(--txt); }
+  .btn-red   { background: #7f1d1d; color: #fca5a5; }
+  .btn-red:hover { background: var(--red); color: #fff; }
+  .btn-green { background: #052e16; color: var(--green); }
+  .btn-green:hover { background: var(--green); color: var(--bg); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* ── LOADING ── */
+  .loading-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+    background: var(--bg3);
+    border: 1px solid var(--bg4);
+    border-radius: var(--rad);
+  }
+
+  .spin-row { display: flex; align-items: center; gap: 8px; }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--blue);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .progress-bar-wrap {
+    background: var(--bg4);
+    border-radius: 4px;
+    height: 6px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--blue);
+    border-radius: 4px;
+    transition: width .3s;
+  }
+
+  /* ── STATS ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .stat-card {
+    background: var(--bg3);
+    border: 1px solid var(--bg4);
+    border-radius: var(--rad);
+    padding: 10px 8px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+
+  .stat-card.active-red   { border-color: var(--red); }
+  .stat-card.active-green { border-color: var(--green); }
+  .stat-card.active-blue  { border-color: var(--blue); }
+
+  .stat-num  { font-size: 1.6rem; font-weight: 900; }
+  .stat-lbl  { font-size: 11px; color: var(--txt3); margin-top: 2px; }
+
+  /* ── AÇÕES ── */
+  .actions-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  /* ── LISTA DE RESULTADOS ── */
+  .result-item {
+    background: var(--bg2);
+    border-radius: 8px;
+    margin-bottom: 6px;
+    overflow: hidden;
+    border: 1px solid var(--bg4);
+    transition: border-color .15s;
+  }
+
+  .result-item.sujo  { border-color: #7f1d1d; }
+  .result-item.limpo { border-color: #052e16; }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    cursor: pointer;
+  }
+
+  .result-header.no-hits { cursor: default; }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 99px;
+    padding: 1px 8px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+
+  .badge-red   { color: var(--red);   background: #7f1d1d22; border-color: #ef444455; }
+  .badge-green { color: var(--green); background: #05ff4422; border-color: #22c55e55; }
+  .badge-gray  { color: var(--txt3);  background: transparent; border-color: #47556955; }
+
+  .result-name {
+    flex: 1;
+    font-size: 12px;
+    font-family: monospace;
+    color: var(--txt2);
+    word-break: break-all;
+  }
+
+  .result-arrow { font-size: 10px; color: var(--txt3); }
+
+  .result-hits {
+    border-top: 1px solid var(--bg4);
+    padding: 8px 12px;
+    display: none;
+  }
+
+  .result-hits.open { display: block; }
+
+  .hit-line {
+    font-size: 11px;
+    font-family: monospace;
+    background: #1a0a0a;
+    border-radius: 4px;
+    padding: 3px 8px;
+    margin-bottom: 3px;
+    color: #fca5a5;
+    word-break: break-all;
+  }
+
+  .hit-line .ln { color: var(--txt3); }
+
+  .hit-more { font-size: 11px; color: var(--txt3); padding: 2px 8px; }
+
+  /* ── PADRÕES PERSONALIZADOS ── */
+  .pattern-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  .pattern-row .inp { margin-bottom: 0; flex: 1; min-width: 120px; }
+
+  .tag {
+    font-size: 10px;
+    background: var(--bg4);
+    color: var(--txt2);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty {
+    text-align: center;
+    padding: 40px 16px;
+    color: var(--txt3);
+    font-size: 13px;
+  }
+
+  .empty .empty-icon { font-size: 2.5rem; margin-bottom: 12px; opacity: .3; }
+
+  /* ── SEÇÕES OCULTAS ── */
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* ── RESPONSIVO ── */
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    header h1 { font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>🔍 Scanner de Dependências — SK Editor</h1>
+  <span class="sub">Maikon Caldeira OAB/MG 183712</span>
+</header>
+
+<!-- ABAS -->
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('arquivo')">📁 Arquivo / ZIP / APK</button>
+  <button class="tab-btn" onclick="switchTab('github')">🐙 GitHub</button>
+  <button class="tab-btn" onclick="switchTab('padroes')">⚙️ Padrões</button>
+</div>
+
+<!-- CORPO -->
+<main id="main">
+
+  <!-- ABA: ARQUIVO -->
+  <div id="tab-arquivo" class="tab-section active">
+    <div class="panel">
+      <div
+        class="dropzone"
+        id="dropzone"
+        onclick="document.getElementById('fileInput').click()"
+        ondragover="onDragOver(event)"
+        ondragleave="onDragLeave()"
+        ondrop="onDrop(event)"
+      >
+        <div class="icon">📦</div>
+        <p class="main">Toque aqui ou arraste o arquivo</p>
+        <p class="sub">APK · ZIP · JAR · AAB · HTML · JS · JSON · TXT · qualquer arquivo</p>
+        <p class="note">100% local — nenhum dado sai do seu dispositivo</p>
+      </div>
+      <input type="file" id="fileInput" style="display:none" onchange="onFileSelected(event)">
+    </div>
+  </div>
+
+  <!-- ABA: GITHUB -->
+  <div id="tab-github" class="tab-section">
+    <div class="panel">
+      <label class="lbl">URL do repositório</label>
+      <input class="inp" id="ghUrl" placeholder="https://github.com/usuario/repositorio" type="url">
+
+      <label class="lbl">Branch</label>
+      <input class="inp" id="ghBranch" placeholder="main" value="main">
+
+      <label class="lbl">Token GitHub (opcional — repositórios privados)</label>
+      <input class="inp" id="ghToken" placeholder="ghp_xxxxxxxxxxxx" type="password">
+
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">
+        💡 Sem token: funciona em repos públicos. Com token: repos privados também.
+        Se o download direto falhar, tenta automaticamente via proxy gratuito.
+      </p>
+
+      <button class="btn btn-blue btn-full" id="btnGitHub" onclick="importarGitHub()">
+        🔍 Baixar e Escanear Repositório
+      </button>
+    </div>
+  </div>
+
+  <!-- ABA: PADRÕES PERSONALIZADOS -->
+  <div id="tab-padroes" class="tab-section">
+    <div class="panel">
+      <h3 style="font-size:13px;font-weight:800;color:var(--blue);margin-bottom:4px;">
+        ⚙️ Padrões de Busca Personalizados
+      </h3>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:14px;">
+        Além dos padrões padrão (Replit, plugins externos), adicione os seus próprios.
+        Use texto simples ou expressão regular (regex).
+      </p>
+
+      <!-- Padrões padrão (somente leitura) -->
+      <label class="lbl">Padrões padrão ativos:</label>
+      <div id="defaultPatternsList" style="margin-bottom:14px;"></div>
+
+      <!-- Padrões personalizados -->
+      <label class="lbl">Seus padrões personalizados:</label>
+      <div id="customPatternsList"></div>
+
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost" onclick="addCustomPattern()">➕ Adicionar Padrão</button>
+        <button class="btn btn-ghost" onclick="savePatterns()">💾 Salvar Padrões</button>
+        <button class="btn btn-ghost" onclick="resetPatterns()">🔄 Restaurar Padrões</button>
+      </div>
+
+      <div id="patternSaveMsg" style="display:none;margin-top:8px;font-size:12px;color:var(--green);">
+        ✅ Padrões salvos com sucesso!
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING (sempre visível quando ativo) -->
+  <div class="loading-box" id="loadingBox" style="display:none;">
+    <div class="spin-row">
+      <div class="spinner"></div>
+      <span id="loadMsg" style="font-size:13px;color:var(--blue);">Processando…</span>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="resultsSection" style="display:none;">
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card" id="statSujos" onclick="setFiltro('sujos')">
+        <div class="stat-num" style="color:var(--red);" id="numSujos">0</div>
+        <div class="stat-lbl">Com referências</div>
+      </div>
+      <div class="stat-card" id="statLimpos" onclick="setFiltro('limpos')">
+        <div class="stat-num" style="color:var(--green);" id="numLimpos">0</div>
+        <div class="stat-lbl">Limpos</div>
+      </div>
+      <div class="stat-card active-blue" id="statTodos" onclick="setFiltro('todos')">
+        <div class="stat-num" style="color:var(--blue);" id="numTodos">0</div>
+        <div class="stat-lbl">Total</div>
+      </div>
+    </div>
+
+    <!-- Fonte -->
+    <div style="font-size:11px;color:var(--txt3);padding:4px 2px;" id="fonteLabel"></div>
+
+    <!-- Ações -->
+    <div class="actions-row">
+      <button class="btn btn-ghost" onclick="copiarRelatorio()">📋 Copiar Relatório</button>
+      <button class="btn btn-green" onclick="baixarRelatorio()">⬇️ Baixar .txt</button>
+      <button class="btn btn-red" onclick="limparResultados()">🗑️ Limpar</button>
+    </div>
+
+    <!-- Lista -->
+    <div id="resultList"></div>
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty" id="emptyState">
+    <div class="empty-icon">🔍</div>
+    <p>Selecione um arquivo ou repositório GitHub para escanear</p>
+    <p style="font-size:11px;margin-top:6px;color:var(--txt3);">
+      Detecta referências ao Replit, plugins externos e seus padrões personalizados
+    </p>
+  </div>
+
+</main>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  PADRÕES DE DETECÇÃO
+// ════════════════════════════════════════════════════════════
+
+// Padrões padrão (hardcoded, sempre ativos)
+const DEFAULT_PATTERNS = [
+  { texto: "replit.com",                   label: "url-replit",              flags: "gi" },
+  { texto: "repl.it",                      label: "url-replit-antiga",       flags: "gi" },
+  { texto: "REPLIT_",                      label: "var-replit",              flags: "g"  },
+  { texto: "REPL_ID",                      label: "var-repl-id",             flags: "g"  },
+  { texto: "REPL_SLUG",                    label: "var-repl-slug",           flags: "g"  },
+  { texto: "REPL_OWNER",                   label: "var-repl-owner",          flags: "g"  },
+  { texto: "@replit/",                     label: "pacote-replit",           flags: "gi" },
+  { texto: "vite-plugin-runtime-error-modal", label: "plugin-erro-externo", flags: "gi" },
+  { texto: "vite-plugin-cartographer",     label: "plugin-cartographer",     flags: "gi" },
+  { texto: "vite-plugin-dev-banner",       label: "plugin-banner",           flags: "gi" },
+  { texto: ".replit",                      label: "config-replit",           flags: "gi" },
+  { texto: "replit.app",                   label: "dominio-replit-app",      flags: "gi" },
+  { texto: "replit-dev.com",               label: "dominio-replit-dev",      flags: "gi" },
+  { texto: "pid1.replit",                  label: "processo-replit",         flags: "gi" },
+];
+
+// Padrões personalizados do usuário (carregados do localStorage)
+let customPatterns = [];
+
+const STORAGE_KEY_PATTERNS = "scanner-custom-patterns:v1";
+
+function loadPatterns() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PATTERNS);
+    if (raw) customPatterns = JSON.parse(raw);
+  } catch(e) {}
+  if (!Array.isArray(customPatterns)) customPatterns = [];
+  renderPatternsList();
+}
+
+function savePatterns() {
+  // Lê os campos atuais antes de salvar
+  const rows = document.querySelectorAll('.custom-pattern-row');
+  customPatterns = [];
+  rows.forEach(row => {
+    const txt = row.querySelector('.pat-texto').value.trim();
+    const lbl = row.querySelector('.pat-label').value.trim() || 'personalizado';
+    const flg = row.querySelector('.pat-flags').value.trim() || 'gi';
+    if (txt) customPatterns.push({ texto: txt, label: lbl, flags: flg });
+  });
+  localStorage.setItem(STORAGE_KEY_PATTERNS, JSON.stringify(customPatterns));
+  const msg = document.getElementById('patternSaveMsg');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 2000);
+  renderPatternsList();
+}
+
+function resetPatterns() {
+  if (confirm('Remover todos os padrões personalizados?')) {
+    customPatterns = [];
+    localStorage.removeItem(STORAGE_KEY_PATTERNS);
+    renderPatternsList();
+  }
+}
+
+function addCustomPattern(texto = '', label = '', flags = 'gi') {
+  customPatterns.push({ texto, label, flags });
+  renderPatternsList();
+}
+
+function removeCustomPattern(idx) {
+  customPatterns.splice(idx, 1);
+  renderPatternsList();
+}
+
+function renderPatternsList() {
+  // Padrões padrão (somente leitura)
+  const defList = document.getElementById('defaultPatternsList');
+  defList.innerHTML = DEFAULT_PATTERNS.map(p =>
+    `<span class="tag" style="display:inline-block;margin:2px;">${p.label}</span>`
+  ).join('');
+
+  // Padrões personalizados (editáveis)
+  const custList = document.getElementById('customPatternsList');
+  if (customPatterns.length === 0) {
+    custList.innerHTML = '<p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">Nenhum padrão personalizado ainda.</p>';
+    return;
+  }
+  custList.innerHTML = customPatterns.map((p, i) => `
+    <div class="pattern-row custom-pattern-row">
+      <input class="inp pat-texto" placeholder="Texto ou regex (ex: meusite.com)" value="${escHtml(p.texto)}">
+      <input class="inp pat-label" placeholder="Nome (ex: meu-site)" value="${escHtml(p.label)}" style="max-width:140px;">
+      <input class="inp pat-flags" placeholder="gi" value="${escHtml(p.flags)}" style="max-width:60px;">
+      <button class="btn btn-red" style="padding:6px 10px;font-size:11px;" onclick="removeCustomPattern(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+// Compila todos os padrões em RegExp
+function getAllPatterns() {
+  const all = [];
+  DEFAULT_PATTERNS.forEach(p => {
+    try {
+      all.push({ re: new RegExp(escapeRegex(p.texto), p.flags), lb: p.label });
+    } catch(e) {}
+  });
+  customPatterns.forEach(p => {
+    if (!p.texto) return;
+    try {
+      // Tenta como regex literal primeiro; se falhar, escapa
+      let re;
+      try { re = new RegExp(p.texto, p.flags || 'gi'); }
+      catch(e) { re = new RegExp(escapeRegex(p.texto), p.flags || 'gi'); }
+      all.push({ re, lb: p.label || 'personalizado' });
+    } catch(e) {}
+  });
+  return all;
+}
+
+function escapeRegex(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════════════
+//  EXTENSÕES BINÁRIAS (pular)
+// ════════════════════════════════════════════════════════════
+const SKIP_EXT = new Set([
+  "png","jpg","jpeg","gif","webp","ico",
+  "woff","woff2","ttf","eot","otf",
+  "mp3","mp4","webm","ogg",
+  "bin","class","dex","so","a","o",
+  "pdf","doc","docx","xls","xlsx","ppt","pptx",
+  "zip","tar","gz","7z","rar",
+]);
+
+// ════════════════════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ════════════════════════════════════════════════════════════
+let resultados = [];
+let filtroAtual = 'todos';
+let fonte = '';
+
+// ════════════════════════════════════════════════════════════
+//  NAVEGAÇÃO DE ABAS
+// ════════════════════════════════════════════════════════════
+function switchTab(nome) {
+  document.querySelectorAll('.tab-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + nome).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════════
+//  DRAG & DROP
+// ════════════════════════════════════════════════════════════
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.add('over');
+}
+
+function onDragLeave() {
+  document.getElementById('dropzone').classList.remove('over');
+}
+
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropzone').classList.remove('over');
+  const f = e.dataTransfer.files[0];
+  if (f) importarArquivo(f);
+}
+
+function onFileSelected(e) {
+  const f = e.target.files[0];
+  if (f) importarArquivo(f);
+  e.target.value = '';
+}
+
+// ════════════════════════════════════════════════════════════
+//  IMPORTAR ARQUIVO LOCAL
+// ════════════════════════════════════════════════════════════
+async function importarArquivo(file) {
+  setLoading(true, `Lendo ${file.name}…`, 10);
+  const nome = file.name.toLowerCase();
+  const isZip = /\.(apk|zip|jar|aab|aar)$/.test(nome);
+
+  try {
+    const arquivos = [];
+
+    if (isZip) {
+      setLoadMsg('Extraindo arquivo…');
+      const buf = await file.arrayBuffer();
+      setProgress(30);
+
+      const zip = await JSZip.loadAsync(buf);
+      const nomes = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+      setLoadMsg(`${nomes.length} arquivos encontrados — escaneando…`);
+
+      let i = 0;
+      for (const n of nomes) {
+        const dados = await zip.files[n].async('arraybuffer');
+        arquivos.push({ nome: n, conteudo: dados });
+        i++;
+        setProgress(30 + Math.round((i / nomes.length) * 60));
+      }
+    } else {
+      const texto = await file.text();
+      arquivos.push({ nome: file.name, conteudo: texto });
+    }
+
+    await rodarScan(arquivos, file.name);
+  } catch(e) {
+    alert('Erro ao processar arquivo: ' + e.message);
+    setLoading(false);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  IMPORTAR DO GITHUB
+// ════════════════════════════════════════════════════════════
+async function importarGitHub() {
+  let url = document.getElementById('ghUrl').value.trim().replace(/\/$/, '').replace(/\.git$/, '');
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const token  = document.getElementById('ghToken').value.trim();
+
+  if (!url) { alert('Cole a URL do repositório GitHub.'); return; }
+
+  const m = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+  if (!m) { alert('URL inválida. Use: https://github.com/usuario/repositorio'); return; }
+
+  const [, owner, repo] = m;
+  const zipUrl = `https://codeload.github.com/${owner}/${repo}/zip/refs/heads/${branch}`;
+
+  setLoading(true, `Baixando ${owner}/${repo}@${branch}…`, 10);
+  document.getElementById('btnGitHub').disabled = true;
+
+  try {
+    const hdrs = token ? { Authorization: `token ${token}` } : {};
+    let resp;
+
+    // Tenta direto primeiro
+    try {
+      resp = await fetchComTimeout(zipUrl, { headers: hdrs }, 60000);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    } catch(e1) {
+      // Fallback: proxy gratuito
+      setLoadMsg('Download direto falhou — tentando via proxy…');
+      const px = `https://api.allorigins.win/raw?url=${encodeURIComponent(zipUrl)}`;
+      try {
+        resp = await fetchComTimeout(px, {}, 60000);
+        if (!resp.ok) throw new Error(`Proxy retornou ${resp.status}`);
+      } catch(e2) {
+        // Segundo proxy de fallback
+        setLoadMsg('Tentando segundo proxy…');
+        const px2 = `https://corsproxy.io/?${encodeURIComponent(zipUrl)}`;
+        resp = await fetchComTimeout(px2, {}, 60000);
+        if (!resp.ok) throw new Error(`Todos os proxies falharam. Tente baixar o ZIP manualmente e use a aba Arquivo.`);
+      }
+    }
+
+    setProgress(50);
+    setLoadMsg('Extraindo arquivos…');
+
+    const buf = await resp.arrayBuffer();
+    const zip = await JSZip.loadAsync(buf);
+    const nomes = Object.keys(zip.files).filter(n => !zip.files[n].dir);
+
+    // Remove o prefixo automático que o GitHub coloca (repo-branch/)
+    const prefix = (nomes[0]?.split('/')[0] ?? '') + '/';
+    setLoadMsg(`${nomes.length} arquivos — escaneando…`);
+
+    const arquivos = [];
+    let i = 0;
+    for (const n of nomes) {
+      const rel = n.startsWith(prefix) ? n.slice(prefix.length) : n;
+      if (!rel) continue;
+      const dados = await zip.files[n].async('arraybuffer');
+      arquivos.push({ nome: rel, conteudo: dados });
+      i++;
+      setProgress(50 + Math.round((i / nomes.length) * 40));
+    }
+
+    await rodarScan(arquivos, `${owner}/${repo}@${branch}`);
+  } catch(e) {
+    alert('Erro: ' + e.message);
+    setLoading(false);
+  } finally {
+    document.getElementById('btnGitHub').disabled = false;
+  }
+}
+
+// Fetch com timeout manual (compatível com todos os browsers)
+function fetchComTimeout(url, opts, ms) {
+  return new Promise((resolve, reject) => {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => { ctrl.abort(); reject(new Error('Timeout')); }, ms);
+    fetch(url, { ...opts, signal: ctrl.signal })
+      .then(r => { clearTimeout(timer); resolve(r); })
+      .catch(e => { clearTimeout(timer); reject(e); });
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+//  MOTOR DE SCAN
+// ════════════════════════════════════════════════════════════
+function scanTexto(texto) {
+  const pats = getAllPatterns();
+  const hits = [];
+  const linhas = texto.split('\n');
+  linhas.forEach((linha, i) => {
+    const found = [];
+    pats.forEach(p => {
+      p.re.lastIndex = 0;
+      if (p.re.test(linha)) { found.push(p.lb); p.re.lastIndex = 0; }
+    });
+    if (found.length) hits.push({ ln: i + 1, txt: linha.trim().slice(0, 300), labels: found });
+  });
+  return hits;
+}
+
+async function processarArquivos(arquivos) {
+  const result = [];
+  for (const arq of arquivos) {
+    const ext = (arq.nome.split('.').pop() || '').toLowerCase();
+
+    if (SKIP_EXT.has(ext) || arq.nome.includes('META-INF/CERT')) {
+      result.push({ nome: arq.nome, status: 'skip', hits: [] });
+      continue;
+    }
+
+    try {
+      let texto;
+      if (arq.conteudo instanceof ArrayBuffer) {
+        texto = new TextDecoder('utf-8', { fatal: false }).decode(arq.conteudo);
+      } else {
+        texto = arq.conteudo;
+      }
+
+      // Detecta binário por presença de null bytes em extensões não-texto
+      const textoExts = new Set(['txt','json','xml','html','htm','js','ts','jsx','tsx','css','md','yaml','yml','toml','env','sh','bat','py','rb','php','java','kt','swift','go','rs','c','cpp','h','cs','sql']);
+      if (texto.includes('\x00') && !textoExts.has(ext)) {
+        result.push({ nome: arq.nome, status: 'bin', hits: [] });
+        continue;
+      }
+
+      const hits = scanTexto(texto);
+      result.push({ nome: arq.nome, status: hits.length > 0 ? 'sujo' : 'limpo', hits });
+    } catch(e) {
+      result.push({ nome: arq.nome, status: 'err', hits: [] });
+    }
+  }
+  return result;
+}
+
+async function rodarScan(arquivos, nomeFonte) {
+  setLoading(true, 'Escaneando…', 5);
+  fonte = nomeFonte;
+
+  try {
+    const res = await processarArquivos(arquivos);
+    resultados = res;
+    filtroAtual = 'todos';
+    renderResultados();
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  RENDERIZAÇÃO DOS RESULTADOS
+// ════════════════════════════════════════════════════════════
+function renderResultados() {
+  const sujos  = resultados.filter(r => r.status === 'sujo');
+  const limpos = resultados.filter(r => r.status === 'limpo');
+
+  document.getElementById('numSujos').textContent  = sujos.length;
+  document.getElementById('numLimpos').textContent = limpos.length;
+  document.getElementById('numTodos').textContent  = resultados.length;
+  document.getElementById('fonteLabel').textContent = `📂 Fonte: ${fonte} — ${new Date().toLocaleString('pt-BR')}`;
+
+  // Destaque do filtro ativo
+  ['Sujos','Limpos','Todos'].forEach(n => {
+    document.getElementById('stat' + n).className = 'stat-card';
+  });
+  const mapClass = { sujos: 'active-red', limpos: 'active-green', todos: 'active-blue' };
+  const mapEl    = { sujos: 'statSujos', limpos: 'statLimpos', todos: 'statTodos' };
+  document.getElementById(mapEl[filtroAtual]).classList.add(mapClass[filtroAtual]);
+
+  // Filtra e ordena
+  let itens = filtroAtual === 'sujos' ? sujos : filtroAtual === 'limpos' ? limpos : resultados;
+  const sorted = [...itens].sort((a, b) => {
+    if (a.status === 'sujo' && b.status !== 'sujo') return -1;
+    if (b.status === 'sujo' && a.status !== 'sujo') return  1;
+    return 0;
+  });
+
+  // Renderiza lista
+  const list = document.getElementById('resultList');
+  if (sorted.length === 0) {
+    list.innerHTML = '<p style="text-align:center;color:var(--txt3);padding:20px;font-size:13px;">Nenhum arquivo neste filtro.</p>';
+  } else {
+    list.innerHTML = sorted.map((r, i) => {
+      const badgeClass = r.status === 'sujo' ? 'badge-red' : r.status === 'limpo' ? 'badge-green' : 'badge-gray';
+      const badgeTxt   = r.status === 'sujo' ? `🔴 ${r.hits.length} ref(s)` : r.status === 'limpo' ? '🟢 Limpo' : '⬜ Skip';
+      const hasHits    = r.hits.length > 0;
+
+      const hitsHtml = hasHits ? `
+        <div class="result-hits" id="hits-${i}">
+          ${r.hits.slice(0, 30).map(h => `
+            <div class="hit-line">
+              <span class="ln">L${h.ln}: </span>${escHtml(h.txt)}
+              ${h.labels.map(l => `<span class="tag" style="margin-left:4px;">${l}</span>`).join('')}
+            </div>
+          `).join('')}
+          ${r.hits.length > 30 ? `<div class="hit-more">…e mais ${r.hits.length - 30} ocorrências</div>` : ''}
+        </div>
+      ` : '';
+
+      return `
+        <div class="result-item ${r.status}" id="item-${i}">
+          <div class="result-header ${hasHits ? '' : 'no-hits'}" onclick="${hasHits ? `toggleHits(${i})` : ''}">
+            <span class="badge ${badgeClass}">${badgeTxt}</span>
+            <span class="result-name">${escHtml(r.nome)}</span>
+            ${hasHits ? `<span class="result-arrow" id="arrow-${i}">▼</span>` : ''}
+          </div>
+          ${hitsHtml}
+        </div>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('resultsSection').style.display = 'flex';
+  document.getElementById('resultsSection').style.flexDirection = 'column';
+  document.getElementById('resultsSection').style.gap = '8px';
+  document.getElementById('emptyState').style.display = 'none';
+}
+
+function toggleHits(i) {
+  const el    = document.getElementById(`hits-${i}`);
+  const arrow = document.getElementById(`arrow-${i}`);
+  const open  = el.classList.toggle('open');
+  if (arrow) arrow.textContent = open ? '▲' : '▼';
+}
+
+function setFiltro(f) {
+  filtroAtual = f;
+  renderResultados();
+}
+
+// ════════════════════════════════════════════════════════════
+//  RELATÓRIO
+// ════════════════════════════════════════════════════════════
+function gerarRelatorio() {
+  const sujos  = resultados.filter(r => r.status === 'sujo');
+  const limpos = resultados.filter(r => r.status === 'limpo');
+  let txt = `=== SCANNER DE DEPENDÊNCIAS — SK Editor ===\n`;
+  txt += `Data: ${new Date().toLocaleString('pt-BR')}\n`;
+  txt += `Fonte: ${fonte}\n`;
+  txt += `Maikon Caldeira OAB/MG 183712\n\n`;
+  txt += `RESUMO:\n`;
+  txt += `  Total de arquivos: ${resultados.length}\n`;
+  txt += `  Com referências:   ${sujos.length}\n`;
+  txt += `  Limpos:            ${limpos.length}\n\n`;
+
+  if (sujos.length > 0) {
+    txt += `${'='.repeat(50)}\nARQUIVOS COM REFERÊNCIAS:\n${'='.repeat(50)}\n`;
+    sujos.forEach(r => {
+      txt += `\n► ${r.nome}\n`;
+      r.hits.forEach(h => {
+        txt += `  L${h.ln} [${h.labels.join(', ')}]: ${h.txt}\n`;
+      });
+    });
+  }
+
+  txt += `\n${'='.repeat(50)}\nARQUIVOS LIMPOS:\n${'='.repeat(50)}\n`;
+  limpos.forEach(r => { txt += `  ✓ ${r.nome}\n`; });
+
+  return txt;
+}
+
+function copiarRelatorio() {
+  navigator.clipboard?.writeText(gerarRelatorio())
+    .then(() => alert('✅ Relatório copiado para a área de transferência!'))
+    .catch(() => alert('Erro ao copiar. Tente o botão Baixar .txt'));
+}
+
+function baixarRelatorio() {
+  const txt  = gerarRelatorio();
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `scanner-${fonte.replace(/[^a-z0-9]/gi, '-')}-${Date.now()}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function limparResultados() {
+  resultados = [];
+  document.getElementById('resultsSection').style.display = 'none';
+  document.getElementById('emptyState').style.display = 'block';
+}
+
+// ════════════════════════════════════════════════════════════
+//  CONTROLES DE UI
+// ════════════════════════════════════════════════════════════
+function setLoading(ativo, msg = 'Processando…', prog = 0) {
+  const box = document.getElementById('loadingBox');
+  box.style.display = ativo ? 'flex' : 'none';
+  if (ativo) {
+    setLoadMsg(msg);
+    setProgress(prog);
+    document.getElementById('emptyState').style.display = 'none';
+  }
+}
+
+function setLoadMsg(msg) {
+  document.getElementById('loadMsg').textContent = msg;
+}
+
+function setProgress(pct) {
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+// ════════════════════════════════════════════════════════════
+//  INICIALIZAÇÃO
+// ════════════════════════════════════════════════════════════
+loadPatterns();
+</script>
+</body>
+</html>

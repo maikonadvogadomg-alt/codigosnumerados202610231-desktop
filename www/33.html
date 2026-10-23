@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Ícones PRO - Maikon Caldeira</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .painel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .painel h2 {
+            font-size: 1.2rem;
+            color: #495057;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grupo {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 5px;
+            background: #dee2e6;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+
+        .preview-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px dashed #dee2e6;
+            position: relative;
+        }
+
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .tamanhos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .tamanho-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tamanho-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .tamanho-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .botoes {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-gerar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-gerar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-baixar {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-baixar:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-baixar-todos {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-baixar-todos:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .btn-limpar {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-limpar:hover {
+            background: #5a6268;
+        }
+
+        .preset-cores {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-cor {
+            width: 100%;
+            height: 35px;
+            border-radius: 5px;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .preset-cor:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+            z-index: 10;
+        }
+
+        .preset-cor.selecionado {
+            border-color: #667eea;
+            border-width: 3px;
+        }
+
+        .formato-grupo {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .formato-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .formato-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .forma-grupo {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .forma-item {
+            padding: 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .forma-item:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .forma-item.ativo {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #0c5460;
+        }
+
+        .gradiente-preview {
+            width: 100%;
+            height: 50px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border: 2px solid #dee2e6;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.ativo {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-conteudo {
+            display: none;
+        }
+
+        .tab-conteudo.ativo {
+            display: block;
+        }
+
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Gerador de Ícones PRO</h1>
+        <p class="subtitle">Crie ícones profissionais com gradientes, formas e efeitos personalizados</p>
+
+        <div class="grid">
+            <!-- PAINEL 1: CONTEÚDO -->
+            <div class="painel">
+                <h2>📝 Conteúdo</h2>
+
+                <div class="grupo">
+                    <label for="texto">Texto/Letra:</label>
+                    <input type="text" id="texto" value="M" maxlength="3" placeholder="Ex: M, MC, 123">
+                </div>
+
+                <div class="grupo">
+                    <label for="fonte">Fonte:</label>
+                    <select id="fonte">
+                        <option value="Georgia">Georgia (Serifada)</option>
+                        <option value="Arial">Arial (Sem Serifa)</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Courier New">Courier New (Mono)</option>
+                        <option value="Impact">Impact (Bold)</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                        <option value="Brush Script MT">Brush Script (Cursiva)</option>
+                    </select>
+                </div>
+
+                <div class="grupo">
+                    <label for="tamanhoFonte">Tamanho: <span id="tamanhoFonteValor">300</span>px</label>
+                    <input type="range" id="tamanhoFonte" min="50" max="450" value="300">
+                </div>
+
+                <div class="grupo">
+                    <label>Forma do Ícone:</label>
+                    <div class="forma-grupo">
+                        <div class="forma-item ativo" onclick="mudarForma('quadrado')">
+                            <div>⬜</div>
+                            <small>Quadrado</small>
+                        </div>
+                        <div class="forma-item" onclick="mudarForma('circulo')">
+                            <div>⚫</div>
+                            <small>Círculo</small>
+                        </div>
+                        <div class="forma-item" onclick="mudarForma('arredondado')">
+                            <div>▢</div>
+                            <small>Arredondado</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL 2: CORES -->
+            <div class="painel">
+                <h2>🎨 Cores e Gradiente</h2>
+
+                <div class="tabs">
+                    <div class="tab ativo" onclick="mudarTab('solido')">Cor Sólida</div>
+                    <div class="tab" onclick="mudarTab('gradiente')">Gradiente</div>
+                </div>
+
+                <!-- COR SÓLIDA -->
+                <div class="tab-conteudo ativo" id="tab-solido">
+                    <div class="grupo">
+                        <label for="corFundo">Cor de Fundo:</label>
+                        <input type="color" id="corFundo" value="#a3a082">
+                        <div class="preset-cores">
+                            <div class="preset-cor" style="background: #a3a082;" onclick="aplicarCor('fundo', '#a3a082')"></div>
+                            <div class="preset-cor" style="background: #667eea;" onclick="aplicarCor('fundo', '#667eea')"></div>
+                            <div class="preset-cor" style="background: #764ba2;" onclick="aplicarCor('fundo', '#764ba2')"></div>
+                            <div class="preset-cor" style="background: #f093fb;" onclick="aplicarCor('fundo', '#f093fb')"></div>
+                            <div class="preset-cor" style="background: #4facfe;" onclick="aplicarCor('fundo', '#4facfe')"></div>
+                            <div class="preset-cor" style="background: #43e97b;" onclick="aplicarCor('fundo', '#43e97b')"></div>
+                            <div class="preset-cor" style="background: #fa709a;" onclick="aplicarCor('fundo', '#fa709a')"></div>
+                            <div class="preset-cor" style="background: #feca57;" onclick="aplicarCor('fundo', '#feca57')"></div>
+                            <div class="preset-cor" style="background: #ff6348;" onclick="aplicarCor('fundo', '#ff6348')"></div>
+                            <div class="preset-cor" style="background: #1e3799;" onclick="aplicarCor('fundo', '#1e3799')"></div>
+                            <div class="preset-cor" style="background: #0a0a0a;" onclick="aplicarCor('fundo', '#0a0a0a')"></div>
+                            <div class="preset-cor" style="background: #ffffff;" onclick="aplicarCor('fundo', '#ffffff')"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GRADIENTE -->
+                <div class="tab-conteudo" id="tab-gradiente">
+                    <div class="grupo">
+                        <label for="gradienteCor1">Cor 1 (Início):</label>
+                        <input type="color" id="gradienteCor1" value="#667eea">
+                    </div>
+
+                    <div class="grupo">
+                        <label for="gradienteCor2">Cor 2 (Fim):</label>
+                        <input type="color" id="gradienteCor2" value="#764ba2">
+                    </div>
+
+                    <div class="grupo">
+                        <label for="gradienteAngulo">Ângulo: <span id="gradienteAnguloValor">135</span>°</label>
+                        <input type="range" id="gradienteAngulo" min="0" max="360" value="135">
+                    </div>
+
+                    <div class="grupo">
+                        <label>Preview do Gradiente:</label>
+                        <div class="gradiente-preview" id="gradientePreview"></div>
+                    </div>
+
+                    <div class="grupo">
+                        <label>Gradientes Prontos:</label>
+                        <div class="preset-cores">
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);" onclick="aplicarGradiente('#667eea', '#764ba2', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" onclick="aplicarGradiente('#f093fb', '#f5576c', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);" onclick="aplicarGradiente('#4facfe', '#00f2fe', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);" onclick="aplicarGradiente('#43e97b', '#38f9d7', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);" onclick="aplicarGradiente('#fa709a', '#fee140', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);" onclick="aplicarGradiente('#30cfd0', '#330867', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);" onclick="aplicarGradiente('#a8edea', '#fed6e3', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #ff9a56 0%, #ff6a88 100%);" onclick="aplicarGradiente('#ff9a56', '#ff6a88', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);" onclick="aplicarGradiente('#ffecd2', '#fcb69f', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);" onclick="aplicarGradiente('#a1c4fd', '#c2e9fb', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #d299c2 0%, #fef9d7 100%);" onclick="aplicarGradiente('#d299c2', '#fef9d7', 135)"></div>
+                            <div class="preset-cor" style="background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%);" onclick="aplicarGradiente('#89f7fe', '#66a6ff', 135)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grupo">
+                    <label for="corTexto">Cor do Texto:</label>
+                    <input type="color" id="corTexto" value="#0a0a0a">
+                    <div class="preset-cores">
+                        <div class="preset-cor" style="background: #0a0a0a;" onclick="aplicarCor('texto', '#0a0a0a')"></div>
+                        <div class="preset-cor" style="background: #ffffff;" onclick="aplicarCor('texto', '#ffffff')"></div>
+                        <div class="preset-cor" style="background: #f3f4f6;" onclick="aplicarCor('texto', '#f3f4f6')"></div>
+                        <div class="preset-cor" style="background: #667eea;" onclick="aplicarCor('texto', '#667eea')"></div>
+                        <div class="preset-cor" style="background: #764ba2;" onclick="aplicarCor('texto', '#764ba2')"></div>
+                        <div class="preset-cor" style="background: #ff6348;" onclick="aplicarCor('texto', '#ff6348')"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL 3: EFEITOS -->
+            <div class="painel">
+                <h2>✨ Efeitos</h2>
+
+                <div class="grupo">
+                    <label for="corBorda">Cor da Borda:</label>
+                    <input type="color" id="corBorda" value="#ffffff">
+                </div>
+
+                <div class="grupo">
+                    <label for="espessuraBorda">Espessura da Borda: <span id="espessuraBordaValor">10</span>px</label>
+                    <input type="range" id="espessuraBorda" min="0" max="50" value="10">
+                </div>
+
+                <div class="grupo">
+                    <label for="sombra">Sombra: <span id="sombraValor">20</span>px</label>
+                    <input type="range" id="sombra" min="0" max="50" value="20">
+                </div>
+
+                <div class="grupo">
+                    <label for="corSombra">Cor da Sombra:</label>
+                    <input type="color" id="corSombra" value="#000000">
+                </div>
+
+                <div class="grupo">
+                    <label for="opacidadeSombra">Opacidade da Sombra: <span id="opacidadeSombraValor">50</span>%</label>
+                    <input type="range" id="opacidadeSombra" min="0" max="100" value="50">
+                </div>
+
+                <div class="grupo">
+                    <label>Formato de Exportação:</label>
+                    <div class="formato-grupo">
+                        <div class="formato-item">
+                            <input type="radio" id="formatoPNG" name="formato" value="png" checked>
+                            <label for="formatoPNG">PNG</label>
+                        </div>
+                        <div class="formato-item">
+                            <input type="radio" id="formatoJPG" name="formato" value="jpg">
+                            <label for="formatoJPG">JPG</label>
+                        </div>
+                        <div class="formato-item">
+                            <input type="radio" id="formatoWEBP" name="formato" value="webp">
+                            <label for="formatoWEBP">WEBP</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grupo">
+                    <label>Preview:</label>
+                    <div class="preview-area">
+                        <canvas id="canvas" width="512" height="512"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAMANHOS -->
+        <div class="painel">
+            <h2>📐 Tamanhos para Gerar</h2>
+            <div class="tamanhos-grid">
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam16" value="16" checked>
+                    <label for="tam16">16x16</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam32" value="32" checked>
+                    <label for="tam32">32x32</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam48" value="48" checked>
+                    <label for="tam48">48x48</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam72" value="72" checked>
+                    <label for="tam72">72x72</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam96" value="96" checked>
+                    <label for="tam96">96x96</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam128" value="128" checked>
+                    <label for="tam128">128x128</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam144" value="144" checked>
+                    <label for="tam144">144x144</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam152" value="152" checked>
+                    <label for="tam152">152x152</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam192" value="192" checked>
+                    <label for="tam192">192x192</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam384" value="384" checked>
+                    <label for="tam384">384x384</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam512" value="512" checked>
+                    <label for="tam512">512x512</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÕES -->
+        <div class="botoes">
+            <button class="btn-gerar" onclick="gerarIcone()">
+                🎨 Atualizar Preview
+            </button>
+            <button class="btn-baixar" onclick="baixarIcone(512)">
+                💾 Baixar Preview (512x512)
+            </button>
+            <button class="btn-baixar-todos" onclick="baixarTodos()">
+                📦 Baixar Todos os Tamanhos
+            </button>
+            <button class="btn-limpar" onclick="limpar()">
+                🗑️ Limpar
+            </button>
+        </div>
+
+        <div class="info">
+            <strong>💡 Dica:</strong> Use gradientes para ícones modernos! Experimente diferentes formas e efeitos de sombra para criar ícones únicos.
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        // ========================================
+        // ELEMENTOS
+        // ========================================
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let config = {
+            texto: 'M',
+            fonte: 'Georgia',
+            tamanhoFonte: 300,
+            forma: 'quadrado',
+            tipoFundo: 'solido',
+            corFundo: '#a3a082',
+            gradienteCor1: '#667eea',
+            gradienteCor2: '#764ba2',
+            gradienteAngulo: 135,
+            corTexto: '#0a0a0a',
+            corBorda: '#ffffff',
+            espessuraBorda: 10,
+            sombra: 20,
+            corSombra: '#000000',
+            opacidadeSombra: 50
+        };
+
+        // ========================================
+        // EVENTOS
+        // ========================================
+        document.getElementById('texto').addEventListener('input', (e) => {
+            config.texto = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('fonte').addEventListener('change', (e) => {
+            config.fonte = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('tamanhoFonte').addEventListener('input', (e) => {
+            config.tamanhoFonte = parseInt(e.target.value);
+            document.getElementById('tamanhoFonteValor').textContent = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('corFundo').addEventListener('input', (e) => {
+            config.corFundo = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('gradienteCor1').addEventListener('input', (e) => {
+            config.gradienteCor1 = e.target.value;
+            atualizarGradientePreview();
+            gerarIcone();
+        });
+
+        document.getElementById('gradienteCor2').addEventListener('input', (e) => {
+            config.gradienteCor2 = e.target.value;
+            atualizarGradientePreview();
+            gerarIcone();
+        });
+
+        document.getElementById('gradienteAngulo').addEventListener('input', (e) => {
+            config.gradienteAngulo = parseInt(e.target.value);
+            document.getElementById('gradienteAnguloValor').textContent = e.target.value;
+            atualizarGradientePreview();
+            gerarIcone();
+        });
+
+        document.getElementById('corTexto').addEventListener('input', (e) => {
+            config.corTexto = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('corBorda').addEventListener('input', (e) => {
+            config.corBorda = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('espessuraBorda').addEventListener('input', (e) => {
+            config.espessuraBorda = parseInt(e.target.value);
+            document.getElementById('espessuraBordaValor').textContent = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('sombra').addEventListener('input', (e) => {
+            config.sombra = parseInt(e.target.value);
+            document.getElementById('sombraValor').textContent = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('corSombra').addEventListener('input', (e) => {
+            config.corSombra = e.target.value;
+            gerarIcone();
+        });
+
+        document.getElementById('opacidadeSombra').addEventListener('input', (e) => {
+            config.opacidadeSombra = parseInt(e.target.value);
+            document.getElementById('opacidadeSombraValor').textContent = e.target.value;
+            gerarIcone();
+        });
+
+        // ========================================
+        // FUNÇÕES
+        // ========================================
+        function mudarTab(tipo) {
+            config.tipoFundo = tipo;
+            
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('ativo');
+            });
+            event.currentTarget.classList.add('ativo');
+
+            document.querySelectorAll('.tab-conteudo').forEach(conteudo => {
+                conteudo.classList.remove('ativo');
+            });
+            document.getElementById(`tab-${tipo}`).classList.add('ativo');
+
+            gerarIcone();
+        }
+
+        function mudarForma(forma) {
+            config.forma = forma;
+            
+            document.querySelectorAll('.forma-item').forEach(item => {
+                item.classList.remove('ativo');
+            });
+            event.currentTarget.classList.add('ativo');
+
+            gerarIcone();
+        }
+
+        function aplicarCor(tipo, cor) {
+            if (tipo === 'fundo') {
+                config.corFundo = cor;
+                document.getElementById('corFundo').value = cor;
+            } else if (tipo === 'texto') {
+                config.corTexto = cor;
+                document.getElementById('corTexto').value = cor;
+            }
+            gerarIcone();
+        }
+
+        function aplicarGradiente(cor1, cor2, angulo) {
+            config.gradienteCor1 = cor1;
+            config.gradienteCor2 = cor2;
+            config.gradienteAngulo = angulo;
+            
+            document.getElementById('gradienteCor1').value = cor1;
+            document.getElementById('gradienteCor2').value = cor2;
+            document.getElementById('gradienteAngulo').value = angulo;
+            document.getElementById('gradienteAnguloValor').textContent = angulo;
+            
+            atualizarGradientePreview();
+            gerarIcone();
+        }
+
+        function atualizarGradientePreview() {
+            const preview = document.getElementById('gradientePreview');
+            const angulo = config.gradienteAngulo;
+            preview.style.background = `linear-gradient(${angulo}deg, ${config.gradienteCor1} 0%, ${config.gradienteCor2} 100%)`;
+        }
+
+        function gerarIcone() {
+            desenharIcone(ctx, 512);
+        }
+
+        function desenharIcone(contexto, tamanho) {
+            const escala = tamanho / 512;
+
+            // Limpar
+            contexto.clearRect(0, 0, tamanho, tamanho);
+
+            // Sombra
+            if (config.sombra > 0) {
+                const opacidade = config.opacidadeSombra / 100;
+                const r = parseInt(config.corSombra.slice(1, 3), 16);
+                const g = parseInt(config.corSombra.slice(3, 5), 16);
+                const b = parseInt(config.corSombra.slice(5, 7), 16);
+                
+                contexto.shadowColor = `rgba(${r}, ${g}, ${b}, ${opacidade})`;
+                contexto.shadowBlur = config.sombra * escala;
+                contexto.shadowOffsetX = (config.sombra / 4) * escala;
+                contexto.shadowOffsetY = (config.sombra / 4) * escala;
+            }
+
+            // Fundo
+            if (config.tipoFundo === 'solido') {
+                contexto.fillStyle = config.corFundo;
+            } else {
+                const angulo = config.gradienteAngulo * Math.PI / 180;
+                const x1 = tamanho / 2 - Math.cos(angulo) * tamanho / 2;
+                const y1 = tamanho / 2 - Math.sin(angulo) * tamanho / 2;
+                const x2 = tamanho / 2 + Math.cos(angulo) * tamanho / 2;
+                const y2 = tamanho / 2 + Math.sin(angulo) * tamanho / 2;
+                
+                const gradient = contexto.createLinearGradient(x1, y1, x2, y2);
+                gradient.addColorStop(0, config.gradienteCor1);
+                gradient.addColorStop(1, config.gradienteCor2);
+                contexto.fillStyle = gradient;
+            }
+
+            // Desenhar forma
+            if (config.forma === 'circulo') {
+                contexto.beginPath();
+                contexto.arc(tamanho / 2, tamanho / 2, tamanho / 2, 0, Math.PI * 2);
+                contexto.fill();
+            } else if (config.forma === 'arredondado') {
+                const raio = tamanho * 0.15;
+                contexto.beginPath();
+                contexto.moveTo(raio, 0);
+                contexto.lineTo(tamanho - raio, 0);
+                contexto.quadraticCurveTo(tamanho, 0, tamanho, raio);
+                contexto.lineTo(tamanho, tamanho - raio);
+                contexto.quadraticCurveTo(tamanho, tamanho, tamanho - raio, tamanho);
+                contexto.lineTo(raio, tamanho);
+                contexto.quadraticCurveTo(0, tamanho, 0, tamanho - raio);
+                contexto.lineTo(0, raio);
+                contexto.quadraticCurveTo(0, 0, raio, 0);
+                contexto.fill();
+            } else {
+                contexto.fillRect(0, 0, tamanho, tamanho);
+            }
+
+            // Resetar sombra
+            contexto.shadowColor = 'transparent';
+            contexto.shadowBlur = 0;
+            contexto.shadowOffsetX = 0;
+            contexto.shadowOffsetY = 0;
+
+            // Borda
+            const espessura = config.espessuraBorda * escala;
+            if (espessura > 0) {
+                contexto.strokeStyle = config.corBorda;
+                contexto.lineWidth = espessura;
+                
+                if (config.forma === 'circulo') {
+                    contexto.beginPath();
+                    contexto.arc(tamanho / 2, tamanho / 2, (tamanho / 2) - (espessura / 2), 0, Math.PI * 2);
+                    contexto.stroke();
+                } else if (config.forma === 'arredondado') {
+                    const raio = tamanho * 0.15;
+                    contexto.beginPath();
+                    contexto.moveTo(raio, espessura / 2);
+                    contexto.lineTo(tamanho - raio, espessura / 2);
+                    contexto.quadraticCurveTo(tamanho - espessura / 2, espessura / 2, tamanho - espessura / 2, raio);
+                    contexto.lineTo(tamanho - espessura / 2, tamanho - raio);
+                    contexto.quadraticCurveTo(tamanho - espessura / 2, tamanho - espessura / 2, tamanho - raio, tamanho - espessura / 2);
+                    contexto.lineTo(raio, tamanho - espessura / 2);
+                    contexto.quadraticCurveTo(espessura / 2, tamanho - espessura / 2, espessura / 2, tamanho - raio);
+                    contexto.lineTo(espessura / 2, raio);
+                    contexto.quadraticCurveTo(espessura / 2, espessura / 2, raio, espessura / 2);
+                    contexto.stroke();
+                } else {
+                    contexto.strokeRect(espessura / 2, espessura / 2, tamanho - espessura, tamanho - espessura);
+                }
+            }
+
+            // Texto
+            const tamanhoTexto = config.tamanhoFonte * escala;
+            contexto.fillStyle = config.corTexto;
+            contexto.font = `bold ${tamanhoTexto}px ${config.fonte}`;
+            contexto.textAlign = 'center';
+            contexto.textBaseline = 'middle';
+            contexto.fillText(config.texto || 'M', tamanho / 2, tamanho / 2);
+        }
+
+        function baixarIcone(tamanho) {
+            const formato = document.querySelector('input[name="formato"]:checked').value;
+            const mimeType = formato === 'png' ? 'image/png' : formato === 'jpg' ? 'image/jpeg' : 'image/webp';
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = tamanho;
+            tempCanvas.height = tamanho;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            desenharIcone(tempCtx, tamanho);
+
+            tempCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${tamanho}.${formato}`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, mimeType);
+        }
+
+        async function baixarTodos() {
+            const zip = new JSZip();
+            const formato = document.querySelector('input[name="formato"]:checked').value;
+            const mimeType = formato === 'png' ? 'image/png' : formato === 'jpg' ? 'image/jpeg' : 'image/webp';
+            
+            const checkboxes = document.querySelectorAll('.tamanho-item input[type="checkbox"]:checked');
+            const tamanhos = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (tamanhos.length === 0) {
+                alert('⚠️ Selecione pelo menos um tamanho!');
+                return;
+            }
+
+            for (const tamanho of tamanhos) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = tamanho;
+                tempCanvas.height = tamanho;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                desenharIcone(tempCtx, tamanho);
+
+                const blob = await new Promise(resolve => {
+                    tempCanvas.toBlob(resolve, mimeType);
+                });
+
+                zip.file(`icon-${tamanho}.${formato}`, blob);
+            }
+
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `icones-pwa-${Date.now()}.zip`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ Ícones baixados com sucesso!');
+        }
+
+        function limpar() {
+            config = {
+                texto: 'M',
+                fonte: 'Georgia',
+                tamanhoFonte: 300,
+                forma: 'quadrado',
+                tipoFundo: 'solido',
+                corFundo: '#a3a082',
+                gradienteCor1: '#667eea',
+                gradienteCor2: '#764ba2',
+                gradienteAngulo: 135,
+                corTexto: '#0a0a0a',
+                corBorda: '#ffffff',
+                espessuraBorda: 10,
+                sombra: 20,
+                corSombra: '#000000',
+                opacidadeSombra: 50
+            };
+
+            document.getElementById('texto').value = 'M';
+            document.getElementById('fonte').value = 'Georgia';
+            document.getElementById('tamanhoFonte').value = 300;
+            document.getElementById('tamanhoFonteValor').textContent = '300';
+            document.getElementById('corFundo').value = '#a3a082';
+            document.getElementById('gradienteCor1').value = '#667eea';
+            document.getElementById('gradienteCor2').value = '#764ba2';
+            document.getElementById('gradienteAngulo').value = 135;
+            document.getElementById('gradienteAnguloValor').textContent = '135';
+            document.getElementById('corTexto').value = '#0a0a0a';
+            document.getElementById('corBorda').value = '#ffffff';
+            document.getElementById('espessuraBorda').value = 10;
+            document.getElementById('espessuraBordaValor').textContent = '10';
+            document.getElementById('sombra').value = 20;
+            document.getElementById('sombraValor').textContent = '20';
+            document.getElementById('corSombra').value = '#000000';
+            document.getElementById('opacidadeSombra').value = 50;
+            document.getElementById('opacidadeSombraValor').textContent = '50';
+            document.getElementById('formatoPNG').checked = true;
+
+            atualizarGradientePreview();
+            gerarIcone();
+        }
+
+        // ========================================
+        // INICIALIZAR
+        // ========================================
+        atualizarGradientePreview();
+        gerarIcone();
+    </script>
+</body>
+</html>

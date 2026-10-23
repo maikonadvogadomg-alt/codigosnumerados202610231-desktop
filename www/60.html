@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SK Rastreador de Rotas & IA v6 - Maikon Caldeira</title>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            darkBg: '#0d1208',
+            panelBg: '#141c0d',
+            borderGreen: '#223018',
+            textGreen: '#c8dda8',
+            brandGreen: '#5fad3c',
+            focusGreen: '#7dcf55',
+            matrixGreen: '#22c55e',
+            accentGold: '#d4aa4e',
+            accentBlue: '#56b6c2'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1208; }
+    ::-webkit-scrollbar-thumb { background: #223018; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #5fad3c; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { animation: spin 0.8s linear infinite; }
+  </style>
+</head>
+<body class="bg-darkBg text-textGreen font-sans min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-panelBg border-b border-borderGreen p-4 flex flex-col md:flex-row justify-between items-center gap-4 shrink-0">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🔍</span>
+      <div>
+        <h1 class="text-brandGreen font-bold text-lg flex items-center gap-2">
+          SK Rastreador de Rotas & IA <span class="text-xs bg-brandGreen/20 text-brandGreen px-2 py-0.5 rounded">v6</span>
+        </h1>
+        <p class="text-[11px] text-focusGreen font-mono">Maikon Caldeira OAB/MG 183712 — Caçador de APIs, Replit e Importadores</p>
+      </div>
+    </div>
+    <span class="text-xs bg-borderGreen text-brandGreen px-3 py-1.5 rounded-lg border border-brandGreen/30">Análise Local 100% Segura</span>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="flex-1 flex flex-col md:flex-row overflow-hidden">
+    
+    <!-- Painel Esquerdo: Importação e Lista de Arquivos -->
+    <div class="w-full md:w-96 bg-panelBg border-r border-borderGreen p-4 flex flex-col shrink-0 overflow-y-auto space-y-4">
+      
+      <!-- Seletor de Arquivos -->
+      <div class="border-2 border-dashed border-borderGreen p-4 rounded-lg bg-darkBg/50 hover:border-brandGreen cursor-pointer text-center transition-all" onclick="document.getElementById('fileInput').click()">
+        <span class="text-2xl block">📦</span>
+        <p class="text-xs text-brandGreen font-bold mt-1">Carregar ZIP ou APK</p>
+        <span id="loadedFileName" class="block text-[10px] text-textGreen mt-1 truncate">Nenhum arquivo</span>
+      </div>
+      <input type="file" id="fileInput" accept=".zip,.apk" class="hidden">
+
+      <!-- Filtros Rápidos de Rastreamento -->
+      <div class="space-y-2">
+        <h3 class="text-xs font-bold text-brandGreen uppercase tracking-wider">🎯 O que rastrear:</h3>
+        <div class="grid grid-cols-2 gap-1 text-[10px]">
+          <label class="flex items-center gap-1.5 bg-darkBg p-2 rounded border border-borderGreen cursor-pointer">
+            <input type="checkbox" id="trackAI" checked class="accent-brandGreen"> 🤖 Rotas de IA
+          </label>
+          <label class="flex items-center gap-1.5 bg-darkBg p-2 rounded border border-borderGreen cursor-pointer">
+            <input type="checkbox" id="trackReplit" checked class="accent-brandGreen"> 🔌 Replit/Servidor
+          </label>
+          <label class="flex items-center gap-1.5 bg-darkBg p-2 rounded border border-borderGreen cursor-pointer">
+            <input type="checkbox" id="trackImports" checked class="accent-brandGreen"> 📄 Importadores
+          </label>
+          <label class="flex items-center gap-1.5 bg-darkBg p-2 rounded border border-borderGreen cursor-pointer">
+            <input type="checkbox" id="trackKeys" checked class="accent-brandGreen"> 🔑 Chaves/Tokens
+          </label>
+        </div>
+        <button onclick="startDeepScan()" class="w-full bg-brandGreen text-darkBg py-2 rounded-lg text-xs font-bold hover:bg-focusGreen transition-all">Iniciar Varredura Profunda</button>
+      </div>
+
+      <!-- Resultados Rápidos -->
+      <div id="scanSummary" class="hidden bg-darkBg p-3 rounded-lg border border-borderGreen text-xs space-y-1">
+        <p class="text-brandGreen font-bold">Resumo do Rastreador:</p>
+        <p>• Arquivos com IA: <span id="sumAI" class="text-white font-mono">0</span></p>
+        <p>• Arquivos com Replit: <span id="sumReplit" class="text-white font-mono">0</span></p>
+        <p>• Scripts de Importação: <span id="sumImports" class="text-white font-mono">0</span></p>
+        <p>• Chaves Expostas: <span id="sumKeys" class="text-white font-mono">0</span></p>
+      </div>
+
+      <!-- Lista de Arquivos Suspeitos -->
+      <div class="flex-1 flex flex-col min-h-[200px]">
+        <h3 class="text-xs font-bold text-brandGreen uppercase mb-2 flex justify-between">
+          <span>⚠️ Arquivos Suspeitos</span>
+          <span id="suspiciousCount" class="text-accentGold">0</span>
+        </h3>
+        <div id="suspiciousList" class="flex-1 overflow-y-auto space-y-1 text-xs">
+          <p class="text-gray-500 italic text-center p-4">Aguardando varredura...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Painel Direito: Visualizador e Editor de Código -->
+    <div class="flex-1 bg-darkBg p-4 flex flex-col overflow-hidden">
+      <div class="flex justify-between items-center mb-2 bg-panelBg p-2 rounded-lg border border-borderGreen">
+        <span id="currentFileName" class="text-xs font-mono text-brandGreen font-bold">📝 Selecione um arquivo suspeito para analisar</span>
+        <div class="flex gap-2">
+          <button onclick="saveFileChanges()" class="text-[10px] bg-brandGreen/20 text-brandGreen border border-brandGreen/30 px-3 py-1 rounded hover:bg-brandGreen hover:text-black transition-all">Salvar Alterações</button>
+          <button onclick="downloadCleanProject()" class="text-[10px] bg-accentBlue/20 text-accentBlue border border-accentBlue/30 px-3 py-1 rounded hover:bg-accentBlue hover:text-black transition-all">Exportar Projeto Corrigido</button>
+        </div>
+      </div>
+
+      <!-- Linhas com ocorrências no arquivo selecionado -->
+      <div id="occurrencesContainer" class="hidden bg-panelBg border border-borderGreen rounded-lg p-3 mb-2 max-h-40 overflow-y-auto text-xs space-y-1">
+        <p class="text-accentGold font-bold mb-1">Ocorrências encontradas neste arquivo:</p>
+        <div id="occurrencesList" class="space-y-1"></div>
+      </div>
+
+      <!-- Editor de Código -->
+      <textarea id="codeEditor" class="flex-1 w-full bg-[#020617] border border-borderGreen rounded-lg p-4 text-xs font-mono text-matrixGreen outline-none resize-none" placeholder="// O código do arquivo selecionado aparecerá aqui..."></textarea>
+    </div>
+  </main>
+
+  <!-- Loader -->
+  <div id="loader" class="hidden fixed inset-0 bg-black/80 z-50 flex flex-col items-center justify-center space-y-4">
+    <div class="w-12 h-12 border-4 border-brandGreen border-t-transparent rounded-full spinner"></div>
+    <p id="loaderMsg" class="text-brandGreen font-mono text-xs">Analisando...</p>
+  </div>
+
+  <script>
+    // ==================== CONFIGURAÇÃO E PADRÕES ====================
+    let zipInstance = null;
+    let projectFiles = {};
+    let activeFile = null;
+    let scanResults = {};
+
+    const PATTERNS = {
+      ai: [
+        { re: /openai/gi, lb: "OpenAI SDK/Endpoint" },
+        { re: /anthropic/gi, lb: "Anthropic/Claude" },
+        { re: /gemini/gi, lb: "Google Gemini" },
+        { re: /cohere/gi, lb: "Cohere AI" },
+        { re: /chat\/completions/gi, lb: "Rota de Chat" },
+        { re: /v1\/completions/gi, lb: "Rota de Completions antiga" },
+        { re: /playground/gi, lb: "Referência a Playground" },
+        { re: /\/api\/ai/gi, lb: "Rota local /api/ai" },
+        { re: /\/api\/chat/gi, lb: "Rota local /api/chat" }
+      ],
+      replit: [
+        { re: /replit\.dev/gi, lb: "Domínio Replit Dev" },
+        { re: /repl\.co/gi, lb: "Domínio Replit Co antigo" },
+        { re: /replit\.com/gi, lb: "Plataforma Replit" },
+        { re: /REPL_ID/g, lb: "ID do Servidor Replit" },
+        { re: /REPLIT_DEV_DOMAIN/g, lb: "Variável de Domínio Replit" }
+      ],
+      imports: [
+        { re: /tjmg\.jus\.br/gi, lb: "Importador TJMG" },
+        { re: /processo/gi, lb: "Lógica de Processo" },
+        { re: /pje/gi, lb: "Lógica PJe" },
+        { re: /regex/gi, lb: "Filtro de Texto (Regex)" },
+        { re: /parse/gi, lb: "Analisador de Texto/HTML" }
+      ],
+      keys: [
+        { re: /sk-[a-zA-Z0-9]{48}/g, lb: "Chave OpenAI Exposta!" },
+        { re: /api[-_]?key/gi, lb: "Variável de API Key" },
+        { re: /process\.env\.[A-Z0-9_]*KEY/g, lb: "Env de API Key" },
+        { re: /bearer\s[a-zA-Z0-9-_.]+/gi, lb: "Token de Autenticação" }
+      ]
+    };
+
+    const SKIP_EXT = new Set(["png","jpg","jpeg","gif","webp","ico","woff","woff2","ttf","eot","otf","mp3","mp4","webm","ogg","bin","class","dex","so"]);
+
+    // ==================== INTERFACE E LOADER ====================
+    function showLoader(msg) {
+      document.getElementById('loaderMsg').innerText = msg;
+      document.getElementById('loader').classList.remove('hidden');
+    }
+    function hideLoader() {
+      document.getElementById('loader').classList.add('hidden');
+    }
+
+    // ==================== CARREGAMENTO DE ARQUIVOS ====================
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      document.getElementById('loadedFileName').innerText = file.name;
+      showLoader("Carregando e descompactando projeto...");
+
+      try {
+        const buffer = await file.arrayBuffer();
+        zipInstance = await JSZip.loadAsync(buffer);
+        projectFiles = {};
+        
+        const tempFiles = Object.keys(zipInstance.files).filter(n => !zipInstance.files[n].dir);
+        
+        let loadedCount = 0;
+        for (const path of tempFiles) {
+          const ext = path.split('.').pop().toLowerCase();
+          if (SKIP_EXT.has(ext)) {
+            projectFiles[path] = "[Arquivo Binário]";
+            continue;
+          }
+          try {
+            projectFiles[path] = await zipInstance.files[path].async("string");
+          } catch {
+            projectFiles[path] = "[Erro ao ler arquivo]";
+          }
+        }
+        
+        hideLoader();
+        alert(`Sucesso! ${tempFiles.length} arquivos carregados na memória.`);
+        startDeepScan();
+      } catch (err) {
+        hideLoader();
+        alert("Erro ao carregar arquivo: " + err.message);
+      }
+    });
+
+    // ==================== VARREDURA PROFUNDA ====================
+    function startDeepScan() {
+      if (Object.keys(projectFiles).length === 0) {
+        return alert("Por favor, carregue um arquivo ZIP ou APK primeiro!");
+      }
+
+      showLoader("Rastreando rotas, IA e servidores...");
+      
+      const trackAI = document.getElementById('trackAI').checked;
+      const trackReplit = document.getElementById('trackReplit').checked;
+      const trackImports = document.getElementById('trackImports').checked;
+      const trackKeys = document.getElementById('trackKeys').checked;
+
+      scanResults = {};
+      let totalAI = 0, totalReplit = 0, totalImports = 0, totalKeys = 0;
+
+      for (const [path, content] of Object.entries(projectFiles)) {
+        if (content.startsWith("[Arquivo Binário]")) continue;
+
+        const lines = content.split('\n');
+        const fileHits = [];
+
+        lines.forEach((line, idx) => {
+          const matchedLabels = [];
+
+          if (trackAI) {
+            PATTERNS.ai.forEach(p => {
+              p.re.lastIndex = 0;
+              if (p.re.test(line)) { matchedLabels.push(p.lb); totalAI++; }
+            });
+          }
+          if (trackReplit) {
+            PATTERNS.replit.forEach(p => {
+              p.re.lastIndex = 0;
+              if (p.re.test(line)) { matchedLabels.push(p.lb); totalReplit++; }
+            });
+          }
+          if (trackImports) {
+            PATTERNS.imports.forEach(p => {
+              p.re.lastIndex = 0;
+              if (p.re.test(line)) { matchedLabels.push(p.lb); totalImports++; }
+            });
+          }
+          if (trackKeys) {
+            PATTERNS.keys.forEach(p => {
+              p.re.lastIndex = 0;
+              if (p.re.test(line)) { matchedLabels.push(p.lb); totalKeys++; }
+            });
+          }
+
+          if (matchedLabels.length > 0) {
+            fileHits.push({
+              lineNum: idx + 1,
+              text: line.trim().slice(0, 120),
+              labels: [...new Set(matchedLabels)]
+            });
+          }
+        });
+
+        if (fileHits.length > 0) {
+          scanResults[path] = fileHits;
+        }
+      }
+
+      // Atualizar UI
+      document.getElementById('sumAI').innerText = totalAI;
+      document.getElementById('sumReplit').innerText = totalReplit;
+      document.getElementById('sumImports').innerText = totalImports;
+      document.getElementById('sumKeys').innerText = totalKeys;
+      document.getElementById('scanSummary').classList.remove('hidden');
+
+      renderSuspiciousList();
+      hideLoader();
+    }
+
+    function renderSuspiciousList() {
+      const container = document.getElementById('suspiciousList');
+      const paths = Object.keys(scanResults);
+      document.getElementById('suspiciousCount').innerText = paths.length;
+
+      if (paths.length === 0) {
+        container.innerHTML = '<p class="text-matrixGreen text-center p-4">🟢 Nenhum arquivo suspeito encontrado!</p>';
+        return;
+      }
+
+      container.innerHTML = paths.map(path => {
+        const hits = scanResults[path];
+        return `
+          <div onclick="openSuspiciousFile('${path}')" class="p-2 bg-darkBg hover:bg-borderGreen/30 rounded border border-borderGreen/50 cursor-pointer transition-all flex justify-between items-center">
+            <div class="truncate pr-2 flex-1">
+              <p class="font-mono text-xs text-accentGold truncate">📄 ${path.split('/').pop()}</p>
+              <p class="text-[9px] text-gray-500 truncate">${path}</p>
+            </div>
+            <span class="bg-red-950 text-red-400 text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0">${hits.length}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== VISUALIZADOR E EDITOR ====================
+    function openSuspiciousFile(path) {
+      activeFile = path;
+      document.getElementById('currentFileName').innerText = `📝 Analisando: ${path}`;
+      document.getElementById('codeEditor').value = projectFiles[path];
+
+      // Renderizar ocorrências no topo
+      const hits = scanResults[path] || [];
+      const occContainer = document.getElementById('occurrencesContainer');
+      const occList = document.getElementById('occurrencesList');
+
+      if (hits.length > 0) {
+        occContainer.classList.remove('hidden');
+        occList.innerHTML = hits.map(h => `
+          <div class="flex gap-2 text-[11px] border-b border-borderGreen/20 pb-1">
+            <span class="text-accentGold font-bold shrink-0">Linha ${h.lineNum}:</span>
+            <span class="bg-brandGreen/10 text-brandGreen px-1 rounded text-[9px] shrink-0">${h.labels.join(', ')}</span>
+            <span class="text-textGreen/80 truncate font-mono">${h.text}</span>
+          </div>
+        `).join('');
+      } else {
+        occContainer.classList.add('hidden');
+      }
+    }
+
+    function saveFileChanges() {
+      if (!activeFile) return alert("Nenhum arquivo aberto para salvar!");
+      projectFiles[activeFile] = document.getElementById('codeEditor').value;
+      alert("Alterações salvas na memória do rastreador!");
+      startDeepScan(); // Re-escanear para atualizar ocorrências
+    }
+
+    async function downloadCleanProject() {
+      if (Object.keys(projectFiles).length === 0) return alert("Nenhum projeto carregado!");
+      showLoader("Gerando pacote limpo...");
+
+      const outZip = new JSZip();
+      for (const [path, content] of Object.entries(projectFiles)) {
+        if (content === "[Arquivo Binário]") {
+          // Copiar binário original do zip carregado
+          const originalData = await zipInstance.file(path).async("uint8array");
+          outZip.file(path, originalData);
+        } else {
+          outZip.file(path, content);
+        }
+      }
+
+      const blob = await outZip.generateAsync({ type: "blob", compression: "DEFLATE" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "projeto-rastreado-limpo.zip";
+      a.click();
+      hideLoader();
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <title>Leitor de Projeto</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: sans-serif; 
+            background: #0f172a; 
+            color: #f8fafc; 
+            padding: 20px;
+        }
+        h1 { color: #38bdf8; margin-bottom: 20px; }
+        
+        #zona-upload {
+            border: 2px dashed #38bdf8;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+        #zona-upload:hover { background: #1e293b; }
+        #zona-upload input { display: none; }
+        
+        #resumo {
+            display: none;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .numero-grande {
+            font-size: 2em;
+            color: #38bdf8;
+            font-weight: bold;
+        }
+        .grid-resumo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .card-resumo {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        #lista-funcoes { display: none; }
+        
+        .funcao-card {
+            background: #1e293b;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        .funcao-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            cursor: pointer;
+            border-left: 5px solid #38bdf8;
+        }
+        .funcao-header:hover { background: #263548; }
+        .funcao-header.importante { border-left-color: #4ade80; }
+        .funcao-header.cerebro { border-left-color: #f59e0b; }
+        .funcao-header.visual { border-left-color: #a78bfa; }
+        
+        .tag {
+            font-size: 0.75em;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .tag-importante { background: #166534; color: #4ade80; }
+        .tag-cerebro { background: #78350f; color: #f59e0b; }
+        .tag-visual { background: #4c1d95; color: #a78bfa; }
+        .tag-normal { background: #1e3a5f; color: #38bdf8; }
+        
+        .funcao-corpo {
+            display: none;
+            padding: 15px;
+            border-top: 1px solid #334155;
+        }
+        .funcao-corpo.aberto { display: block; }
+        
+        .explicacao {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        .explicacao strong { color: #38bdf8; }
+        
+        pre {
+            background: #020617;
+            border-radius: 8px;
+            padding: 12px;
+            overflow-x: auto;
+            font-size: 0.8em;
+            color: #94a3b8;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .btn-copiar {
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 0.9em;
+        }
+        .btn-copiar:hover { background: #2563eb; }
+        .btn-copiar.copiado { background: #166534; }
+        
+        #filtros {
+            display: none;
+            margin-bottom: 20px;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn-filtro {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85em;
+        }
+        .btn-filtro.ativo { opacity: 1; }
+        .btn-filtro:not(.ativo) { opacity: 0.4; }
+        
+        #aviso-cerebro {
+            display: none;
+            background: #78350f;
+            border: 1px solid #f59e0b;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #fde68a;
+        }
+
+        #barra-busca {
+            display: none;
+            width: 100%;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🔍 Leitor de Projeto</h1>
+<p style="color:#94a3b8; margin-bottom:20px;">
+    Importe qualquer arquivo do seu projeto e eu explico o que cada parte faz
+</p>
+
+<!-- ZONA DE UPLOAD -->
+<div id="zona-upload" onclick="document.getElementById('input-arquivo').click()">
+    <input type="file" id="input-arquivo" accept=".js,.html,.json,.txt" onchange="lerArquivo(event)">
+    <div style="font-size: 3em;">📂</div>
+    <p style="font-size: 1.2em; margin-top: 10px; color: #38bdf8;">
+        Clique aqui para importar o arquivo
+    </p>
+    <p style="color: #64748b; margin-top: 5px;">
+        Aceita arquivos .js, .html, .json, .txt
+    </p>
+</div>
+
+<!-- AVISO SE ACHAR O CÉREBRO -->
+<div id="aviso-cerebro">
+    🧠 <strong>Cérebro encontrado!</strong> Este arquivo contém o sistema de memória da IA. 
+    As funções marcadas em <span style="color:#f59e0b">amarelo</span> são as mais importantes para você copiar.
+</div>
+
+<!-- RESUMO DO ARQUIVO -->
+<div id="resumo">
+    <h2 style="margin-bottom:15px;">📊 Resumo do Arquivo</h2>
+    <div class="grid-resumo">
+        <div class="card-resumo">
+            <div class="numero-grande" id="total-funcoes">0</div>
+            <div>Funções</div>
+        </div>
+        <div class="card-resumo">
+            <div class="numero-grande" id="total-linhas">0</div>
+            <div>Linhas</div>
+        </div>
+        <div class="card-resumo">
+            <div class="numero-grande" id="total-importantes">0</div>
+            <div style="color:#4ade80">Importantes</div>
+        </div>
+        <div class="card-resumo">
+            <div class="numero-grande" id="total-cerebro">0</div>
+            <div style="color:#f59e0b">Do Cérebro</div>
+        </div>
+    </div>
+</div>
+
+<!-- BUSCA -->
+<input type="text" id="barra-busca" placeholder="🔎 Buscar função pelo nome..." oninput="filtrarBusca(this.value)">
+
+<!-- FILTROS -->
+<div id="filtros" style="display:none; margin-bottom:20px; gap:10px; flex-wrap:wrap; display:flex">
+    <button class="btn-filtro ativo" style="background:#1e3a5f;color:#38bdf8" onclick="filtrar('todos',this)">
+        Todas
+    </button>
+    <button class="btn-filtro" style="background:#166534;color:#4ade80" onclick="filtrar('importante',this)">
+        ⭐ Importantes
+    </button>
+    <button class="btn-filtro" style="background:#78350f;color:#f59e0b" onclick="filtrar('cerebro',this)">
+        🧠 Cérebro / Memória
+    </button>
+    <button class="btn-filtro" style="background:#4c1d95;color:#a78bfa" onclick="filtrar('visual',this)">
+        🎨 Visual / Tela
+    </button>
+</div>
+
+<!-- LISTA DE FUNÇÕES -->
+<div id="lista-funcoes"></div>
+
+<script>
+    let todasFuncoes = [];
+    let filtroAtivo = 'todos';
+
+    // =====================
+    // LER O ARQUIVO
+    // =====================
+    function lerArquivo(event) {
+        const arquivo = event.target.files[0];
+        if (!arquivo) return;
+
+        const leitor = new FileReader();
+        leitor.onload = function(e) {
+            const conteudo = e.target.result;
+            analisarCodigo(conteudo, arquivo.name);
+        };
+        leitor.readAsText(arquivo);
+    }
+
+    // =====================
+    // ANALISAR O CÓDIGO
+    // =====================
+    function analisarCodigo(texto, nomeArquivo) {
+        const linhas = texto.split('\n');
+        todasFuncoes = [];
+
+        // Detectar funções
+        for (let i = 0; i < linhas.length; i++) {
+            const linha = linhas[i];
+
+            // Padrões de função
+            const padroes = [
+                /function\s+(\w+)\s*\(/,
+                /const\s+(\w+)\s*=\s*(?:async\s*)?\(/,
+                /const\s+(\w+)\s*=\s*(?:async\s*)?function/,
+                /(\w+)\s*:\s*(?:async\s*)?function/,
+                /(\w+)\s*=\s*(?:async\s*)?\(.*\)\s*=>/,
+            ];
+
+            for (const padrao of padroes) {
+                const match = linha.match(padrao);
+                if (match) {
+                    const nome = match[1];
+                    const corpo = pegarCorpo(linhas, i);
+                    const tipo = classificar(nome, corpo);
+                    const explicacao = explicar(nome, corpo, tipo);
+
+                    todasFuncoes.push({
+                        nome,
+                        linha: i + 1,
+                        corpo,
+                        tipo,
+                        explicacao
+                    });
+                    break;
+                }
+            }
+        }
+
+        // Verificar se tem cérebro
+        const temCerebro = texto.includes('localStorage') || 
+                           texto.includes('memory') || 
+                           texto.includes('memoria') ||
+                           texto.includes('cerebro') ||
+                           texto.includes('checkpoint');
+
+        // Mostrar aviso do cérebro
+        document.getElementById('aviso-cerebro').style.display = temCerebro ? 'block' : 'none';
+
+        // Atualizar resumo
+        const importantes = todasFuncoes.filter(f => f.tipo === 'importante').length;
+        const cerebro = todasFuncoes.filter(f => f.tipo === 'cerebro').length;
+
+        document.getElementById('total-funcoes').textContent = todasFuncoes.length;
+        document.getElementById('total-linhas').textContent = linhas.length;
+        document.getElementById('total-importantes').textContent = importantes;
+        document.getElementById('total-cerebro').textContent = cerebro;
+
+        document.getElementById('resumo').style.display = 'block';
+        document.getElementById('lista-funcoes').style.display = 'block';
+        document.getElementById('barra-busca').style.display = 'block';
+        document.getElementById('filtros').style.display = 'flex';
+
+        renderizarFuncoes(todasFuncoes);
+    }
+
+    // =====================
+    // PEGAR CORPO DA FUNÇÃO
+    // =====================
+    function pegarCorpo(linhas, inicio) {
+        let corpo = '';
+        let abre = 0;
+        let comecou = false;
+
+        for (let i = inicio; i < Math.min(inicio + 60, linhas.length); i++) {
+            corpo += linhas[i] + '\n';
+            for (const char of linhas[i]) {
+                if (char === '{') { abre++; comecou = true; }
+                if (char === '}') abre--;
+            }
+            if (comecou && abre <= 0) break;
+        }
+        return corpo;
+    }
+
+    // =====================
+    // CLASSIFICAR FUNÇÃO
+    // =====================
+    function classificar(nome, corpo) {
+        const nomeMin = nome.toLowerCase();
+        const corpoMin = corpo.toLowerCase();
+
+        // Cérebro / Memória
+        if (
+            nomeMin.includes('memory') || nomeMin.includes('memoria') ||
+            nomeMin.includes('cerebro') || nomeMin.includes('brain') ||
+            nomeMin.includes('save') || nomeMin.includes('salvar') ||
+            nomeMin.includes('load') || nomeMin.includes('carregar') ||
+            nomeMin.includes('checkpoint') || nomeMin.includes('task') ||
+            corpoMin.includes('localstorage') || corpoMin.includes('json.stringify') ||
+            corpoMin.includes('json.parse')
+        ) return 'cerebro';
+
+        // Visual / Tela
+        if (
+            nomeMin.includes('render') || nomeMin.includes('show') ||
+            nomeMin.includes('display') || nomeMin.includes('draw') ||
+            nomeMin.includes('update') || nomeMin.includes('mostrar') ||
+            corpoMin.includes('innerhtml') || corpoMin.includes('classlist') ||
+            corpoMin.includes('style.')
+        ) return 'visual';
+
+        // Importante (lógica principal)
+        if (
+            nomeMin.includes('init') || nomeMin.includes('start') ||
+            nomeMin.includes('main') || nomeMin.includes('run') ||
+            nomeMin.includes('process') || nomeMin.includes('handle') ||
+            nomeMin.includes('send') || nomeMin.includes('receive') ||
+            nomeMin.includes('chat') || nomeMin.includes('message') ||
+            nomeMin.includes('ia') || nomeMin.includes('ai') ||
+            nomeMin.includes('gpt') || nomeMin.includes('api')
+        ) return 'importante';
+
+        return 'normal';
+    }
+
+    // =====================
+    // EXPLICAR EM PORTUGUÊS
+    // =====================
+    function explicar(nome, corpo, tipo) {
+        const nomeMin = nome.toLowerCase();
+        const corpoMin = corpo.toLowerCase();
+
+        // Explicações específicas
+        if (nomeMin.includes('save') || nomeMin.includes('salvar')) {
+            return {
+                oque: '💾 Esta função SALVA dados',
+                quando: 'É chamada quando algo precisa ser guardado (mensagens, configurações, memória da IA)',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — ela é responsável por guardar o estado do seu app'
+            };
+        }
+        if (nomeMin.includes('load') || nomeMin.includes('carregar')) {
+            return {
+                oque: '📂 Esta função CARREGA dados salvos',
+                quando: 'É chamada quando o app abre para recuperar o que estava salvo',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — ela recupera a memória da IA'
+            };
+        }
+        if (corpoMin.includes('localstorage.setitem')) {
+            return {
+                oque: '🧠 Esta função GRAVA no Cérebro (localStorage)',
+                quando: 'Toda vez que a IA aprende algo novo ou você faz uma ação',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — é o coração do sistema de memória'
+            };
+        }
+        if (corpoMin.includes('localstorage.getitem')) {
+            return {
+                oque: '🧠 Esta função LÊ o Cérebro (localStorage)',
+                quando: 'Quando o app precisa lembrar o que aconteceu antes',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — sem ela a IA não lembra de nada'
+            };
+        }
+        if (nomeMin.includes('init') || nomeMin.includes('start')) {
+            return {
+                oque: '🚀 Esta função INICIA o aplicativo',
+                quando: 'É a primeira coisa que roda quando você abre o app',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — é o ponto de partida de tudo'
+            };
+        }
+        if (nomeMin.includes('render') || corpoMin.includes('innerhtml')) {
+            return {
+                oque: '🎨 Esta função DESENHA algo na tela',
+                quando: 'Quando precisa mostrar ou atualizar algo visualmente',
+                copiar: false,
+                dica: 'Copie só se precisar do visual. Pode recriar depois'
+            };
+        }
+        if (nomeMin.includes('chat') || nomeMin.includes('message') || nomeMin.includes('send')) {
+            return {
+                oque: '💬 Esta função PROCESSA mensagens do chat',
+                quando: 'Quando você ou a IA envia uma mensagem',
+                copiar: true,
+                dica: 'COPIE ESTA FUNÇÃO — é a lógica principal do chat com a IA'
+            };
+        }
+
+        // Explicação genérica por tipo
+        if (tipo === 'cerebro') {
+            return {
+                oque: `🧠 Função relacionada à MEMÓRIA: "${nome}"`,
+                quando: 'Faz parte do sistema de memória da IA',
+                copiar: true,
+                dica: 'Provavelmente importante. Verifique o código antes de copiar'
+            };
+        }
+        if (tipo === 'visual') {
+            return {
+                oque: `🎨 Função VISUAL: "${nome}"`,
+                quando: 'Controla algo que aparece na tela',
+                copiar: false,
+                dica: 'Copie só se precisar do visual exato. Pode recriar depois'
+            };
+        }
+        if (tipo === 'importante') {
+            return {
+                oque: `⭐ Função IMPORTANTE: "${nome}"`,
+                quando: 'Faz parte da lógica principal do app',
+                copiar: true,
+                dica: 'Verifique o código — provavelmente vale copiar'
+            };
+        }
+
+        return {
+            oque: `📦 Função auxiliar: "${nome}"`,
+            quando: 'Ajuda outras funções a funcionar',
+            copiar: false,
+            dica: 'Copie só se outra função importante depender dela'
+        };
+    }
+
+    // =====================
+    // RENDERIZAR NA TELA
+    // =====================
+    function renderizarFuncoes(lista) {
+        const container = document.getElementById('lista-funcoes');
+        container.innerHTML = '';
+
+        if (lista.length === 0) {
+            container.innerHTML = '<p style="color:#64748b; text-align:center; padding:20px">Nenhuma função encontrada com esse filtro</p>';
+            return;
+        }
+
+        lista.forEach((f, index) => {
+            const corBorda = {
+                cerebro: '#f59e0b',
+                importante: '#4ade80',
+                visual: '#a78bfa',
+                normal: '#38bdf8'
+            }[f.tipo];
+
+            const tagTexto = {
+                cerebro: '🧠 Cérebro/Memória',
+                importante: '⭐ Importante',
+                visual: '🎨 Visual',
+                normal: '📦 Auxiliar'
+            }[f.tipo];
+
+            const tagClasse = {
+                cerebro: 'tag-cerebro',
+                importante: 'tag-importante',
+                visual: 'tag-visual',
+                normal: 'tag-normal'
+            }[f.tipo];
+
+            const div = document.createElement('div');
+            div.className = 'funcao-card';
+            div.dataset.tipo = f.tipo;
+            div.dataset.nome = f.nome.toLowerCase();
+
+            div.innerHTML = `
+                <div class="funcao-header ${f.tipo}" 
+                     style="border-left-color:${corBorda}"
+                     onclick="toggleCorpo(${index})">
+                    <div>
+                        <strong style="font-size:1.1em">${f.nome}</strong>
+                        <span style="color:#64748b; font-size:0.85em; margin-left:10px">
+                            linha ${f.linha}
+                        </span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <span class="tag ${tagClasse}">${tagTexto}</span>
+                        ${f.explicacao.copiar ? '<span style="color:#4ade80; font-size:0.8em">✅ Copiar</span>' : ''}
+                        <span id="seta-${index}">▼</span>
+                    </div>
+                </div>
+                <div class="funcao-corpo" id="corpo-${index}">
+                    <div class="explicacao">
+                        <strong>O que faz:</strong> ${f.explicacao.oque}<br><br>
+                        <strong>Quando é usada:</strong> ${f.explicacao.quando}<br><br>
+                        <strong>💡 Dica:</strong> <span style="color:#fde68a">${f.explicacao.dica}</span>
+                    </div>
+                    <strong style="color:#94a3b8; font-size:0.85em">Código:</strong>
+                    <pre id="pre-${index}">${escaparHtml(f.corpo)}</pre>
+                    <button class="btn-copiar" onclick="copiar(${index}, this)">
+                        📋 Copiar este código
+                    </button>
+                </div>
+            `;
+
+            container.appendChild(div);
+        });
+    }
+
+    // =====================
+    // TOGGLE ABRIR/FECHAR
+    // =====================
+    function toggleCorpo(index) {
+        const corpo = document.getElementById(`corpo-${index}`);
+        const seta = document.getElementById(`seta-${index}`);
+        const aberto = corpo.classList.contains('aberto');
+        corpo.classList.toggle('aberto');
+        seta.textContent = aberto ? '▼' : '▲';
+    }
+
+    // =====================
+    // COPIAR CÓDIGO
+    // =====================
+    function copiar(index, btn) {
+        const codigo = todasFuncoes[index].corpo;
+        navigator.clipboard.writeText(codigo).then(() => {
+            btn.textContent = '✅ Copiado!';
+            btn.classList.add('copiado');
+            setTimeout(() => {
+                btn.textContent = '📋 Copiar este código';
+                btn.classList.remove('copiado');
+            }, 2000);
+        });
+    }
+
+    // =====================
+    // FILTRAR POR TIPO
+    // =====================
+    function filtrar(tipo, btn) {
+        filtroAtivo = tipo;
+        document.querySelectorAll('.btn-filtro').forEach(b => b.classList.remove('ativo'));
+        btn.classList.add('ativo');
+
+        const filtradas = tipo === 'todos' 
+            ? todasFuncoes 
+            : todasFuncoes.filter(f => f.tipo === tipo);
+
+        renderizarFuncoes(filtradas);
+    }
+
+    // =====================
+    // BUSCAR POR NOME
+    // =====================
+    function filtrarBusca(termo) {
+        const base = filtroAtivo === 'todos' 
+            ? todasFuncoes 
+            : todasFuncoes.filter(f => f.tipo === filtroAtivo);
+
+        const filtradas = termo 
+            ? base.filter(f => f.nome.toLowerCase().includes(termo.toLowerCase()))
+            : base;
+
+        renderizarFuncoes(filtradas);
+    }
+
+    // =====================
+    // ESCAPAR HTML
+    // =====================
+    function escaparHtml(texto) {
+        return texto
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+</script>
+</body>
+</html>

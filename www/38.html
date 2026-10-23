@@ -1,0 +1,168 @@
+<!DOCTYPE html>\n<html lang="pt-BR">\n<head>\n' +
+                '<meta charset="UTF-8">\n' +
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+                '<title>' + nomeCompleto + '</title>\n' +
+                '<link rel="manifest" href="manifest.json">\n' +
+                '<link rel="icon" href="icon-192.png">\n' +
+                '<meta name="theme-color" content="' + corTema + '">\n' +
+                '<style>\n' +
+                '* { margin: 0; padding: 0; box-sizing: border-box; }\n' +
+                'body { font-family: Arial, sans-serif; background: ' + corFundo + '; color: #f3f4f6; padding: 20px; min-height: 100vh; display: flex; justify-content: center; align-items: center; }\n' +
+                '.container { max-width: 700px; width: 100%; text-align: center; }\n' +
+                '.logo { width: 100px; height: 100px; background: ' + corTema + '; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 50px; font-weight: bold; color: ' + corFundo + '; }\n' +
+                'h1 { font-size: 28px; letter-spacing: 3px; margin-bottom: 10px; }\n' +
+                '.subtitle { color: #888; font-size: 12px; letter-spacing: 2px; margin-bottom: 40px; }\n' +
+                '.grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; }\n' +
+                '.cartao { background: #161614; padding: 30px 20px; border-radius: 15px; text-decoration: none; color: #f3f4f6; border: 1px solid #2a2a28; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 15px; }\n' +
+                '.cartao:hover { transform: translateY(-5px); border-color: ' + corTema + '; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }\n' +
+                '.icone { font-size: 40px; }\n' +
+                '.titulo { font-weight: bold; font-size: 13px; text-transform: uppercase; }\n' +
+                '.desc { font-size: 11px; color: #888; }\n' +
+                '.btn-instalar { background: #4CAF50; color: white; border: none; padding: 15px 30px; border-radius: 30px; font-weight: bold; cursor: pointer; display: none; margin: 20px auto; }\n' +
+                '</style>\n</head>\n<body>\n' +
+                '<div class="container">\n' +
+                '<div class="logo">M</div>\n' +
+                '<h1>MAIKON CALDEIRA</h1>\n' +
+                '<p class="subtitle">ADVOCACIA DIGITAL</p>\n' +
+                '<div class="grade">\n' + cartoes + '</div>\n' +
+                '<button class="btn-instalar" id="btnInstalar">Instalar App</button>\n' +
+                '</div>\n' +
+                '<script>\n' +
+                'let deferredPrompt;\n' +
+                'window.addEventListener("beforeinstallprompt", function(e) {\n' +
+                '  e.preventDefault();\n' +
+                '  deferredPrompt = e;\n' +
+                '  document.getElementById("btnInstalar").style.display = "block";\n' +
+                '});\n' +
+                'document.getElementById("btnInstalar").addEventListener("click", function() {\n' +
+                '  if (!deferredPrompt) return;\n' +
+                '  deferredPrompt.prompt();\n' +
+                '  deferredPrompt = null;\n' +
+                '  document.getElementById("btnInstalar").style.display = "none";\n' +
+                '});\n' +
+                'if ("serviceWorker" in navigator) {\n' +
+                '  navigator.serviceWorker.register("sw.js");\n' +
+                '}\n' +
+                '</script>\n</body>\n</html>';
+        }
+
+        // GERAR MANIFEST.JSON
+        function gerarManifestJSON() {
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const nomeCurto = document.getElementById('nomeCurto').value;
+            const descricao = document.getElementById('descricaoPWA').value;
+            const corFundo = document.getElementById('corFundo').value;
+            const corTema = document.getElementById('corTema').value;
+
+            return JSON.stringify({
+                name: nomeCompleto,
+                short_name: nomeCurto,
+                description: descricao,
+                start_url: './',
+                scope: './',
+                display: 'standalone',
+                background_color: corFundo,
+                theme_color: corTema,
+                icons: [
+                    { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
+                    { src: 'icon-512.png', sizes: '512x512', type: 'image/png' }
+                ]
+            }, null, 2);
+        }
+
+        // GERAR SERVICE WORKER
+        function gerarServiceWorker() {
+            let arquivos = '';
+            apps.forEach(function(app) {
+                arquivos += "  './" + app.arquivo + "',\n";
+            });
+            
+            return "const CACHE_NAME = 'pwa-v" + Date.now() + "';\n" +
+                "const FILES = [\n" +
+                "  './',\n" +
+                "  './index.html',\n" +
+                "  './manifest.json',\n" +
+                "  './icon-192.png',\n" +
+                "  './icon-512.png',\n" +
+                arquivos +
+                "];\n\n" +
+                "self.addEventListener('install', function(e) {\n" +
+                "  e.waitUntil(\n" +
+                "    caches.open(CACHE_NAME).then(function(cache) {\n" +
+                "      return cache.addAll(FILES);\n" +
+                "    })\n" +
+                "  );\n" +
+                "});\n\n" +
+                "self.addEventListener('fetch', function(e) {\n" +
+                "  e.respondWith(\n" +
+                "    caches.match(e.request).then(function(r) {\n" +
+                "      return r || fetch(e.request);\n" +
+                "    })\n" +
+                "  );\n" +
+                "});";
+        }
+
+        // GERAR PWA COMPLETO EM ZIP
+        function gerarPWACompleto() {
+            if (apps.length === 0) {
+                alert('Adicione pelo menos um app!');
+                return;
+            }
+
+            if (!icones.icon192 || !icones.icon512) {
+                if (!confirm('Você não adicionou ícones. Deseja gerar ícones SVG automáticos?')) {
+                    return;
+                }
+                gerarIconesSVG();
+            }
+
+            const alerta = document.getElementById('alertaGerar');
+            alerta.innerHTML = '<div class="alerta alerta-info">Gerando PWA completo...</div>';
+
+            const zip = new JSZip();
+
+            zip.file('index.html', gerarIndexHTML());
+            zip.file('manifest.json', gerarManifestJSON());
+            zip.file('sw.js', gerarServiceWorker());
+
+            if (icones.icon192) {
+                const icon192Data = icones.icon192.split(',')[1];
+                zip.file('icon-192.png', icon192Data, { base64: true });
+            }
+            if (icones.icon512) {
+                const icon512Data = icones.icon512.split(',')[1];
+                zip.file('icon-512.png', icon512Data, { base64: true });
+            }
+
+            apps.forEach(function(app) {
+                zip.file(app.arquivo, app.codigo);
+            });
+
+            zip.generateAsync({ type: 'blob' }).then(function(content) {
+                saveAs(content, 'pwa-completo.zip');
+                alerta.innerHTML = '<div class="alerta alerta-sucesso">PWA gerado! Arquivo baixado.</div>';
+            });
+        }
+
+        // PREVIEW
+        function previewIndex() {
+            const preview = document.getElementById('preview');
+            preview.style.display = 'block';
+            preview.innerHTML = '<pre>' + escapeHtml(gerarIndexHTML()) + '</pre>';
+        }
+
+        function previewManifest() {
+            const preview = document.getElementById('preview');
+            preview.style.display = 'block';
+            preview.innerHTML = '<pre>' + escapeHtml(gerarManifestJSON()) + '</pre>';
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[<>&'"]/g, function(c) {
+                return { '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&#39;', '"': '&quot;' }[c];
+            });
+        }
+    </script>
+
+</body>
+</html>

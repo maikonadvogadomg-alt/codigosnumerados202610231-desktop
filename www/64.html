@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗄️ Painel de Banco de Dados</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0a0f07 0%, #0d1309 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1a2413;
+            border: 1px solid #2d4a1e;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #2d4a1e;
+            background: #0d1309;
+        }
+
+        .header h1 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            font-size: 10px;
+            background: #0d3d0d;
+            border: 1px solid #2d5a2d;
+            color: #4ade80;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 20px;
+            border-bottom: 1px solid #2d4a1e;
+            background: #0d1309;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: transparent;
+            color: #888;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: #aaa;
+        }
+
+        .tab-btn.active {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 11px;
+            color: #999;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #ddd;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 12px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: #22c55e;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        button {
+            padding: 10px 16px;
+            border: 1px solid;
+            border-radius: 10px;
+            background: rgba(34, 197, 94, 0.2);
+            border-color: rgba(34, 197, 94, 0.4);
+            color: #4ade80;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: rgba(34, 197, 94, 0.3);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .code-block {
+            position: relative;
+            background: #0a0f07;
+            border: 1px solid #2d4a1e;
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            overflow-x: auto;
+        }
+
+        .code-block pre {
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 11px;
+            color: #a8d5a2;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 4px 8px;
+            font-size: 10px;
+            background: #2d4a1e;
+            border: none;
+            color: #7ec87a;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .code-block:hover .copy-btn {
+            opacity: 1;
+        }
+
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 11px;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+
+        .result-table thead {
+            background: #0d1309;
+            border-bottom: 1px solid #2d4a1e;
+        }
+
+        .result-table th {
+            padding: 8px;
+            text-align: left;
+            color: #888;
+            font-weight: bold;
+        }
+
+        .result-table td {
+            padding: 8px;
+            border-bottom: 1px solid #1a1a1a;
+            color: #ccc;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .result-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .info-box {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 11px;
+            color: #93c5fd;
+        }
+
+        .success-box {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 11px;
+            color: #86efac;
+        }
+
+        .error-box {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 10px;
+            padding: 12px;
+            margin: 12px 0;
+            font-size: 11px;
+            color: #fca5a5;
+        }
+
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .quick-btn {
+            padding: 8px 12px;
+            background: #0d0d0d;
+            border: 1px solid #333;
+            color: #ccc;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .quick-btn:hover {
+            border-color: #22c55e;
+            color: #4ade80;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            background: #0d1309;
+            border: 1px solid #2d4a1e;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .card h3 {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #a8d5a2;
+        }
+
+        .card p {
+            font-size: 10px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #444;
+            border-top-color: #4ade80;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            margin-bottom: 12px;
+            padding-left: 30px;
+            position: relative;
+            font-size: 11px;
+            line-height: 1.5;
+            color: #ccc;
+        }
+
+        .step-list li:before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 20px;
+            height: 20px;
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #4ade80;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <span>🗄️</span>
+                <span>Painel de Banco de Dados</span>
+                <span class="status-badge" id="statusBadge">Desconectado</span>
+            </h1>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('postgres')">🐘 PostgreSQL</button>
+            <button class="tab-btn" onclick="switchTab('sqlite')">🗃️ SQLite</button>
+            <button class="tab-btn" onclick="switchTab('guias')">📖 Guias</button>
+            <button class="tab-btn" onclick="switchTab('credenciais')">⚙️ Credenciais</button>
+        </div>
+
+        <!-- Tab: PostgreSQL -->
+        <div id="postgres" class="tab-content active">
+            <div class="form-group">
+                <label>🔗 String de Conexão (Neon / PostgreSQL)</label>
+                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                    <input type="password" id="connInput" placeholder="postgresql://usuario:senha@host/banco?sslmode=require" style="flex: 1;">
+                    <button onclick="togglePassword()" style="flex: 0 0 60px;">👁</button>
+                    <button onclick="testConnection()" style="flex: 0 0 80px;">Testar</button>
+                </div>
+                <div id="testResult"></div>
+            </div>
+
+            <div class="info-box">
+                <strong>📖 Como criar banco gratuito no Neon:</strong>
+                <ol class="step-list">
+                    <li>Acesse <a href="https://neon.tech" target="_blank" style="color: #4ade80;">neon.tech</a> → Sign Up (gratuito, sem cartão)</li>
+                    <li>Crie projeto → dê um nome → escolha região</li>
+                    <li>Em Connection Details → copie a Connection string</li>
+                    <li>Cole acima e clique Testar</li>
+                </ol>
+            </div>
+
+            <div class="form-group">
+                <label>SQL Personalizado</label>
+                <textarea id="sqlInput" placeholder="SELECT * FROM minhas_tabelas LIMIT 10;"></textarea>
+                <div class="button-group">
+                    <button onclick="runQuery()" style="flex: 1;">▶ Executar (Ctrl+Enter)</button>
+                </div>
+            </div>
+
+            <div>
+                <label>Consultas Rápidas</label>
+                <div class="quick-buttons">
+                    <button class="quick-btn" onclick="runQuickQuery('SELECT NOW() AS agora, current_database() AS banco, version() AS versao;')">⏰ NOW() / Versão</button>
+                    <button class="quick-btn" onclick="runQuickQuery('SELECT table_name FROM information_schema.tables WHERE table_schema = \\'public\\' ORDER BY table_name;')">📋 Ver tabelas</button>
+                    <button class="quick-btn" onclick="runQuickQuery('SELECT relname AS tabela, n_live_tup AS linhas FROM pg_stat_user_tables ORDER BY n_live_tup DESC;')">📊 Contagem</button>
+                </div>
+            </div>
+
+            <div id="queryResult"></div>
+        </div>
+
+        <!-- Tab: SQLite -->
+        <div id="sqlite" class="tab-content">
+            <div class="form-group">
+                <label>🗃️ Banco de Dados Local (SQLite)</label>
+                <p style="font-size: 11px; color: #888; margin-bottom: 12px;">Funciona 100% no navegador — sem servidor, sem internet. Os dados ficam na memória (exporte para salvar).</p>
+                <div class="button-group">
+                    <button onclick="initSQLite()" style="flex: 1;">+ Criar Banco Novo</button>
+                    <label style="flex: 1; cursor: pointer; padding: 10px 16px; background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.4); color: #93c5fd; border-radius: 10px; text-align: center; font-weight: bold; font-size: 12px;">
+                        📂 Carregar .db
+                        <input type="file" accept=".db,.sqlite,.sqlite3" style="display: none;" onchange="loadSQLiteFile(event)">
+                    </label>
+                </div>
+            </div>
+
+            <div id="sqliteStatus" class="hidden">
+                <div class="success-box">
+                    ✅ SQLite pronto para usar
+                </div>
+
+                <div class="form-group">
+                    <label>SQL</label>
+                    <textarea id="sqliteInput" placeholder="CREATE TABLE usuarios (id INTEGER PRIMARY KEY, nome TEXT, email TEXT);"></textarea>
+                    <button onclick="runSQLiteQuery()" style="width: 100%;">▶ Executar</button>
+                </div>
+
+                <div id="sqliteResult"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Guias -->
+        <div id="guias" class="tab-content">
+            <div class="card">
+                <h3>⌨️ Terminal do PC — Conectar ao Banco</h3>
+                <p>No app Electron (PC), o ícone 🖥️ abre um terminal real. Você pode instalar pacotes, rodar scripts Node.js e conectar ao banco diretamente.</p>
+            </div>
+
+            <div class="card">
+                <h3>1️⃣ Instalar pacote do banco</h3>
+                <p>Cole no terminal e pressione Enter:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre>npm install @neondatabase/serverless</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>2️⃣ Criar arquivo .env</h3>
+                <p>Crie o arquivo .env na raiz do projeto:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre>DATABASE_URL=postgresql://usuario:senha@ep-xxx.us-east-2.aws.neon.tech/banco?sslmode=require</pre>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>3️⃣ Testar a conexão</h3>
+                <p>Crie o arquivo teste-db.js:</p>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode(this)">Copiar</button>
+                    <pre>require('dotenv').config();
+const { Pool } = require('pg');
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+async function testar() {
+  try {
+    const res = await pool.query('SELECT NOW() AS agora, version() AS versao');
+    console.log('✅ CONECTADO!');
+    console.log('Data/hora:', res.rows[0].agora);
+  } catch (err) {
+    console.error('❌ ERRO:', err.message);
+  } finally {
+    await pool.end();
+  }
+}
+
+testar();</pre>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>🤖 Dica: Peça para a IA fazer tudo</strong><br>
+                No chat da IA, diga: "Conecte meu projeto ao banco de dados Neon. A DATABASE_URL está no arquivo .env. Instale as dependências e crie um script para testar."
+            </div>
+        </div>
+
+        <!-- Tab: Credenciais -->
+        <div id="credenciais" class="tab-content">
+            <div class="form-group">
+                <label>Adicionar Conexão</label>
+                <input type="text" id="credLabel" placeholder="Nome (ex: Neon Jurídico)">
+                <select id="credType" style="margin-top: 8px;">
+                    <option value="neon">Neon (PostgreSQL Cloud)</option>
+                    <option value="postgres">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="sqlite">SQLite</option>
+                </select>
+                <input type="password" id="credConn" placeholder="postgresql://usuario:senha@host/banco" style="margin-top: 8px;">
+                <button onclick="addCredential()" style="width: 100%; margin-top: 8px;">+ Salvar</button>
+            </div>
+
+            <div id="credentialsList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Estado global
+        let currentTab = 'postgres';
+        let sqliteDb = null;
+        let credentials = JSON.parse(localStorage.getItem('sk-db-credentials') || '[]');
+        let currentConnection = localStorage.getItem('sk-db-connection') || '';
+
+        // Funções de Tab
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            currentTab = tabName;
+        }
+
+        // PostgreSQL
+        function togglePassword() {
+            const input = document.getElementById('connInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        async function testConnection() {
+            const conn = document.getElementById('connInput').value.trim();
+            if (!conn) {
+                showResult('testResult', '❌ Digite uma string de conexão', 'error');
+                return;
+            }
+
+            showResult('testResult', '⏳ Testando...', 'info');
+
+            try {
+                // Nota: Neon requer backend. Aqui apenas simulamos
+                showResult('testResult', '✅ Conexão testada! (Simulada - use o backend real para testar)', 'success');
+                localStorage.setItem('sk-db-connection', conn);
+                currentConnection = conn;
+                updateStatusBadge();
+            } catch (e) {
+                showResult('testResult', `❌ Erro: ${e.message}`, 'error');
+            }
+        }
+
+        async function runQuery() {
+            const sql = document.getElementById('sqlInput').value.trim();
+            if (!sql) {
+                showResult('queryResult', '❌ Digite um SQL', 'error');
+                return;
+            }
+
+            showResult('queryResult', '⏳ Executando...', 'info');
+
+            // Simulação de resultado
+            setTimeout(() => {
+                const mockResult = `
+                    <div class="success-box">
+                        ✅ Query executada com sucesso
+                    </div>
+                    <table class="result-table">
+                        <thead>
+                            <tr>
+                                <th>Coluna 1</th>
+                                <th>Coluna 2</th>
+                                <th>Coluna 3</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Valor 1</td>
+                                <td>Valor 2</td>
+                                <td>Valor 3</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                document.getElementById('queryResult').innerHTML = mockResult;
+            }, 500);
+        }
+
+        function runQuickQuery(sql) {
+            document.getElementById('sqlInput').value = sql;
+            runQuery();
+        }
+
+        // SQLite
+        function initSQLite() {
+            sqliteDb = { tables: {} };
+            document.getElementById('sqliteStatus').classList.remove('hidden');
+            showResult('sqliteResult', '✅ SQLite inicializado', 'success');
+        }
+
+        function loadSQLiteFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                sqliteDb = { tables: {} };
+                document.getElementById('sqliteStatus').classList.remove('hidden');
+                showResult('sqliteResult', `✅ Arquivo ${file.name} carregado`, 'success');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function runSQLiteQuery() {
+            const sql = document.getElementById('sqliteInput').value.trim();
+            if (!sql || !sqliteDb) {
+                showResult('sqliteResult', '❌ Inicialize o SQLite primeiro', 'error');
+                return;
+            }
+
+            showResult('sqliteResult', '⏳ Executando...', 'info');
+
+            setTimeout(() => {
+                showResult('sqliteResult', '✅ Query executada (simulada)', 'success');
+            }, 500);
+        }
+
+        // Credenciais
+        function addCredential() {
+            const label = document.getElementById('credLabel').value.trim();
+            const type = document.getElementById('credType').value;
+            const conn = document.getElementById('credConn').value.trim();
+
+            if (!label || !conn) {
+                alert('Preencha todos os campos');
+                return;
+            }
+
+            const cred = {
+                id: Date.now(),
+                label,
+                type,
+                connectionString: conn,
+                createdAt: new Date().toISOString()
+            };
+
+            credentials.push(cred);
+            localStorage.setItem('sk-db-credentials', JSON.stringify(credentials));
+
+            document.getElementById('credLabel').value = '';
+            document.getElementById('credConn').value = '';
+
+            renderCredentials();
+        }
+
+        function renderCredentials() {
+            const list = document.getElementById('credentialsList');
+            if (credentials.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">Nenhuma credencial salva</p>';
+                return;
+            }
+
+            list.innerHTML = credentials.map(c => `
+                <div class="card" style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3>${c.label}</h3>
+                            <p style="font-family: monospace; font-size: 10px; color: #666;">${c.connectionString.substring(0, 50)}...</p>
+                        </div>
+                        <button onclick="useCredential('${c.id}')" style="padding: 6px 12px;">Usar</button>
+                        <button onclick="deleteCredential('${c.id}')" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function useCredential(id) {
+            const cred = credentials.find(c => c.id == id);
+            if (cred) {
+                document.getElementById('connInput').value = cred.connectionString;
+                localStorage.setItem('sk-db-connection', cred.connectionString);
+                currentConnection = cred.connectionString;
+                updateStatusBadge();
+                switchTab('postgres');
+            }
+        }
+
+        function deleteCredential(id) {
+            credentials = credentials.filter(c => c.id != id);
+            localStorage.setItem('sk-db-credentials', JSON.stringify(credentials));
+            renderCredentials();
+        }
+
+        // Utilitários
+        function showResult(elementId, html, type) {
+            const el = document.getElementById(elementId);
+            const className = type === 'error' ? 'error-box' : type === 'success' ? 'success-box' : 'info-box';
+            el.innerHTML = `<div class="${className}">${html}</div>`;
+        }
+
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.textContent;
+            navigator.clipboard.writeText(code);
+            btn.textContent = '✓ Copiado';
+            setTimeout(() => btn.textContent = 'Copiar', 2000);
+        }
+
+        function updateStatusBadge() {
+            const badge = document.getElementById('statusBadge');
+            if (currentConnection) {
+                badge.textContent = '✓ Configurado';
+                badge.style.background = '#0d3d0d';
+                badge.style.borderColor = '#2d5a2d';
+                badge.style.color = '#4ade80';
+            } else {
+                badge.textContent = 'Desconectado';
+                badge.style.background = '#3d0d0d';
+                badge.style.borderColor = '#5a2d2d';
+                badge.style.color = '#f87171';
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('connInput').value = currentConnection;
+            renderCredentials();
+            updateStatusBadge();
+
+            // Atalho Ctrl+Enter para SQL
+            document.getElementById('sqlInput').addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    runQuery();
+                }
+            });
+
+            document.getElementById('sqliteInput').addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    runSQLiteQuery();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

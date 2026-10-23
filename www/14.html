@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Montador Multi-Projetos — PWA Jurídico</title>
+<style>
+:root { --bg:#0a0a0f; --bg2:#12121a; --bg3:#1a1a2e; --text:#e2e8f0; --text2:#94a3b8; --accent:#a3a082; --accent2:#d4d0a8; --green:#4ade80; --blue:#60a5fa; --red:#f87171; --border:#2d2d3a; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+.header { background:var(--bg2); border-bottom:1px solid var(--border); padding:10px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+.header h1 { font-size:14px; color:var(--accent); margin:0; }
+.header h1 small { display:inline; font-size:9px; color:var(--text2); font-weight:400; letter-spacing:1px; margin-left:8px; }
+
+.header-buttons { display:flex; gap:4px; flex-wrap:wrap; }
+
+.container { max-width:1400px; margin:0 auto; padding:12px; }
+
+.workspace { background:var(--bg2); border:1px solid var(--border); border-radius:8px; padding:12px; margin-bottom:12px; }
+.workspace h2 { font-size:12px; color:var(--accent); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+
+.btn { display:inline-flex; align-items:center; gap:4px; padding:6px 10px; border:none; border-radius:6px; font-size:10px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.btn-sm { padding:4px 8px; font-size:9px; }
+.btn-primary { background:var(--accent); color:#000; }
+.btn-primary:hover { background:var(--accent2); }
+.btn-success { background:var(--green); color:#000; }
+.btn-danger { background:rgba(239,68,68,0.2); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+.btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--bg3); color:var(--text); }
+
+.input { width:100%; padding:6px 10px; background:var(--bg); border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:11px; margin-bottom:8px; }
+.input:focus { outline:none; border-color:var(--accent); }
+
+.code-area { width:100%; min-height:200px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:8px; font-family:'Consolas','Fira Code',monospace; font-size:11px; color:var(--text); resize:vertical; line-height:1.5; }
+.code-area:focus { outline:none; border-color:var(--accent); }
+
+.project-card { background:var(--bg3); border:1px solid var(--border); border-radius:6px; padding:10px; margin-bottom:8px; }
+.project-card h3 { color:var(--accent2); font-size:12px; margin-bottom:6px; }
+.project-card .actions { display:flex; gap:4px; margin-top:8px; flex-wrap:wrap; }
+
+.status { padding:8px 10px; border-radius:6px; font-size:10px; font-weight:600; margin-bottom:10px; }
+.status-info { background:rgba(96,165,250,0.1); color:var(--blue); border:1px solid rgba(96,165,250,0.2); }
+
+.toast { position:fixed; bottom:20px; right:20px; background:var(--bg2); border:1px solid var(--accent); border-radius:8px; padding:10px 16px; font-size:11px; font-weight:600; color:var(--accent2); z-index:2000; transform:translateY(100px); opacity:0; transition:all 0.3s; }
+
+.modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:3000; align-items:center; justify-content:center; padding:10px; }
+.modal.active { display:flex; }
+.modal-content { background:var(--bg2); border:1px solid var(--accent); border-radius:8px; padding:16px; max-width:400px; width:100%; }
+.modal-content h3 { color:var(--accent); margin-bottom:12px; font-size:13px; }
+.modal-content .input { margin-bottom:12px; }
+.modal-buttons { display:flex; gap:6px; justify-content:flex-end; }
+
+.grid-projetos { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; margin-bottom:12px; }
+
+.projeto-label { font-size:10px; color:var(--text2); margin-bottom:4px; display:block; font-weight:600; }
+
+@media (max-width:768px) {
+  .header { padding:8px 12px; }
+  .header h1 { font-size:12px; }
+  .header h1 small { display:block; margin-left:0; margin-top:2px; }
+  .header-buttons { width:100%; }
+  .container { padding:8px; }
+  .grid-projetos { grid-template-columns:1fr; }
+  .code-area { min-height:150px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🧩 Montador <small>PWA JURÍDICO</small></h1>
+  </div>
+  <div class="header-buttons">
+    <button class="btn btn-primary" onclick="abrirModalNomeDownload()">📦 Gerar</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportarBackup()">💾 Backup</button>
+    <button class="btn btn-ghost btn-sm" onclick="importarBackup()">📂 Importar</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="status status-info">
+    💡 Cole até 10 códigos HTML. Cada um será um projeto independente com abas!
+  </div>
+
+  <!-- GRID DE PROJETOS DINÂMICO -->
+  <div class="grid-projetos" id="gridProjetos"></div>
+
+  <!-- PROJETOS SALVOS -->
+  <div class="workspace">
+    <h2>💾 Salvos</h2>
+    <div id="projetosSalvos" style="font-size:11px;"></div>
+  </div>
+
+</div>
+
+<!-- Hidden inputs -->
+<div id="fileInputsContainer" style="display:none;"></div>
+<input type="file" id="backupInput" style="display:none" accept=".json" />
+
+<!-- MODAL PARA NOMEAR DOWNLOAD -->
+<div class="modal" id="modalDownload">
+  <div class="modal-content">
+    <h3>📦 Nome do Arquivo</h3>
+    <input type="text" class="input" id="nomeDownload" placeholder="Ex: Meu-Sistema" />
+    <p style="font-size:9px;color:var(--text2);margin-bottom:12px;">A extensão .html será adicionada</p>
+    <div class="modal-buttons">
+      <button class="btn btn-ghost" onclick="fecharModal()">❌ Cancelar</button>
+      <button class="btn btn-primary" onclick="gerarHtmlFinal()">✅ Gerar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LS_KEY = 'multiprojetos-v2';
+const TOTAL_PROJETOS = 10;
+
+// ========== STORAGE ==========
+function salvarProjetos() {
+  const projetos = {};
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    const nome = document.getElementById('nome' + i)?.value || '';
+    const codigo = document.getElementById('codigo' + i)?.value || '';
+    if (nome || codigo) {
+      projetos['p' + i] = { nome, codigo };
+    }
+  }
+  localStorage.setItem(LS_KEY, JSON.stringify(projetos));
+  renderizarSalvos();
+}
+
+function carregarProjetos() {
+  try {
+    const data = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+    for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+      const nome = document.getElementById('nome' + i);
+      const codigo = document.getElementById('codigo' + i);
+      if (nome && data['p' + i]) {
+        nome.value = data['p' + i].nome || '';
+        codigo.value = data['p' + i].codigo || '';
+      }
+    }
+    renderizarSalvos();
+  } catch(e) { console.error(e); }
+}
+
+function renderizarSalvos() {
+  const data = JSON.parse(localStorage.getItem(LS_KEY) || '{}');
+  const container = document.getElementById('projetosSalvos');
+  const projetos = [];
+  
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    if (data['p' + i]?.codigo && data['p' + i].codigo.trim()) {
+      projetos.push({ n: i, nome: data['p' + i].nome, codigo: data['p' + i].codigo });
+    }
+  }
+
+  if (projetos.length === 0) {
+    container.innerHTML = '<p style="color:var(--text2);">Nenhum projeto salvo.</p>';
+    return;
+  }
+
+  container.innerHTML = projetos.map(p => `
+    <div class="project-card">
+      <h3>🔷 ${escHtml(p.nome || 'Projeto ' + p.n)}</h3>
+      <div style="font-size:10px;color:var(--text2);">${p.codigo.length} caracteres</div>
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="testarProjeto(${p.n})">👁️</button>
+        <button class="btn btn-ghost btn-sm" onclick="copiarCodigo(${p.n})">📋</button>
+        <button class="btn btn-danger btn-sm" onclick="limparProjeto(${p.n})">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========== RENDERIZAR GRID DE PROJETOS ==========
+function renderizarGrid() {
+  const grid = document.getElementById('gridProjetos');
+  let html = '';
+  
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    const emojis = ['🔷', '🔶', '🔸', '🟡', '🟢', '🔵', '🟣', '🟠', '⚫', '⚪'];
+    html += `
+      <div class="workspace">
+        <h2>${emojis[i-1]} Projeto ${i}</h2>
+        <label class="projeto-label">Nome:</label>
+        <input type="text" class="input" id="nome${i}" placeholder="Ex: Sistema de Processos" />
+        <label class="projeto-label">Código HTML:</label>
+        <textarea class="code-area" id="codigo${i}" placeholder="Cole o HTML aqui..."></textarea>
+        <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" onclick="testarProjeto(${i})">👁️ Testar</button>
+          <button class="btn btn-ghost btn-sm" onclick="limparProjeto(${i})">🗑️ Limpar</button>
+          <button class="btn btn-ghost btn-sm" onclick="importarArquivo(${i})">📂 Importar</button>
+        </div>
+      </div>
+    `;
+  }
+  
+  grid.innerHTML = html;
+  
+  // Adicionar event listeners
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.id = 'fileInput' + i;
+    fileInput.style.display = 'none';
+    fileInput.accept = '.html,.htm';
+    document.getElementById('fileInputsContainer').appendChild(fileInput);
+    
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('codigo' + i).value = ev.target.result;
+        if (!document.getElementById('nome' + i).value) {
+          document.getElementById('nome' + i).value = file.name.replace(/\.[^.]+$/, '');
+        }
+        salvarProjetos();
+        mostrarToast('📂 Projeto ' + i + ' importado!');
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
+  }
+  
+  // Auto-save
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    ['nome' + i, 'codigo' + i].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.addEventListener('input', () => {
+          clearTimeout(window.autoSaveTimer);
+          window.autoSaveTimer = setTimeout(salvarProjetos, 1000);
+        });
+      }
+    });
+  }
+  
+  carregarProjetos();
+}
+
+// ========== AÇÕES ==========
+function testarProjeto(n) {
+  const codigo = document.getElementById('codigo' + n)?.value;
+  if (!codigo || !codigo.trim()) { mostrarToast('❌ Projeto ' + n + ' vazio!'); return; }
+  
+  const blob = new Blob([codigo], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function limparProjeto(n) {
+  if (!confirm('Limpar projeto ' + n + '?')) return;
+  const nome = document.getElementById('nome' + n);
+  const codigo = document.getElementById('codigo' + n);
+  if (nome) nome.value = '';
+  if (codigo) codigo.value = '';
+  salvarProjetos();
+}
+
+function copiarCodigo(n) {
+  const codigo = document.getElementById('codigo' + n)?.value;
+  if (!codigo) return;
+  navigator.clipboard.writeText(codigo);
+  mostrarToast('📋 Copiado!');
+}
+
+function importarArquivo(n) {
+  document.getElementById('fileInput' + n).click();
+}
+
+// ========== MODAL DOWNLOAD ==========
+function abrirModalNomeDownload() {
+  const projetos = [];
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    const codigo = document.getElementById('codigo' + i)?.value;
+    if (codigo && codigo.trim()) projetos.push(i);
+  }
+  
+  if (projetos.length === 0) {
+    mostrarToast('❌ Adicione um projeto!');
+    return;
+  }
+  
+  document.getElementById('nomeDownload').value = 'multiprojetos-' + new Date().toISOString().slice(0,10);
+  document.getElementById('modalDownload').classList.add('active');
+}
+
+function fecharModal() {
+  document.getElementById('modalDownload').classList.remove('active');
+}
+
+// ========== GERAR HTML FINAL ==========
+function gerarHtmlFinal() {
+  const nomeArquivo = document.getElementById('nomeDownload').value.trim() || 'multiprojetos';
+  
+  const projetos = [];
+  for (let i = 1; i <= TOTAL_PROJETOS; i++) {
+    const nome = document.getElementById('nome' + i)?.value || 'Projeto ' + i;
+    const codigo = document.getElementById('codigo' + i)?.value || '';
+    if (codigo.trim()) {
+      projetos.push({ nome, codigo });
+    }
+  }
+
+  if (projetos.length === 0) {
+    mostrarToast('❌ Adicione um projeto!');
+    return;
+  }
+
+  const htmlFinal = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Projetos PWA — Maikon Caldeira</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; background: #0a0a0f; color: #e2e8f0; }
+
+.project-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: #12121a;
+  border-bottom: 2px solid #a3a082;
+  padding: 8px 16px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  flex-wrap: wrap;
+  overflow-x: auto;
+}
+
+.nav-btn {
+  padding: 8px 14px;
+  background: #1a1a2e;
+  border: 1px solid #2d2d3a;
+  border-radius: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.nav-btn:hover {
+  background: #a3a082;
+  color: #000;
+  border-color: #a3a082;
+}
+
+.nav-btn.active {
+  background: #a3a082;
+  color: #000;
+  border-color: #d4d0a8;
+}
+
+.project-container {
+  display: none;
+  padding-top: 60px;
+  min-height: 100vh;
+}
+
+.project-container.active {
+  display: block;
+}
+
+.project-container iframe {
+  width: 100%;
+  min-height: calc(100vh - 60px);
+  border: none;
+}
+</style>
+</head>
+<body>
+
+<!-- Navegação -->
+<div class="project-nav">
+  <span style="font-size:12px;font-weight:700;color:#a3a082;margin-right:6px;">📂</span>
+  ${projetos.map((p, i) => `<button class="nav-btn ${i === 0 ? 'active' : ''}" onclick="trocarProjeto(${i})">${escHtml(p.nome)}</button>`).join('')}
+</div>
+
+<!-- Projetos (cada um em iframe isolado) -->
+${projetos.map((p, i) => `
+<div class="project-container ${i === 0 ? 'active' : ''}" id="projeto${i}">
+  <iframe srcdoc="${escHtml(p.codigo).replace(/"/g, '&quot;')}"></iframe>
+</div>
+`).join('')}
+
+<script>
+function trocarProjeto(index) {
+  document.querySelectorAll('.project-container').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  
+  document.getElementById('projeto' + index).classList.add('active');
+  document.querySelectorAll('.nav-btn')[index].classList.add('active');
+  
+  localStorage.setItem('ultimo-projeto', index);
+}
+
+window.onload = function() {
+  const ultimo = localStorage.getItem('ultimo-projeto');
+  if (ultimo !== null) trocarProjeto(parseInt(ultimo));
+};
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+<\/script>
+</body>
+</html>`;
+
+  // Download
+  const blob = new Blob([htmlFinal], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nomeArquivo + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  fecharModal();
+  mostrarToast('✅ HTML com ' + projetos.length + ' projetos gerado!');
+}
+
+// ========== BACKUP ==========
+function exportarBackup() {
+  const data = localStorage.getItem(LS_KEY);
+  if (!data) { mostrarToast('❌ Nada para exportar!'); return; }
+  
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'backup-projetos-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  mostrarToast('💾 Backup exportado!');
+}
+
+function importarBackup() {
+  document.getElementById('backupInput').click();
+}
+
+document.getElementById('backupInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      localStorage.setItem(LS_KEY, ev.target.result);
+      location.reload();
+    } catch(err) {
+      mostrarToast('❌ Arquivo inválido!');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ========== UTILS ==========
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.transform = 'translateY(0)';
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.transform = 'translateY(100px)'; t.style.opacity = '0'; }, 2500);
+}
+
+// Init
+renderizarGrid();
+</script>
+</body>
+</html>

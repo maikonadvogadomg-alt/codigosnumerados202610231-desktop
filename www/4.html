@@ -1,0 +1,190 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MANUAL (1)</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:860px;margin:0 auto;padding:12px 16px 40px;color:#1f2230;background:#fffdf8}h1,h2,h3{line-height:1.25}h2{border-bottom:1px solid #e3ddc8;padding-bottom:4px}code{background:#f1ede0;padding:1px 5px;border-radius:4px;font:14px ui-monospace,Consolas,monospace}.bloco{border:1px solid #d9d2bb;border-radius:8px;margin:10px 0;overflow:hidden}.bloco-bar{display:flex;gap:6px;align-items:center;background:#efe9d6;padding:5px 8px;font:600 12px ui-monospace,monospace;color:#6b6450}.bloco-bar span{flex:1}.bloco-bar button,.topo button{font:600 13px system-ui,sans-serif;border:1px solid #8a7b45;background:#fff;color:#4a4020;border-radius:6px;padding:5px 9px;cursor:pointer}.bloco pre{margin:0;padding:10px;overflow-x:auto;background:#fbf9f2}.bloco pre code{background:none;padding:0;white-space:pre}.tab{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}th,td{border-bottom:1px solid #e3ddc8;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f6f2e4}blockquote{margin:8px 0;padding:6px 12px;border-left:4px solid #c9b77a;background:#faf6e8}.topo{position:sticky;top:0;background:#fffdf8;padding:8px 0;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #eee;margin-bottom:8px;z-index:2}a{color:#7a6526}</style></head><body><div class="topo"><button id="md-todos">📋 Copiar todos os blocos (10)</button></div><h1>Assistente Jurídico IA — Manual Completo</h1>
+<p><b>Versão:</b> 1.1.0 · <b>Data:</b> Maio 2026 · <b>Público:</b> Advogados e operadores do sistema</p>
+<hr>
+<h2>1. Visão Geral</h2>
+<p>O <b>SK Jurídico</b> é um assistente jurídico com IA voltado para advogados brasileiros. Ele gera petições, minutas, pareceres e outros documentos jurídicos com formatação ABNT automática, usando modelos de linguagem como Gemini, OpenAI, Groq, Perplexity e qualquer provedor compatível com OpenAI.</p>
+<p><b>Funcionalidades principais:</b></p>
+<ul><li>Geração de documentos jurídicos com IA (streaming em tempo real)</li><li>Editor TipTap v3 com formatação ABNT</li><li>Importação de PDF, DOCX, HTML, XML, TXT (até 150 MB)</li><li>Exportação para DOCX</li><li>Busca de jurisprudência no DataJud CNJ</li><li>Biblioteca de ementas e modelos de prompt</li><li>Histórico de gerações</li><li>Assistente de código web (HTML/CSS/JS com preview)</li><li>Auditoria financeira, comunicações CNJ, tramitação processual</li><li>Proteção por senha</li><li>PWA instalável no celular e desktop</li></ul>
+<hr>
+<h2>2. Estrutura de Pastas</h2>
+<div class="bloco"><div class="bloco-bar"><span>código</span><button data-copiar="0">📋 Copiar</button></div><pre><code>sk-juridico/
+├── artifacts/
+│   ├── api-server/          # Backend Express 5 (porta 8080)
+│   │   ├── src/
+│   │   │   ├── app.ts       # Entry point, middlewares, sessão
+│   │   │   ├── storage.ts   # Camada de dados (PostgreSQL + fallback memória)
+│   │   │   ├── local-config.ts  # Config local em arquivo JSON
+│   │   │   └── routes/
+│   │   │       ├── ai.ts          # Streaming SSE de IA
+│   │   │       ├── upload.ts      # Upload PDF/DOCX/HTML/TXT (150 MB)
+│   │   │       ├── crud.ts        # CRUD genérico
+│   │   │       ├── settings.ts    # Configurações, auth, DB, TTS, DOCX
+│   │   │       ├── jurisprudencia.ts  # DataJud CNJ
+│   │   │       └── extra.ts       # JWT, exportação, pesquisa web
+│   │   ├── build.mjs        # Build esbuild (bundle CJS)
+│   │   └── package.json
+│   │
+│   └── assistente-juridico/ # Frontend React + Vite (porta dinâmica)
+│       ├── public/
+│       │   ├── manifest.json    # PWA manifest
+│       │   ├── sw.js            # Service Worker (cache offline)
+│       │   ├── favicon.svg
+│       │   └── robots.txt
+│       ├── src/
+│       │   ├── pages/           # Todas as páginas da aplicação
+│       │   ├── components/      # Componentes reutilizáveis
+│       │   │   └── tiptap-editor.tsx  # Editor principal
+│       │   └── lib/
+│       │       └── legal-formatter.ts # Conversor texto → HTML ABNT
+│       ├── index.html           # HTML com PWA meta tags
+│       └── vite.config.ts
+│
+├── lib/
+│   └── db/
+│       └── src/schema/index.ts  # Schema Drizzle (fonte da verdade)
+│
+├── scripts/
+│   └── export-zip.sh            # Gera ZIP do projeto
+│
+├── .env.example                 # Template de variáveis de ambiente
+├── MANUAL.md                    # Este arquivo
+└── pnpm-workspace.yaml</code></pre></div>
+<hr>
+<h2>3. Tecnologias Utilizadas</h2>
+<div class="tab"><table><thead><tr><th>Camada</th><th>Tecnologia</th></tr></thead><tbody><tr><td>Runtime</td><td>Node.js 24</td></tr><tr><td>Gerenciador</td><td>pnpm workspaces</td></tr><tr><td>Linguagem</td><td>TypeScript 5.9</td></tr><tr><td>Frontend</td><td>React 18 + Vite</td></tr><tr><td>Roteamento</td><td>Wouter</td></tr><tr><td>Estado/fetch</td><td>TanStack Query</td></tr><tr><td>UI</td><td>Tailwind CSS + shadcn/ui</td></tr><tr><td>Editor</td><td>TipTap v3</td></tr><tr><td>Backend</td><td>Express 5</td></tr><tr><td>ORM</td><td>Drizzle ORM</td></tr><tr><td>Banco</td><td>PostgreSQL (Neon / Supabase / Railway / local)</td></tr><tr><td>Validação</td><td>Zod v4 + drizzle-zod</td></tr><tr><td>IA</td><td>@google/genai (Gemini), openai (OpenAI/Groq/OpenRouter/etc)</td></tr><tr><td>PDF</td><td>pdfjs-dist (extração de texto)</td></tr><tr><td>Word</td><td>mammoth (extração) + docx (exportação)</td></tr><tr><td>Build</td><td>esbuild (CJS bundle)</td></tr><tr><td>PWA</td><td>Service Worker + Web App Manifest</td></tr></tbody></table></div>
+<hr>
+<h2>4. Variáveis de Ambiente</h2>
+<p>Copie <code>.env.example</code> para <code>.env</code> e preencha:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="1">📋 Copiar</button><button data-rodar="1" class="so-app">▶ Terminal</button></div><pre><code>cp .env.example .env</code></pre></div>
+<h3>Obrigatórias para produção</h3>
+<div class="tab"><table><thead><tr><th>Variável</th><th>Descrição</th></tr></thead><tbody><tr><td><code>DATABASE_URL</code></td><td>String de conexão PostgreSQL</td></tr><tr><td><code>SESSION_SECRET</code></td><td>String aleatória longa (≥32 chars) para sessões</td></tr></tbody></table></div>
+<h3>Opcionais (também configuráveis pelo painel)</h3>
+<div class="tab"><table><thead><tr><th>Variável</th><th>Descrição</th></tr></thead><tbody><tr><td><code>APP_PASSWORD</code></td><td>Senha para proteger o acesso</td></tr><tr><td><code>GEMINI_API_KEY</code></td><td>Chave Google Gemini</td></tr><tr><td><code>OPENAI_API_KEY</code></td><td>Chave OpenAI</td></tr><tr><td><code>GROQ_API_KEY</code></td><td>Chave Groq</td></tr><tr><td><code>OPENROUTER_API_KEY</code></td><td>Chave OpenRouter</td></tr><tr><td><code>PERPLEXITY_API_KEY</code></td><td>Chave Perplexity</td></tr><tr><td><code>DATAJUD_API_KEY</code></td><td>Chave DataJud CNJ</td></tr><tr><td><code>CUSTOM_API_KEY</code></td><td>Chave provider custom</td></tr><tr><td><code>CUSTOM_API_URL</code></td><td>URL base do provider custom</td></tr><tr><td><code>CUSTOM_API_MODEL</code></td><td>Modelo do provider custom</td></tr><tr><td><code>UPLOAD_MAX_MB</code></td><td>Tamanho máximo de upload (padrão: 150)</td></tr></tbody></table></div>
+<hr>
+<h2>5. Configuração do Banco Neon (Gratuito)</h2>
+<ol><li>Acesse <b><a href="https://neon.tech" target="_blank" rel="noopener">neon.tech</a></b> e crie uma conta gratuita</li><li>Crie um novo projeto → escolha a região mais próxima (ex: South America)</li><li>No painel do projeto, clique em <b>&quot;Connect&quot;</b> → copie a <b>Connection String</b></li><li>Formato: <code>postgresql://user:senha@host.neon.tech/dbname?sslmode=require</code></li><li>Defina a variável de ambiente:</li><li><b>No Replit:</b> Secrets → adicione <code>DATABASE_URL</code> com o valor copiado</li><li><b>Local:</b> adicione ao seu <code>.env</code></li><li>Crie as tabelas:</li></ol>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="2">📋 Copiar</button><button data-rodar="2" class="so-app">▶ Terminal</button></div><pre><code>   pnpm --filter @workspace/db run push</code></pre></div>
+<ol><li>Verifique em <b>Configurações → Banco de Dados</b> → botão &quot;Listar&quot;</li></ol>
+<h3>Outras opções de banco</h3>
+<div class="tab"><table><thead><tr><th>Provedor</th><th>URL de conexão</th></tr></thead><tbody><tr><td>Supabase</td><td><code>postgresql://postgres:senha@db.xxx.supabase.co:5432/postgres</code></td></tr><tr><td>Railway</td><td><code>postgresql://postgres:senha@xxx.railway.app:5432/railway</code></td></tr><tr><td>Local</td><td><code>postgresql://postgres:senha@localhost:5432/sk_juridico</code></td></tr><tr><td>Neon</td><td><code>postgresql://user:senha@host.neon.tech/dbname?sslmode=require</code></td></tr></tbody></table></div>
+<hr>
+<h2>6. Como Rodar Localmente (fora do Replit)</h2>
+<h3>Pré-requisitos</h3>
+<ul><li>Node.js 20+ (recomendado: 22 ou 24)</li><li>pnpm 9+</li><li>PostgreSQL ou conta Neon</li></ul>
+<h3>Passos</h3>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="3">📋 Copiar</button><button data-rodar="3" class="so-app">▶ Terminal</button></div><pre><code># 1. Instalar dependências
+pnpm install
+
+# 2. Configurar variáveis
+cp .env.example .env
+# Edite .env com suas credenciais
+
+# 3. Criar tabelas no banco
+pnpm --filter @workspace/db run push
+
+# 4. Rodar em desenvolvimento (em 2 terminais)
+pnpm --filter @workspace/api-server run dev   # terminal 1
+pnpm --filter @workspace/assistente-juridico run dev  # terminal 2
+
+# Ou usar concurrently:
+pnpm run dev  # se houver script raiz configurado</code></pre></div>
+<p>Acesse: <code>http://localhost:PORT</code> (PORT definido para o frontend)</p>
+<hr>
+<h2>7. Como Buildar para Produção</h2>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="4">📋 Copiar</button><button data-rodar="4" class="so-app">▶ Terminal</button></div><pre><code># Build do backend (gera bundle CJS em api-server/dist/)
+pnpm --filter @workspace/api-server run build
+
+# Build do frontend (gera estáticos em assistente-juridico/dist/public/)
+pnpm --filter @workspace/assistente-juridico run build
+
+# Rodar o backend compilado
+node artifacts/api-server/dist/index.cjs</code></pre></div>
+<p><b>Variáveis necessárias em produção:</b></p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="5">📋 Copiar</button><button data-rodar="5" class="so-app">▶ Terminal</button></div><pre><code>DATABASE_URL=postgresql://...
+SESSION_SECRET=string-aleatoria-longa
+PORT=8080
+NODE_ENV=production</code></pre></div>
+<hr>
+<h2>8. Como Testar</h2>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="6">📋 Copiar</button><button data-rodar="6" class="so-app">▶ Terminal</button></div><pre><code># Verificar tipos TypeScript
+pnpm run typecheck
+
+# Testar endpoints da API
+curl http://localhost:8080/api/health
+curl http://localhost:8080/api/settings/db-status
+
+# Testar upload de arquivo
+curl -X POST http://localhost:8080/api/upload/extract-text \
+  -F &quot;files=@/caminho/para/arquivo.pdf&quot;</code></pre></div>
+<hr>
+<h2>9. Como Salvar e Testar Configurações</h2>
+<ol><li>Acesse a página <b>Configurações</b> (ícone ou menu)</li><li><b>Banco de Dados:</b> veja o status de conexão atual; cole uma URL de teste e clique no ícone de teste; clique em &quot;Listar&quot; para ver as tabelas</li><li><b>Chaves de IA:</b> cole a chave no campo correspondente, clique no ícone de teste (tubo de ensaio) para validar antes de salvar</li><li>Clique em <b>&quot;Salvar Configurações&quot;</b> para persistir no banco</li><li>As chaves ficam mascaradas após salvar (mostram apenas os primeiros 8 caracteres)</li></ol>
+<hr>
+<h2>10. Voz e TTS</h2>
+<p>O sistema usa <b>edge-tts</b> (Python) no servidor para gerar áudio em português:</p>
+<ul><li>Voz: <code>pt-BR-FranciscaNeural</code> (Microsoft Edge TTS, gratuito)</li><li>Velocidade: +18% (configurável em <code>routes/settings.ts</code>)</li><li>Formato de saída: MP3</li></ul>
+<p><b>Requisito:</b> Python 3 com <code>edge-tts</code> instalado:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="7">📋 Copiar</button><button data-rodar="7" class="so-app">▶ Terminal</button></div><pre><code>pip install edge-tts</code></pre></div>
+<p><b>No frontend:</b></p>
+<ul><li>Botão &quot;Voz OFF/ON&quot; no painel de resultado</li><li>O texto do editor é enviado ao <code>/api/tts</code> e reproduzido no browser</li><li>Compatível com mobile (iOS Safari requer interação do usuário antes de reproduzir)</li></ul>
+<hr>
+<h2>11. Importação de Arquivos</h2>
+<div class="tab"><table><thead><tr><th>Formato</th><th>Limite</th><th>Método</th></tr></thead><tbody><tr><td>PDF</td><td>150 MB</td><td>pdfjs-dist (extração de texto com posicionamento Y)</td></tr><tr><td>DOCX</td><td>150 MB</td><td>mammoth</td></tr><tr><td>HTML / XML</td><td>150 MB</td><td>parse de tags com preservação de parágrafos</td></tr><tr><td>TXT</td><td>150 MB</td><td>leitura direta</td></tr></tbody></table></div>
+<p>Upload via <code>POST /api/upload/extract-text</code> com <code>multipart/form-data</code>.  <br>Campo: <code>files</code> (múltiplos arquivos suportados).</p>
+<hr>
+<h2>12. Preparação para Versão Mobile / PWA</h2>
+<h3>PWA (recomendado — sem loja de apps)</h3>
+<p>O projeto já está configurado como PWA:</p>
+<ul><li><code>manifest.json</code> com nome, ícones, cores e shortcuts</li><li><code>sw.js</code> (Service Worker) com cache offline do shell</li><li>Meta tags Apple e Android no <code>index.html</code></li></ul>
+<p><b>Como instalar no celular:</b></p>
+<ul><li><b>Android (Chrome):</b> Menu → &quot;Adicionar à tela inicial&quot;</li><li><b>iPhone (Safari):</b> Compartilhar → &quot;Adicionar à Tela de Início&quot;</li><li><b>Desktop:</b> ícone de instalação na barra de endereço</li></ul>
+<h3>Capacitor (APK nativo)</h3>
+<p>Para gerar um APK Android real:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="8">📋 Copiar</button><button data-rodar="8" class="so-app">▶ Terminal</button></div><pre><code># 1. Instalar Capacitor
+pnpm add -D @capacitor/core @capacitor/cli @capacitor/android
+
+# 2. Build do frontend
+pnpm --filter @workspace/assistente-juridico run build
+
+# 3. Inicializar Capacitor
+npx cap init &quot;SK Juridico&quot; &quot;br.com.skjuridico&quot;
+
+# 4. Adicionar Android
+npx cap add android
+
+# 5. Copiar build para Capacitor
+npx cap copy
+
+# 6. Abrir no Android Studio
+npx cap open android</code></pre></div>
+<p><b>Atenção:</b> O backend precisa estar hospedado em um servidor externo (não no celular). Configure a URL do backend no frontend antes do build.</p>
+<hr>
+<h2>13. Independência do Replit (Produção sem Replit)</h2>
+<p>O projeto foi projetado para rodar em qualquer ambiente:</p>
+<div class="tab"><table><thead><tr><th>Componente Replit</th><th>Substituição</th></tr></thead><tbody><tr><td>Secrets (env vars)</td><td><code>.env</code> ou variáveis do sistema operacional</td></tr><tr><td>Database (PostgreSQL)</td><td>Neon, Supabase, Railway, ou PostgreSQL local</td></tr><tr><td>Hosting</td><td>VPS, Railway, Render, Fly.io, DigitalOcean</td></tr><tr><td>Vite plugins Replit</td><td>São ignorados em <code>NODE_ENV=production</code></td></tr></tbody></table></div>
+<p><b>Dependências Replit no código:</b></p>
+<ul><li><code>@replit/vite-plugin-runtime-error-modal</code> — só em dev</li><li><code>@replit/vite-plugin-cartographer</code> — só se <code>REPL_ID</code> estiver definido</li><li><code>@replit/vite-plugin-dev-banner</code> — só se <code>REPL_ID</code> estiver definido</li></ul>
+<p>Em produção (<code>NODE_ENV=production</code>), nenhum plugin Replit é carregado.</p>
+<hr>
+<h2>14. Gerar ZIP do Projeto</h2>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="9">📋 Copiar</button><button data-rodar="9" class="so-app">▶ Terminal</button></div><pre><code>bash scripts/export-zip.sh</code></pre></div>
+<p>O arquivo <code>sk-juridico-YYYYMMDD-HHMMSS.zip</code> é gerado na raiz do projeto.  <br><b>Exclusões automáticas:</b> <code>node_modules</code>, <code>dist</code>, <code>.git</code>, <code>.cache</code>, skills internas.</p>
+<p>No Replit: painel de arquivos (Files) → clique direito no ZIP → Download.</p>
+<hr>
+<h2>15. O que Foi Mantido da Estrutura Original</h2>
+<ul><li>Todas as páginas e rotas do projeto ZIP2 original</li><li>Editor TipTap v3 com extensões Table e FontSize</li><li>Formatação ABNT automática (<code>legal-formatter.ts</code>)</li><li>Sistema de autenticação por senha + sessão</li><li>Storage com fallback em memória se banco indisponível</li><li>Todas as rotas de IA com streaming SSE</li><li>Upload multer com limites de 150 MB</li><li>Extração de PDF via pdfjs-dist</li><li>Exportação DOCX via docx</li><li>Integração DataJud CNJ</li></ul>
+<h2>16. O que Foi Adicionado / Melhorado</h2>
+<ul><li><code>.env.example</code> completo com documentação</li><li><code>manifest.json</code> PWA com shortcuts</li><li><code>sw.js</code> Service Worker para cache offline</li><li><code>index.html</code> com meta tags PWA, Apple, tema, lang=pt-BR</li><li>Tela de configurações com status real do banco de dados</li><li>Endpoint <code>GET /api/settings/db-status</code> — testa conexão atual</li><li>Endpoint <code>POST /api/settings/db-test</code> — testa URL de banco customizada</li><li>Endpoint <code>POST /api/settings/db-init</code> — lista tabelas existentes</li><li>Endpoint <code>GET /api/settings/app-info</code> — versão, uptime, memória</li><li>Botão &quot;Listar tabelas&quot; na tela de configurações</li><li>Instruções de configuração Neon diretamente na tela</li><li>Script <code>scripts/export-zip.sh</code> para exportação</li><li><code>MANUAL.md</code> completo</li></ul>
+<h2>17. Novidades da Versão 1.1.0 (Maio 2026)</h2>
+<h3>Correções Críticas</h3>
+<ul><li><b>Editor TipTap v3 — preservação de formatação ABNT</b>: extensões <code>StyledParagraph</code> e <code>StyledHeading</code> customizadas que preservam atributos <code>style</code> e <code>class</code> ao definir conteúdo. A formatação ABNT (recuo 4 cm, justificado, títulos em caixa alta) não é mais perdida ao gerar/refinar documentos.</li></ul>
+<h3>Novas Funcionalidades</h3>
+<ul><li><b>Botão &quot;Drive&quot;</b> no cabeçalho: envia o documento atual diretamente para o Google Drive (substitui o botão GitHub). Configure o Access Token e Folder ID em Configurações → Google Drive.</li><li><b>Painel Administrativo</b> (<code>/admin</code>): visualize variáveis de ambiente (mascaradas), defina novas variáveis no arquivo de configuração local, execute queries SQL no banco de dados, veja todas as rotas da API documentadas, monitore RAM, uptime e versão do Node.js.</li><li><b>Link para Admin</b> adicionado em Configurações e na tela de login.</li><li><b>Campos Google Drive</b> em Configurações: Google Drive Access Token e Google Drive Folder ID.</li><li><b>Ícones PWA reais</b> (192 × 192 px e 512 × 512 px) gerados para instalação correta como PWA em Android, iOS e desktop.</li></ul>
+<h3>Melhorias de Backend</h3>
+<ul><li><b>Rate Limiting</b>: 300 requisições/min por IP para rotas gerais; 30 requisições/min por IP para rotas de IA (<code>/api/ai/*</code>). Protege contra uso abusivo.</li><li><b>Compressão Gzip</b>: respostas JSON comprimidas automaticamente quando <code>Content-Encoding: gzip</code> é aceito pelo cliente.</li><li><b>Novos endpoints em <code>/api/settings</code></b>:</li><li><code>GET /api/settings/env-list</code> — lista variáveis de ambiente e config local (valores mascarados)</li><li><code>POST /api/settings/env-set</code> — define variável na config local sem reiniciar o servidor</li><li><code>POST /api/settings/db-query</code> — executa query SQL (SELECT apenas) no banco de dados</li><li><code>POST /api/settings/drive-upload</code> — faz upload de arquivo para o Google Drive</li></ul>
+<h3>Config Local Estendida</h3>
+<p>Os campos abaixo foram adicionados ao arquivo de configuração local (<code>local-config.ts</code>):</p>
+<ul><li><code>google_drive_folder_id</code> — ID da pasta no Google Drive</li><li><code>google_drive_access_token</code> — Token OAuth2 para acesso ao Drive</li><li><code>groq_api_key</code> — Chave Groq separada da custom key</li><li><code>custom_api_key</code>, <code>custom_model</code>, <code>custom_base_url</code> — Provedor customizado</li></ul>
+<hr>
+<h2>18. O que Pode Ser Melhorado Futuramente</h2>
+<ul><li>OCR de imagens (Tesseract.js ou API Vision)</li><li>Push notifications para prazos processuais</li><li>Sincronização offline com IndexedDB</li><li>Build Capacitor automatizado (CI/CD)</li><li>Modo multi-usuário com autenticação JWT completa</li><li>Monitoramento de saúde com health checks externos</li></ul><script>var B=["sk-juridico/\n├── artifacts/\n│   ├── api-server/          # Backend Express 5 (porta 8080)\n│   │   ├── src/\n│   │   │   ├── app.ts       # Entry point, middlewares, sessão\n│   │   │   ├── storage.ts   # Camada de dados (PostgreSQL + fallback memória)\n│   │   │   ├── local-config.ts  # Config local em arquivo JSON\n│   │   │   └── routes/\n│   │   │       ├── ai.ts          # Streaming SSE de IA\n│   │   │       ├── upload.ts      # Upload PDF/DOCX/HTML/TXT (150 MB)\n│   │   │       ├── crud.ts        # CRUD genérico\n│   │   │       ├── settings.ts    # Configurações, auth, DB, TTS, DOCX\n│   │   │       ├── jurisprudencia.ts  # DataJud CNJ\n│   │   │       └── extra.ts       # JWT, exportação, pesquisa web\n│   │   ├── build.mjs        # Build esbuild (bundle CJS)\n│   │   └── package.json\n│   │\n│   └── assistente-juridico/ # Frontend React + Vite (porta dinâmica)\n│       ├── public/\n│       │   ├── manifest.json    # PWA manifest\n│       │   ├── sw.js            # Service Worker (cache offline)\n│       │   ├── favicon.svg\n│       │   └── robots.txt\n│       ├── src/\n│       │   ├── pages/           # Todas as páginas da aplicação\n│       │   ├── components/      # Componentes reutilizáveis\n│       │   │   └── tiptap-editor.tsx  # Editor principal\n│       │   └── lib/\n│       │       └── legal-formatter.ts # Conversor texto → HTML ABNT\n│       ├── index.html           # HTML com PWA meta tags\n│       └── vite.config.ts\n│\n├── lib/\n│   └── db/\n│       └── src/schema/index.ts  # Schema Drizzle (fonte da verdade)\n│\n├── scripts/\n│   └── export-zip.sh            # Gera ZIP do projeto\n│\n├── .env.example                 # Template de variáveis de ambiente\n├── MANUAL.md                    # Este arquivo\n└── pnpm-workspace.yaml","cp .env.example .env","   pnpm --filter @workspace/db run push","# 1. Instalar dependências\npnpm install\n\n# 2. Configurar variáveis\ncp .env.example .env\n# Edite .env com suas credenciais\n\n# 3. Criar tabelas no banco\npnpm --filter @workspace/db run push\n\n# 4. Rodar em desenvolvimento (em 2 terminais)\npnpm --filter @workspace/api-server run dev   # terminal 1\npnpm --filter @workspace/assistente-juridico run dev  # terminal 2\n\n# Ou usar concurrently:\npnpm run dev  # se houver script raiz configurado","# Build do backend (gera bundle CJS em api-server/dist/)\npnpm --filter @workspace/api-server run build\n\n# Build do frontend (gera estáticos em assistente-juridico/dist/public/)\npnpm --filter @workspace/assistente-juridico run build\n\n# Rodar o backend compilado\nnode artifacts/api-server/dist/index.cjs","DATABASE_URL=postgresql://...\nSESSION_SECRET=string-aleatoria-longa\nPORT=8080\nNODE_ENV=production","# Verificar tipos TypeScript\npnpm run typecheck\n\n# Testar endpoints da API\ncurl http://localhost:8080/api/health\ncurl http://localhost:8080/api/settings/db-status\n\n# Testar upload de arquivo\ncurl -X POST http://localhost:8080/api/upload/extract-text \\\n  -F \"files=@/caminho/para/arquivo.pdf\"","pip install edge-tts","# 1. Instalar Capacitor\npnpm add -D @capacitor/core @capacitor/cli @capacitor/android\n\n# 2. Build do frontend\npnpm --filter @workspace/assistente-juridico run build\n\n# 3. Inicializar Capacitor\nnpx cap init \"SK Juridico\" \"br.com.skjuridico\"\n\n# 4. Adicionar Android\nnpx cap add android\n\n# 5. Copiar build para Capacitor\nnpx cap copy\n\n# 6. Abrir no Android Studio\nnpx cap open android","bash scripts/export-zip.sh"];var EMB=window.parent!==window;if(!EMB)document.querySelectorAll(".so-app").forEach(function(b){b.remove()});function marca(b,t){var a=b.textContent;b.textContent=t;setTimeout(function(){b.textContent=a},1400)}function copiar(t,b){if(EMB){parent.postMessage({sk:"md",acao:"copiar",texto:t},"*");marca(b,"✔ Copiado");return}navigator.clipboard.writeText(t).then(function(){marca(b,"✔ Copiado")},function(){var r=document.createRange();r.selectNodeContents(b.closest(".bloco").querySelector("pre"));var s=getSelection();s.removeAllRanges();s.addRange(r);marca(b,"Selecionado")})}document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.copiar!=null)copiar(B[+b.dataset.copiar],b);if(b.dataset.rodar!=null){parent.postMessage({sk:"md",acao:"rodar",texto:B[+b.dataset.rodar]},"*");marca(b,"✔ Mandado")}if(b.id==="md-baixar")parent.postMessage({sk:"md",acao:"baixar"},"*");if(b.id==="md-todos"){var t=B.join("\n\n");copiar(t,b)}});</script></body></html>

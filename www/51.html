@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 Gerador de Plano de Projeto</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0f1e 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+        }
+
+        .subtitulo {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1200px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid #1e3a5f;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            color: #7dd3fc;
+            font-size: 18px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-area {
+            background: #0f172a;
+            border: 2px dashed #334155;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 16px;
+        }
+
+        .upload-area:hover {
+            border-color: #38bdf8;
+            background: #1e293b;
+        }
+
+        .upload-area.dragover {
+            border-color: #4ade80;
+            background: #064e3b;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s;
+            width: 100%;
+            margin: 6px 0;
+            box-shadow: 0 4px 12px rgba(29, 78, 216, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(29, 78, 216, 0.5);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-verde {
+            background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+        }
+
+        .btn-roxo {
+            background: linear-gradient(135deg, #4c1d95 0%, #6d28d9 100%);
+        }
+
+        .btn-laranja {
+            background: linear-gradient(135deg, #92400e 0%, #b45309 100%);
+        }
+
+        .checkbox-group {
+            background: #0f172a;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-item label {
+            cursor: pointer;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .ia-panel {
+            background: #0f172a;
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+        }
+
+        .ia-panel input {
+            width: 100%;
+            background: #020617;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        .plano-container {
+            background: #020617;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Consolas', monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            max-height: 80vh;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .secao {
+            background: #0f172a;
+            border-left: 4px solid #38bdf8;
+            border-radius: 0 8px 8px 0;
+            padding: 12px;
+            margin: 12px 0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .secao:hover {
+            background: #1e293b;
+            border-left-color: #4ade80;
+        }
+
+        .secao-titulo {
+            color: #38bdf8;
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .secao-desc {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .stat-box {
+            background: #0f172a;
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .stat-numero {
+            font-size: 24px;
+            font-weight: bold;
+            color: #38bdf8;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #1e3a5f;
+            border-top-color: #38bdf8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .copiado {
+            background: #065f46 !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        .arvore {
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .arvore-item {
+            color: #94a3b8;
+        }
+
+        .arvore-pasta {
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        .arvore-arquivo {
+            color: #4ade80;
+        }
+
+        .codigo-bloco {
+            background: #0a0f1e;
+            border: 1px solid #1e3a5f;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        .tag-api {
+            background: #1e3a5f;
+            color: #7dd3fc;
+        }
+
+        .tag-funcao {
+            background: #3b0764;
+            color: #c4b5fd;
+        }
+
+        .tag-tipo {
+            background: #064e3b;
+            color: #6ee7b7;
+        }
+
+        .tag-rota {
+            background: #451a03;
+            color: #fcd34d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 Gerador de Plano de Projeto</h1>
+        <p class="subtitulo">Analisa qualquer projeto · Gera documentação completa em Markdown · Detecta APIs, funções, rotas · Integração com IA</p>
+
+        <div class="grid">
+            <!-- COLUNA ESQUERDA -->
+            <div>
+                <!-- UPLOAD -->
+                <div class="card">
+                    <h2>📁 Carregar Projeto</h2>
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div style="font-size: 48px; margin-bottom: 12px;">📦</div>
+                        <div style="color: #38bdf8; font-weight: bold; margin-bottom: 8px;">Arraste ou clique</div>
+                        <div style="color: #64748b; font-size: 12px;">ZIP, HTML, JS, TS, TSX, JSON</div>
+                    </div>
+                    <input type="file" id="fileInput" accept=".zip,.html,.js,.ts,.tsx,.jsx,.json,.txt,.md" onchange="carregarProjeto(event)">
+                    
+                    <div id="projetoInfo" style="display: none;">
+                        <div class="stats" id="stats"></div>
+                    </div>
+                </div>
+
+                <!-- OPÇÕES -->
+                <div class="card">
+                    <h2>⚙️ O que incluir no plano?</h2>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_arvore" checked>
+                            <label for="opt_arvore">🌳 Árvore de arquivos</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_funcoes" checked>
+                            <label for="opt_funcoes">⚡ Funções e métodos</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_apis" checked>
+                            <label for="opt_apis">🌐 Rotas de API</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_tipos" checked>
+                            <label for="opt_tipos">📦 Tipos/Interfaces (TS)</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_dependencias" checked>
+                            <label for="opt_dependencias">📚 Dependências</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_rotas" checked>
+                            <label for="opt_rotas">🛣️ Rotas/Páginas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_componentes" checked>
+                            <label for="opt_componentes">🧩 Componentes React</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="opt_hooks" checked>
+                            <label for="opt_hooks">🪝 Hooks customizados</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IA -->
+                <div class="card">
+                    <h2>🤖 Análise com IA (Opcional)</h2>
+                    <div class="ia-panel">
+                        <label style="font-size: 12px; color: #64748b; display: block; margin-bottom: 6px;">Chave de API (Groq, Gemini, OpenAI...):</label>
+                        <input type="password" id="iaApiKey" placeholder="gsk_... / AIza... / sk-...">
+                        <div id="iaProviderDetectado" style="font-size: 11px; color: #4ade80; margin-top: 6px; min-height: 16px;"></div>
+                    </div>
+                    <button class="btn btn-roxo" onclick="analisarComIA()" id="btnIA" disabled>
+                        🤖 Analisar com IA
+                    </button>
+                </div>
+
+                <!-- AÇÕES -->
+                <div class="card">
+                    <h2>🚀 Ações</h2>
+                    <button class="btn btn-verde" onclick="gerarPlano()" id="btnGerar" disabled>
+                        📋 Gerar Plano Completo
+                    </button>
+                    <button class="btn" onclick="copiarPlanoCompleto()" id="btnCopiar" disabled>
+                        📋 Copiar Tudo
+                    </button>
+                    <button class="btn btn-laranja" onclick="baixarMarkdown()" id="btnBaixar" disabled>
+                        💾 Baixar Markdown
+                    </button>
+                </div>
+
+                <!-- SEÇÕES PARA COPIAR -->
+                <div class="card" id="cardSecoes" style="display: none;">
+                    <h2>📑 Copiar por Seções</h2>
+                    <div id="listaSecoes"></div>
+                </div>
+            </div>
+
+            <!-- COLUNA DIREITA -->
+            <div>
+                <div class="card">
+                    <h2 id="tituloPlano">📄 Plano do Projeto</h2>
+                    <div class="plano-container" id="planoContainer">
+                        <div style="text-align: center; padding: 60px 20px; color: #64748b;">
+                            <div style="font-size: 64px; margin-bottom: 20px;">📋</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #38bdf8; margin-bottom: 12px;">
+                                Gerador de Plano de Projeto
+                            </div>
+                            <div style="font-size: 14px; line-height: 1.8;">
+                                Carregue seu projeto para gerar:<br><br>
+                                ✅ Árvore completa de arquivos<br>
+                                ✅ Lista de todas as funções<br>
+                                ✅ Rotas de API e endpoints<br>
+                                ✅ Tipos e interfaces TypeScript<br>
+                                ✅ Dependências e scripts<br>
+                                ✅ Componentes React<br>
+                                ✅ Documentação em Markdown<br><br>
+                                <span style="color: #4ade80;">Arraste um ZIP ou arquivo individual acima!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================
+        // ESTADO GLOBAL
+        // =====================
+        let projeto = null;
+        let planoGerado = '';
+        let secoes = {};
+
+        // =====================
+        // DRAG & DROP
+        // =====================
+        const uploadArea = document.getElementById('uploadArea');
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                carregarProjeto({ target: { files: [file] } });
+            }
+        });
+
+        // =====================
+        // DETECTAR PROVEDOR IA
+        // =====================
+        const PROVEDORES = [
+            { prefix: "gsk_", nome: "Groq", url: "https://api.groq.com/openai/v1", model: "llama-3.3-70b-versatile" },
+            { prefix: "AIza", nome: "Google Gemini", url: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.0-flash" },
+            { prefix: "sk-", nome: "OpenAI", url: "https://api.openai.com/v1", model: "gpt-4o-mini" },
+            { prefix: "sk-or-", nome: "OpenRouter", url: "https://openrouter.ai/api/v1", model: "openai/gpt-4o-mini" },
+        ];
+
+        document.getElementById('iaApiKey').addEventListener('input', function() {
+            const chave = this.value.trim();
+            const provedor = PROVEDORES.find(p => chave.startsWith(p.prefix));
+            const el = document.getElementById('iaProviderDetectado');
+            
+            if (provedor) {
+                el.textContent = `✅ Detectado: ${provedor.nome}`;
+                if (projeto) document.getElementById('btnIA').disabled = false;
+            } else if (chave) {
+                el.textContent = '❓ Chave não reconhecida';
+            } else {
+                el.textContent = '';
+            }
+        });
+
+        // =====================
+        // CARREGAR PROJETO
+        // =====================
+        async function carregarProjeto(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            mostrarLoading();
+
+            const ext = file.name.split('.').pop().toLowerCase();
+            projeto = {
+                nome: file.name,
+                tamanho: file.size,
+                arquivos: {},
+                tipo: ext
+            };
+
+            if (ext === 'zip') {
+                projeto = await carregarZIP(file, projeto);
+            } else {
+                const conteudo = await file.text();
+                projeto.arquivos[file.name] = {
+                    nome: file.name,
+                    caminho: file.name,
+                    conteudo: conteudo,
+                    tamanho: file.size,
+                    tipo: ext
+                };
+            }
+
+            analisarProjeto();
+            mostrarStats();
+            document.getElementById('btnGerar').disabled = false;
+            
+            const chave = document.getElementById('iaApiKey').value.trim();
+            if (chave && PROVEDORES.some(p => chave.startsWith(p.prefix))) {
+                document.getElementById('btnIA').disabled = false;
+            }
+        }
+
+        async function carregarZIP(file, projeto) {
+            const zip = await JSZip.loadAsync(file);
+            const arquivos = {};
+
+            for (const [caminho, entrada] of Object.entries(zip.files)) {
+                if (!entrada.dir) {
+                    const ext = caminho.split('.').pop().toLowerCase();
+                    const legivel = ['js','ts','tsx','jsx','html','htm','css','json','txt','md','xml','yaml','yml'].includes(ext);
+                    
+                    if (legivel) {
+                        try {
+                            const conteudo = await entrada.async('text');
+                            arquivos[caminho] = {
+                                nome: caminho.split('/').pop(),
+                                caminho: caminho,
+                                conteudo: conteudo,
+                                tamanho: conteudo.length,
+                                tipo: ext
+                            };
+                        } catch(e) {}
+                    }
+                }
+            }
+
+            projeto.arquivos = arquivos;
+            return projeto;
+        }
+
+        // =====================
+        // ANALISAR PROJETO
+        // =====================
+        function analisarProjeto() {
+            const analise = {
+                totalArquivos: Object.keys(projeto.arquivos).length,
+                totalLinhas: 0,
+                funcoes: [],
+                apis: [],
+                tipos: [],
+                rotas: [],
+                componentes: [],
+                hooks: [],
+                dependencias: {}
+            };
+
+            for (const [caminho, arquivo] of Object.entries(projeto.arquivos)) {
+                const linhas = arquivo.conteudo.split('\n');
+                analise.totalLinhas += linhas.length;
+
+                // Funções
+                const funcoes = [...arquivo.conteudo.matchAll(/(?:function|const|let|var)\s+(\w+)\s*=?\s*(?:async\s*)?\(/g)];
+                funcoes.forEach(m => {
+                    analise.funcoes.push({
+                        nome: m[1],
+                        arquivo: caminho,
+                        linha: arquivo.conteudo.substring(0, m.index).split('\n').length
+                    });
+                });
+
+                // APIs
+                const apis = [...arquivo.conteudo.matchAll(/(?:fetch|axios\.(?:get|post|put|delete))\s*\(\s*['"`]([^'"`]+)['"`]/g)];
+                apis.forEach(m => {
+                    analise.apis.push({
+                        url: m[1],
+                        arquivo: caminho,
+                        linha: arquivo.conteudo.substring(0, m.index).split('\n').length
+                    });
+                });
+
+                // Tipos/Interfaces (TypeScript)
+                if (['ts', 'tsx'].includes(arquivo.tipo)) {
+                    const tipos = [...arquivo.conteudo.matchAll(/(?:interface|type)\s+(\w+)/g)];
+                    tipos.forEach(m => {
+                        analise.tipos.push({
+                            nome: m[1],
+                            arquivo: caminho,
+                            linha: arquivo.conteudo.substring(0, m.index).split('\n').length
+                        });
+                    });
+                }
+
+                // Componentes React
+                if (['jsx', 'tsx'].includes(arquivo.tipo)) {
+                    const componentes = [...arquivo.conteudo.matchAll(/(?:function|const)\s+([A-Z]\w+)\s*[=:]?\s*(?:\([^)]*\))?\s*(?:=>)?\s*\{/g)];
+                    componentes.forEach(m => {
+                        analise.componentes.push({
+                            nome: m[1],
+                            arquivo: caminho
+                        });
+                    });
+
+                    // Hooks customizados
+                    const hooks = [...arquivo.conteudo.matchAll(/(?:function|const)\s+(use[A-Z]\w+)/g)];
+                    hooks.forEach(m => {
+                        analise.hooks.push({
+                            nome: m[1],
+                            arquivo: caminho
+                        });
+                    });
+                }
+
+                // Rotas
+                const rotas = [...arquivo.conteudo.matchAll(/(?:path|route):\s*['"`]([^'"`]+)['"`]/gi)];
+                rotas.forEach(m => {
+                    analise.rotas.push({
+                        caminho: m[1],
+                        arquivo: caminho
+                    });
+                });
+
+                // package.json
+                if (arquivo.nome === 'package.json') {
+                    try {
+                        const pkg = JSON.parse(arquivo.conteudo);
+                        analise.dependencias = {
+                            ...pkg.dependencies,
+                            ...pkg.devDependencies
+                        };
+                    } catch(e) {}
+                }
+            }
+
+            projeto.analise = analise;
+        }
+
+        function mostrarStats() {
+            const a = projeto.analise;
+            document.getElementById('projetoInfo').style.display = 'block';
+            document.getElementById('stats').innerHTML = `
+                <div class="stat-box">
+                    <div class="stat-numero">${a.totalArquivos}</div>
+                    <div class="stat-label">Arquivos</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-numero">${a.totalLinhas.toLocaleString()}</div>
+                    <div class="stat-label">Linhas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-numero">${a.funcoes.length}</div>
+                    <div class="stat-label">Funções</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-numero">${a.apis.length}</div>
+                    <div class="stat-label">APIs</div>
+                </div>
+            `;
+        }
+
+        // =====================
+        // GERAR PLANO
+        // =====================
+        function gerarPlano() {
+            if (!projeto) return;
+
+            mostrarLoading();
+
+            setTimeout(() => {
+                const opcoes = {
+                    arvore: document.getElementById('opt_arvore').checked,
+                    funcoes: document.getElementById('opt_funcoes').checked,
+                    apis: document.getElementById('opt_apis').checked,
+                    tipos: document.getElementById('opt_tipos').checked,
+                    dependencias: document.getElementById('opt_dependencias').checked,
+                    rotas: document.getElementById('opt_rotas').checked,
+                    componentes: document.getElementById('opt_componentes').checked,
+                    hooks: document.getElementById('opt_hooks').checked
+                };
+
+                planoGerado = gerarMarkdown(opcoes);
+                mostrarPlano(planoGerado);
+                gerarSecoes();
+                
+                document.getElementById('btnCopiar').disabled = false;
+                document.getElementById('btnBaixar').disabled = false;
+                document.getElementById('cardSecoes').style.display = 'block';
+            }, 500);
+        }
+
+        function gerarMarkdown(opcoes) {
+            const a = projeto.analise;
+            let md = '';
+
+            // CABEÇALHO
+            md += `# 📋 Plano do Projeto: ${projeto.nome}\n\n`;
+            md += `> Gerado automaticamente em ${new Date().toLocaleString('pt-BR')}\n\n`;
+            md += `---\n\n`;
+
+            // ÍNDICE
+            md += `## 📑 Índice\n\n`;
+            if (opcoes.arvore) md += `- [🌳 Estrutura de Arquivos](#estrutura)\n`;
+            if (opcoes.dependencias) md += `- [📦 Dependências](#dependencias)\n`;
+            if (opcoes.funcoes) md += `- [⚡ Funções](#funcoes)\n`;
+            if (opcoes.apis) md += `- [🌐 Rotas de API](#apis)\n`;
+            if (opcoes.tipos) md += `- [📘 Tipos/Interfaces](#tipos)\n`;
+            if (opcoes.rotas) md += `- [🛣️ Rotas/Páginas](#rotas)\n`;
+            if (opcoes.componentes) md += `- [🧩 Componentes React](#componentes)\n`;
+            if (opcoes.hooks) md += `- [🪝 Hooks Customizados](#hooks)\n`;
+            md += `\n---\n\n`;
+
+            // ESTATÍSTICAS
+            md += `## 📊 Estatísticas\n\n`;
+            md += `| Métrica | Valor |\n`;
+            md += `|---------|-------|\n`;
+            md += `| **Arquivos** | ${a.totalArquivos} |\n`;
+            md += `| **Linhas de código** | ${a.totalLinhas.toLocaleString()} |\n`;
+            md += `| **Funções** | ${a.funcoes.length} |\n`;
+            md += `| **Rotas de API** | ${a.apis.length} |\n`;
+            md += `| **Componentes** | ${a.componentes.length} |\n`;
+            md += `| **Tipos/Interfaces** | ${a.tipos.length} |\n`;
+            md += `\n---\n\n`;
+
+            // ESTRUTURA
+            if (opcoes.arvore) {
+                md += `## 🌳 Estrutura de Arquivos {#estrutura}\n\n`;
+                md += '```\n';
+                md += gerarArvore();
+                md += '```\n\n';
+                md += `---\n\n`;
+                
+                secoes['estrutura'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // DEPENDÊNCIAS
+            if (opcoes.dependencias && Object.keys(a.dependencias).length > 0) {
+                md += `## 📦 Dependências {#dependencias}\n\n`;
+                md += `Total: **${Object.keys(a.dependencias).length}** pacotes\n\n`;
+                md += `| Pacote | Versão |\n`;
+                md += `|--------|--------|\n`;
+                Object.entries(a.dependencias).slice(0, 50).forEach(([nome, versao]) => {
+                    md += `| \`${nome}\` | ${versao} |\n`;
+                });
+                if (Object.keys(a.dependencias).length > 50) {
+                    md += `\n... e mais ${Object.keys(a.dependencias).length - 50} pacotes\n`;
+                }
+                md += `\n---\n\n`;
+                
+                secoes['dependencias'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // FUNÇÕES
+            if (opcoes.funcoes && a.funcoes.length > 0) {
+                md += `## ⚡ Funções {#funcoes}\n\n`;
+                md += `Total: **${a.funcoes.length}** funções encontradas\n\n`;
+                
+                const porArquivo = {};
+                a.funcoes.forEach(f => {
+                    if (!porArquivo[f.arquivo]) porArquivo[f.arquivo] = [];
+                    porArquivo[f.arquivo].push(f);
+                });
+
+                Object.entries(porArquivo).forEach(([arquivo, funcoes]) => {
+                    md += `### 📄 \`${arquivo}\`\n\n`;
+                    funcoes.forEach(f => {
+                        md += `- **${f.nome}()** (linha ${f.linha})\n`;
+                    });
+                    md += `\n`;
+                });
+                
+                md += `---\n\n`;
+                secoes['funcoes'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // APIs
+            if (opcoes.apis && a.apis.length > 0) {
+                md += `## 🌐 Rotas de API {#apis}\n\n`;
+                md += `Total: **${a.apis.length}** chamadas de API encontradas\n\n`;
+                md += `| Endpoint | Arquivo | Linha |\n`;
+                md += `|----------|---------|-------|\n`;
+                a.apis.forEach(api => {
+                    md += `| \`${api.url}\` | ${api.arquivo} | ${api.linha} |\n`;
+                });
+                md += `\n---\n\n`;
+                
+                secoes['apis'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // TIPOS
+            if (opcoes.tipos && a.tipos.length > 0) {
+                md += `## 📘 Tipos/Interfaces TypeScript {#tipos}\n\n`;
+                md += `Total: **${a.tipos.length}** tipos/interfaces\n\n`;
+                
+                const porArquivo = {};
+                a.tipos.forEach(t => {
+                    if (!porArquivo[t.arquivo]) porArquivo[t.arquivo] = [];
+                    porArquivo[t.arquivo].push(t);
+                });
+
+                Object.entries(porArquivo).forEach(([arquivo, tipos]) => {
+                    md += `### 📄 \`${arquivo}\`\n\n`;
+                    tipos.forEach(t => {
+                        md += `- **${t.nome}** (linha ${t.linha})\n`;
+                    });
+                    md += `\n`;
+                });
+                
+                md += `---\n\n`;
+                secoes['tipos'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // ROTAS
+            if (opcoes.rotas && a.rotas.length > 0) {
+                md += `## 🛣️ Rotas/Páginas {#rotas}\n\n`;
+                md += `Total: **${a.rotas.length}** rotas\n\n`;
+                md += `| Rota | Arquivo |\n`;
+                md += `|------|----------|\n`;
+                a.rotas.forEach(r => {
+                    md += `| \`${r.caminho}\` | ${r.arquivo} |\n`;
+                });
+                md += `\n---\n\n`;
+                
+                secoes['rotas'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // COMPONENTES
+            if (opcoes.componentes && a.componentes.length > 0) {
+                md += `## 🧩 Componentes React {#componentes}\n\n`;
+                md += `Total: **${a.componentes.length}** componentes\n\n`;
+                
+                const porArquivo = {};
+                a.componentes.forEach(c => {
+                    if (!porArquivo[c.arquivo]) porArquivo[c.arquivo] = [];
+                    porArquivo[c.arquivo].push(c);
+                });
+
+                Object.entries(porArquivo).forEach(([arquivo, componentes]) => {
+                    md += `### 📄 \`${arquivo}\`\n\n`;
+                    componentes.forEach(c => {
+                        md += `- **<${c.nome} />**\n`;
+                    });
+                    md += `\n`;
+                });
+                
+                md += `---\n\n`;
+                secoes['componentes'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // HOOKS
+            if (opcoes.hooks && a.hooks.length > 0) {
+                md += `## 🪝 Hooks Customizados {#hooks}\n\n`;
+                md += `Total: **${a.hooks.length}** hooks\n\n`;
+                a.hooks.forEach(h => {
+                    md += `- **${h.nome}()** em \`${h.arquivo}\`\n`;
+                });
+                md += `\n---\n\n`;
+                
+                secoes['hooks'] = md.split('---\n\n')[md.split('---\n\n').length - 2];
+            }
+
+            // RODAPÉ
+            md += `---\n\n`;
+            md += `*Plano gerado automaticamente pelo Gerador de Plano de Projeto*\n`;
+            md += `*Data: ${new Date().toLocaleString('pt-BR')}*\n`;
+
+            return md;
+        }
+
+        function gerarArvore() {
+            const caminhos = Object.keys(projeto.arquivos).sort();
+            let arvore = `${projeto.nome}/\n`;
+
+            const estrutura = {};
+            caminhos.forEach(caminho => {
+                const partes = caminho.split('/');
+                let atual = estrutura;
+                partes.forEach((parte, idx) => {
+                    if (!atual[parte]) {
+                        atual[parte] = idx === partes.length - 1 ? null : {};
+                    }
+                    if (atual[parte]) atual = atual[parte];
+                });
+            });
+
+            function renderizar(obj, prefixo = '') {
+                let resultado = '';
+                const chaves = Object.keys(obj).sort();
+                chaves.forEach((chave, idx) => {
+                    const ultimo = idx === chaves.length - 1;
+                    const simbolo = ultimo ? '└── ' : '├── ';
+                    const proximoPrefixo = prefixo + (ultimo ? '    ' : '│   ');
+                    
+                    resultado += prefixo + simbolo + chave + '\n';
+                    
+                    if (obj[chave] !== null) {
+                        resultado += renderizar(obj[chave], proximoPrefixo);
+                    }
+                });
+                return resultado;
+            }
+
+            arvore += renderizar(estrutura);
+            return arvore;
+        }
+
+        function gerarSecoes() {
+            const lista = document.getElementById('listaSecoes');
+            lista.innerHTML = '';
+
+            const secoesList = [
+                { id: 'estrutura', titulo: '🌳 Estrutura de Arquivos', desc: 'Árvore completa' },
+                { id: 'dependencias', titulo: '📦 Dependências', desc: 'Pacotes npm' },
+                { id: 'funcoes', titulo: '⚡ Funções', desc: 'Todas as funções' },
+                { id: 'apis', titulo: '🌐 APIs', desc: 'Rotas e endpoints' },
+                { id: 'tipos', titulo: '📘 Tipos', desc: 'TypeScript' },
+                { id: 'rotas', titulo: '🛣️ Rotas', desc: 'Páginas do app' },
+                { id: 'componentes', titulo: '🧩 Componentes', desc: 'React' },
+                { id: 'hooks', titulo: '🪝 Hooks', desc: 'Customizados' }
+            ];
+
+            secoesList.forEach(s => {
+                if (secoes[s.id]) {
+                    const div = document.createElement('div');
+                    div.className = 'secao';
+                    div.onclick = () => copiarSecao(s.id);
+                    div.innerHTML = `
+                        <div class="secao-titulo">${s.titulo}</div>
+                        <div class="secao-desc">${s.desc} · Clique para copiar</div>
+                    `;
+                    lista.appendChild(div);
+                }
+            });
+        }
+
+        // =====================
+        // ANALISAR COM IA
+        // =====================
+        async function analisarComIA() {
+            const chave = document.getElementById('iaApiKey').value.trim();
+            if (!chave || !projeto) return;
+
+            const provedor = PROVEDORES.find(p => chave.startsWith(p.prefix));
+            if (!provedor) {
+                alert('Chave de API não reconhecida!');
+                return;
+            }
+
+            mostrarLoading('Analisando com IA...');
+
+            const resumo = `
+Projeto: ${projeto.nome}
+Arquivos: ${projeto.analise.totalArquivos}
+Linhas: ${projeto.analise.totalLinhas}
+Funções: ${projeto.analise.funcoes.length}
+APIs: ${projeto.analise.apis.length}
+
+Arquivos principais:
+${Object.keys(projeto.arquivos).slice(0, 10).join('\n')}
+
+Funções principais:
+${projeto.analise.funcoes.slice(0, 20).map(f => f.nome).join(', ')}
+
+APIs detectadas:
+${projeto.analise.apis.slice(0, 10).map(a => a.url).join('\n')}
+            `.trim();
+
+            try {
+                const resp = await fetch(`${provedor.url}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${chave}`
+                    },
+                    body: JSON.stringify({
+                        model: provedor.model,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'Você é um especialista em análise de código. Responda em português brasileiro de forma clara e objetiva.'
+                            },
+                            {
+                                role: 'user',
+                                content: `Analise este projeto e me diga:
+1. Qual é o propósito do projeto?
+2. Quais são as principais funcionalidades?
+3. Que tecnologias/frameworks são usados?
+4. Há algum problema ou código suspeito?
+5. Sugestões de melhoria
+
+Dados do projeto:
+${resumo}`
+                            }
+                        ],
+                        max_tokens: 2000,
+                        temperature: 0.3
+                    })
+                });
+
+                if (!resp.ok) throw new Error('Erro na API');
+
+                const data = await resp.json();
+                const analise = data.choices[0].message.content;
+
+                planoGerado += `\n\n---\n\n## 🤖 Análise da IA (${provedor.nome})\n\n${analise}\n`;
+                mostrarPlano(planoGerado);
+
+            } catch(e) {
+                alert('Erro ao consultar IA: ' + e.message);
+                mostrarPlano(planoGerado);
+            }
+        }
+
+        // =====================
+        // EXIBIR E COPIAR
+        // =====================
+        function mostrarPlano(conteudo) {
+            document.getElementById('planoContainer').textContent = conteudo;
+        }
+
+        function mostrarLoading(texto = 'Gerando plano...') {
+            document.getElementById('planoContainer').innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <div style="margin-top: 16px;">${texto}</div>
+                </div>
+            `;
+        }
+
+        function copiarPlanoCompleto() {
+            navigator.clipboard.writeText(planoGerado).then(() => {
+                const btn = document.getElementById('btnCopiar');
+                const original = btn.textContent;
+                btn.textContent = '✅ Copiado!';
+                btn.classList.add('copiado');
+                setTimeout(() => {
+                    btn.textContent = original;
+                    btn.classList.remove('copiado');
+                }, 2000);
+            });
+        }
+
+        function copiarSecao(id) {
+            if (!secoes[id]) return;
+            navigator.clipboard.writeText(secoes[id]).then(() => {
+                event.target.closest('.secao').style.background = '#065f46';
+                setTimeout(() => {
+                    event.target.closest('.secao').style.background = '';
+                }, 1000);
+            });
+        }
+
+        function baixarMarkdown() {
+            const blob = new Blob([planoGerado], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `plano-${projeto.nome.replace(/\.[^.]+$/, '')}-${Date.now()}.md`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

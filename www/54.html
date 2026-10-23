@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Maikon Caldeira - Advogado</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#5d5e53">
+    
+    <style>
+        :root {
+            --primaria: #5d5e53;
+            --secundaria: #a3a082;
+            --fundo: #0a0a0a;
+            --painel: #161614;
+            --texto: #f3f4f6;
+            --detalhe: #8F9779;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', 'Georgia', serif;
+            background-color: var(--fundo);
+            color: var(--texto);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        .logo-area { margin-bottom: 40px; }
+
+        .logo-circulo {
+            width: 110px; height: 110px;
+            background: var(--secundaria);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 55px; font-weight: bold; color: var(--fundo);
+            box-shadow: 0 0 40px rgba(163, 160, 130, 0.3);
+            border: 3px solid white;
+        }
+
+        h1 { font-size: 30px; letter-spacing: 4px; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; color: var(--texto); }
+        .sub { color: var(--secundaria); font-size: 13px; letter-spacing: 3px; margin-bottom: 40px; font-weight: 300; }
+
+        .grade {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .cartao {
+            background: var(--painel);
+            padding: 35px 20px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: var(--texto);
+            border: 1px solid var(--primaria);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; gap: 15px;
+        }
+
+        .cartao:hover {
+            transform: translateY(-8px);
+            border-color: var(--secundaria);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.6);
+            background: #1c1c1a;
+        }
+
+        .icone { font-size: 38px; color: var(--secundaria); filter: drop-shadow(0 0 5px rgba(163, 160, 130, 0.5)); }
+        .titulo-app { font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: var(--secundaria); }
+        .desc-app { font-size: 11px; color: #888; margin-top: -5px; }
+
+        .links-rapidos {
+            margin-top: 40px;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn-link {
+            text-decoration: none;
+            color: var(--texto);
+            font-size: 12px;
+            padding: 10px 20px;
+            border: 1px solid var(--primaria);
+            border-radius: 30px;
+            transition: 0.3s;
+            background: rgba(255,255,255,0.02);
+        }
+
+        .btn-link:hover {
+            background: var(--secundaria);
+            color: var(--fundo);
+            font-weight: bold;
+        }
+
+        .btn-admin {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--secundaria);
+            color: var(--fundo);
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(163, 160, 130, 0.5);
+            transition: all 0.3s;
+        }
+
+        .btn-admin:hover {
+            transform: scale(1.1);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.ativo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-conteudo {
+            background: var(--painel);
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-conteudo h2 {
+            color: var(--secundaria);
+            margin-bottom: 30px;
+        }
+
+        .form-grupo {
+            margin-bottom: 20px;
+        }
+
+        .form-grupo label {
+            display: block;
+            color: var(--texto);
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .form-grupo input,
+        .form-grupo select {
+            width: 100%;
+            padding: 12px;
+            background: var(--fundo);
+            border: 1px solid var(--primaria);
+            border-radius: 8px;
+            color: var(--texto);
+            font-size: 14px;
+        }
+
+        .form-grupo input:focus,
+        .form-grupo select:focus {
+            outline: none;
+            border-color: var(--secundaria);
+        }
+
+        .botoes-modal {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .botoes-modal button {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-salvar {
+            background: var(--secundaria);
+            color: var(--fundo);
+        }
+
+        .btn-cancelar {
+            background: #333;
+            color: var(--texto);
+        }
+
+        footer { margin-top: 60px; opacity: 0.4; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+
+        @media (max-width: 500px) {
+            .grade { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="logo-area">
+            <div class="logo-circulo">M</div>
+            <h1>Maikon Caldeira</h1>
+            <p class="sub">ADVOCACIA & ESTRATÉGIA DIGITAL</p>
+        </div>
+
+        <div class="grade" id="grade">
+            <!-- Apps serão carregados aqui -->
+        </div>
+
+        <div class="links-rapidos">
+            <a href="https://mail.google.com" target="_blank" class="btn-link">📧 Gmail</a>
+            <a href="https://www.google.com" target="_blank" class="btn-link">🌐 Busca</a>
+        </div>
+
+        <footer>© 2026 MAIKON CALDEIRA - SISTEMAS DE ALTA PERFORMANCE</footer>
+    </div>
+
+    <button class="btn-admin" onclick="abrirModal()">⚙️ Gerenciar Apps</button>
+
+    <!-- MODAL DE GERENCIAMENTO -->
+    <div class="modal" id="modal">
+        <div class="modal-conteudo">
+            <h2>⚙️ Adicionar Novo App</h2>
+            
+            <div class="form-grupo">
+                <label>Nome do App:</label>
+                <input type="text" id="nomeApp" placeholder="Ex: Playground">
+            </div>
+
+            <div class="form-grupo">
+                <label>Arquivo HTML:</label>
+                <input type="text" id="arquivoApp" placeholder="Ex: playground.html">
+            </div>
+
+            <div class="form-grupo">
+                <label>Ícone (emoji):</label>
+                <input type="text" id="iconeApp" placeholder="Ex: 🏗️" maxlength="2">
+            </div>
+
+            <div class="form-grupo">
+                <label>Descrição:</label>
+                <input type="text" id="descApp" placeholder="Ex: Crie e exporte scripts">
+            </div>
+
+            <div class="botoes-modal">
+                <button class="btn-salvar" onclick="adicionarApp()">💾 Adicionar</button>
+                <button class="btn-cancelar" onclick="fecharModal()">❌ Cancelar</button>
+            </div>
+
+            <hr style="margin: 30px 0; border-color: var(--primaria);">
+
+            <h2>📦 Gerar Arquivos PWA</h2>
+            <div class="botoes-modal">
+                <button class="btn-salvar" onclick="gerarManifest()">📄 Manifest.json</button>
+                <button class="btn-salvar" onclick="gerarServiceWorker()">⚙️ Service Worker</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========================================
+        // LISTA DE APPS (LocalStorage)
+        // ========================================
+        let apps = JSON.parse(localStorage.getItem('apps')) || [
+            { nome: 'Playground', arquivo: 'playground.html', icone: '🏗️', desc: 'Crie e exporte scripts' },
+            { nome: 'Filtrador', arquivo: 'filtrador.html', icone: '🔍', desc: 'Limpeza de processos' },
+            { nome: 'Chat IA', arquivo: 'chat completo.html', icone: '💬', desc: 'Assistente inteligente' },
+            { nome: 'Cirurgião', arquivo: 'cirurgião.html', icone: '🔬', desc: 'Análise de projetos' }
+        ];
+
+        // ========================================
+        // RENDERIZAR APPS
+        // ========================================
+        function renderizarApps() {
+            const grade = document.getElementById('grade');
+            grade.innerHTML = '';
+
+            apps.forEach(app => {
+                const cartao = document.createElement('a');
+                cartao.href = app.arquivo;
+                cartao.className = 'cartao';
+                cartao.innerHTML = `
+                    <span class="icone">${app.icone}</span>
+                    <span class="titulo-app">${app.nome}</span>
+                    <span class="desc-app">${app.desc}</span>
+                `;
+                grade.appendChild(cartao);
+            });
+
+            // Salvar no localStorage
+            localStorage.setItem('apps', JSON.stringify(apps));
+        }
+
+        // ========================================
+        // MODAL
+        // ========================================
+        function abrirModal() {
+            document.getElementById('modal').classList.add('ativo');
+        }
+
+        function fecharModal() {
+            document.getElementById('modal').classList.remove('ativo');
+            limparFormulario();
+        }
+
+        function limparFormulario() {
+            document.getElementById('nomeApp').value = '';
+            document.getElementById('arquivoApp').value = '';
+            document.getElementById('iconeApp').value = '';
+            document.getElementById('descApp').value = '';
+        }
+
+        // ========================================
+        // ADICIONAR APP
+        // ========================================
+        function adicionarApp() {
+            const nome = document.getElementById('nomeApp').value.trim();
+            const arquivo = document.getElementById('arquivoApp').value.trim();
+            const icone = document.getElementById('iconeApp').value.trim();
+            const desc = document.getElementById('descApp').value.trim();
+
+            if (!nome || !arquivo) {
+                alert('❌ Preencha pelo menos Nome e Arquivo!');
+                return;
+            }
+
+            apps.push({
+                nome: nome,
+                arquivo: arquivo,
+                icone: icone || '📄',
+                desc: desc || 'Novo app'
+            });
+
+            renderizarApps();
+            fecharModal();
+            alert('✅ App adicionado! Agora gere o Manifest e Service Worker.');
+        }
+
+        // ========================================
+        // GERAR MANIFEST.JSON
+        // ========================================
+        function gerarManifest() {
+            const manifest = {
+                name: "Maikon Caldeira - Advocacia Digital",
+                short_name: "MC Advocacia",
+                description: "Sistema completo de ferramentas jurídicas",
+                start_url: "/index.html",
+                display: "standalone",
+                background_color: "#0a0a0a",
+                theme_color: "#5d5e53",
+                icons: [
+                    {
+                        src: "icons/icon-192.png",
+                        sizes: "192x192",
+                        type: "image/png"
+                    },
+                    {
+                        src: "icons/icon-512.png",
+                        sizes: "512x512",
+                        type: "image/png"
+                    }
+                ],
+                shortcuts: apps.slice(0, 4).map(app => ({
+                    name: app.nome,
+                    short_name: app.nome,
+                    description: app.desc,
+                    url: `/${app.arquivo}`,
+                    icons: [{ src: "icons/icon-192.png", sizes: "192x192" }]
+                }))
+            };
+
+            baixarArquivo('manifest.json', JSON.stringify(manifest, null, 2));
+        }
+
+        // ========================================
+        // GERAR SERVICE WORKER
+        // ========================================
+        function gerarServiceWorker() {
+            const arquivos = apps.map(app => `  '/${app.arquivo}'`).join(',\n');
+            
+            const sw = `const CACHE_NAME = 'mc-advocacia-v1.0.0';
+const RUNTIME_CACHE = 'mc-runtime-v1';
+
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+${arquivos},
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
+  '/manifest.json'
+];
+
+self.addEventListener('install', (event) => {
+  console.log('[SW] Instalando...');
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  console.log('[SW] Ativando...');
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+  const url = new URL(request.url);
+
+  if (url.origin !== location.origin) return;
+
+  event.respondWith(
+    caches.match(request)
+      .then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+
+        return fetch(request)
+          .then((networkResponse) => {
+            return caches.open(RUNTIME_CACHE)
+              .then((cache) => {
+                cache.put(request, networkResponse.clone());
+                return networkResponse;
+              });
+          })
+          .catch(() => {
+            if (request.destination === 'document') {
+              return caches.match('/index.html');
+            }
+          });
+      })
+  );
+});`;
+
+            baixarArquivo('sw.js', sw);
+        }
+
+        // ========================================
+        // BAIXAR ARQUIVO
+        // ========================================
+        function baixarArquivo(nome, conteudo) {
+            const blob = new Blob([conteudo], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nome;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert(`✅ ${nome} baixado!`);
+        }
+
+        // ========================================
+        // INICIALIZAR
+        // ========================================
+        renderizarApps();
+
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then(() => console.log('✅ SW registrado'))
+                .catch((err) => console.error('❌ Erro SW:', err));
+        }
+    </script>
+
+</body>
+</html>

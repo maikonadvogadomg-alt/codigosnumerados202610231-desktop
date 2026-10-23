@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⚡ Iara Suite — Code Editor · APK Builder · Site Extractor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg2: #161b22;
+      --bg3: #21262d;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --primary: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --yellow: #d29922;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       HEADER / NAV
+    ════════════════════════════════════════════════════════════ */
+    header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .nav-brand span {
+      color: var(--primary);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .tab-btn:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .tab-btn.active {
+      background: rgba(88, 166, 255, 0.12);
+      color: var(--primary);
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       PANELS
+    ════════════════════════════════════════════════════════════ */
+    .panel {
+      display: none;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .panel.active {
+      display: flex;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       EDITOR PANEL
+    ════════════════════════════════════════════════════════════ */
+    #editor-panel {
+      flex-direction: row;
+    }
+
+    .editor-sidebar {
+      width: 220px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .file-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    .file-item {
+      padding: 6px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: 0.1s;
+    }
+
+    .file-item:hover {
+      background: var(--bg3);
+      color: var(--text);
+    }
+
+    .file-item.active {
+      background: rgba(88, 166, 255, 0.12);
+      color: var(--primary);
+    }
+
+    .editor-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .editor-toolbar {
+      padding: 8px 12px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .editor-area {
+      flex: 1;
+      overflow: hidden;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      border: none;
+      padding: 16px;
+      resize: none;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+      line-height: 1.6;
+      outline: none;
+      tab-size: 2;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       APK PANEL
+    ════════════════════════════════════════════════════════════ */
+    #apk-panel {
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: var(--primary);
+    }
+
+    .drop-zone {
+      border: 2px dashed var(--border);
+      border-radius: 10px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.2s;
+      color: var(--muted);
+    }
+
+    .drop-zone:hover,
+    .drop-zone.drag-over {
+      border-color: var(--primary);
+      background: rgba(88, 166, 255, 0.05);
+      color: var(--primary);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-group label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .input-group input,
+    .input-group select {
+      width: 100%;
+      padding: 8px 10px;
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .input-group input:focus,
+    .input-group select:focus {
+      border-color: var(--primary);
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .color-row input[type=color] {
+      width: 36px;
+      height: 36px;
+      padding: 2px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+    }
+
+    .target-toggle {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .target-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: none;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .target-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .target-btn.active {
+      border-color: var(--primary);
+      background: rgba(88, 166, 255, 0.12);
+      color: var(--primary);
+    }
+
+    .alert {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 12px;
+    }
+
+    .alert-info {
+      background: rgba(88, 166, 255, 0.1);
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      color: var(--primary);
+    }
+
+    .alert-success {
+      background: rgba(63, 185, 80, 0.1);
+      border: 1px solid rgba(63, 185, 80, 0.3);
+      color: var(--green);
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 8px 0;
+    }
+
+    .progress-bar-inner {
+      height: 100%;
+      background: var(--primary);
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+
+    #apk-log {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 80px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-size: 12px;
+      font-family: 'Courier New', monospace;
+      color: var(--green);
+      white-space: pre-wrap;
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       EXTRACTOR PANEL
+    ════════════════════════════════════════════════════════════ */
+    #extractor-panel {
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-box input,
+    .search-box select {
+      padding: 8px 10px;
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .search-box input:focus,
+    .search-box select:focus {
+      border-color: var(--primary);
+    }
+
+    .site-shortcuts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .site-btn {
+      padding: 5px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(88, 166, 255, 0.3);
+      background: rgba(88, 166, 255, 0.08);
+      color: var(--primary);
+      font-size: 12px;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .site-btn:hover {
+      background: rgba(88, 166, 255, 0.2);
+    }
+
+    .btn {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #000;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover {
+      background: #79c0ff;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .flex {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-blue {
+      background: rgba(88, 166, 255, 0.15);
+      color: var(--primary);
+    }
+
+    .badge-green {
+      background: rgba(63, 185, 80, 0.15);
+      color: var(--green);
+    }
+
+    .badge-yellow {
+      background: rgba(210, 153, 34, 0.15);
+      color: var(--yellow);
+    }
+
+    @media (max-width: 640px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .editor-sidebar {
+        width: 100%;
+        height: 120px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      #editor-panel {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════
+     HEADER
+════════════════════════════════════════════════════════════ -->
+<header>
+  <div class="nav-brand">⚡ <span>Iara</span> Suite</div>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('editor')">💻 Editor</button>
+    <button class="tab-btn" onclick="switchTab('apk')">📦 APK</button>
+    <button class="tab-btn" onclick="switchTab('extractor')">🔍 Extrator</button>
+  </div>
+</header>
+
+<!-- ════════════════════════════════════════════════════════════
+     EDITOR PANEL
+════════════════════════════════════════════════════════════ -->
+<div id="editor-panel" class="panel active">
+  <div class="editor-sidebar">
+    <div class="sidebar-header">
+      <span>📄 Arquivos</span>
+      <button class="btn" style="padding: 3px 8px; font-size: 11px;" onclick="newFile()">+</button>
+    </div>
+    <div class="file-list" id="file-list"></div>
+  </div>
+
+  <div class="editor-main">
+    <div class="editor-toolbar">
+      <span id="current-filename" style="font-size: 12px; color: var(--muted); font-family: 'Courier New', monospace;">sem arquivo</span>
+      <div style="flex: 1;"></div>
+      <button class="btn" onclick="saveFile()">💾 Salvar</button>
+      <button class="btn" onclick="downloadZip()">📥 ZIP</button>
+      <button class="btn" onclick="uploadZip()">📤 Importar</button>
+    </div>
+    <div class="editor-area">
+      <textarea id="code-textarea" placeholder="Selecione um arquivo..." oninput="onCodeChange()" onkeydown="handleTabKey(event)"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     APK PANEL
+════════════════════════════════════════════════════════════ -->
+<div id="apk-panel" class="panel">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">📦 APK Builder</div>
+      <p style="font-size: 13px; color: var(--muted); margin-bottom: 15px;">Gera APK Android, Executável PC ou projeto para GitHub Actions</p>
+    </div>
+
+    <!-- Upload -->
+    <div class="card">
+      <div class="card-title">1️⃣ Selecione seu projeto (ZIP)</div>
+      <div class="drop-zone" id="drop-zone" ondragover="dragOver(event)" ondragleave="dragLeave()" ondrop="drop(event)" onclick="document.getElementById('apk-file-input').click()">
+        <div style="font-size: 32px; margin-bottom: 10px;">📂</div>
+        <p>Arraste seu ZIP aqui ou clique para selecionar</p>
+        <p style="font-size: 12px; margin-top: 4px; color: var(--muted);">Detecta automaticamente: dist/, www/, public/, build/</p>
+      </div>
+      <input type="file" id="apk-file-input" accept=".zip" style="display: none;" onchange="apkFileSelected(event)">
+      <div id="upload-info" style="display: none; margin-top: 10px;" class="alert alert-success"></div>
+    </div>
+
+    <!-- Config -->
+    <div class="card">
+      <div class="card-title">2️⃣ Configuração do App</div>
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Nome do App</label>
+          <input id="app-name" type="text" placeholder="Meu App Jurídico" oninput="autoId()">
+        </div>
+        <div class="input-group">
+          <label>Package ID (reverso)</label>
+          <input id="app-id" type="text" placeholder="br.adv.maikoncaldeira.app">
+        </div>
+        <div class="input-group">
+          <label>Versão</label>
+          <input id="app-version" type="text" value="1.0.0">
+        </div>
+        <div class="input-group">
+          <label>Código da versão</label>
+          <input id="app-version-code" type="number" value="1" min="1">
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Cor primária</label>
+          <div class="color-row">
+            <input type="color" id="theme-color" value="#6366f1">
+            <input type="text" id="theme-color-txt" value="#6366f1" style="flex: 1;" oninput="syncColor('theme-color', 'theme-color-txt')">
+          </div>
+        </div>
+        <div class="input-group">
+          <label>Cor de fundo</label>
+          <div class="color-row">
+            <input type="color" id="bg-color" value="#0f172a">
+            <input type="text" id="bg-color-txt" value="#0f172a" style="flex: 1;" oninput="syncColor('bg-color', 'bg-color-txt')">
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="input-group">
+          <label>Orientação (Android)</label>
+          <select id="orientation">
+            <option value="portrait">Retrato (portrait)</option>
+            <option value="landscape">Paisagem (landscape)</option>
+            <option value="any">Ambos (retrato + paisagem)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Android mínimo (Min SDK)</label>
+          <select id="min-sdk">
+            <option value="21">Android 5.0+ (API 21)</option>
+            <option value="22" selected>Android 5.1+ (API 22)</option>
+            <option value="24">Android 7.0+ (API 24)</option>
+            <option value="26">Android 8.0+ (API 26)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Target -->
+    <div class="card">
+      <div class="card-title">3️⃣ Escolha o destino</div>
+      <div class="target-toggle">
+        <button class="target-btn active" id="tgt-apk" onclick="setTarget('apk')">📱 APK Android</button>
+        <button class="target-btn" id="tgt-eas" onclick="setTarget('eas')">🚀 GitHub Actions</button>
+        <button class="target-btn" id="tgt-electron" onclick="setTarget('electron')">🖥 Electron PC</button>
+      </div>
+      <div id="target-info" class="alert alert-info" style="margin-top: 12px;">
+        Gera ZIP com projeto Android Studio pronto. Abra no Android Studio → Build APK.
+      </div>
+    </div>
+
+    <!-- Build -->
+    <div class="card">
+      <div class="card-title">4️⃣ Gerar</div>
+      <div id="progress" style="display: none;">
+        <div class="progress-bar"><div class="progress-bar-inner" id="progress-bar" style="width: 0%;"></div></div>
+        <div id="apk-log"></div>
+      </div>
+      <div class="flex" style="gap: 10px;">
+        <button class="btn btn-primary" onclick="buildAPK()" id="build-btn">⚡ Gerar agora</button>
+        <span style="font-size: 12px; color: var(--muted);">Selecione um ZIP e preencha os campos acima</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     EXTRACTOR PANEL
+════════════════════════════════════════════════════════════ -->
+<div id="extractor-panel" class="panel">
+  <div class="container">
+    <div class="card">
+      <div class="card-title">🔍 Extrator de Sites Jurídicos</div>
+      <div class="search-box">
+        <input id="ext-url" type="text" placeholder="calculojuridico.com.br ou URL completa" style="flex: 1; min-width: 200px;">
+        <select id="ext-depth" style="width: 160px;">
+          <option value="1">Só esta página</option>
+          <option value="2">+ subpáginas</option>
+        </select>
+        <button class="btn btn-primary" onclick="doExtract()">🔍 Extrair</button>
+      </div>
+
+      <div class="site-shortcuts">
+        <button class="site-btn" onclick="quickExtract('https://www.calculojuridico.com.br')">Cálculo Jurídico</button>
+        <button class="site-btn" onclick="quickExtract('https://previdenciario.com.br')">Previdenciário</button>
+        <button class="site-btn" onclick="quickExtract('https://www.jusbrasil.com.br')">JusBrasil</button>
+      </div>
+
+      <div id="ext-error" style="display: none; margin-top: 10px;" class="alert" style="background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.3); color: var(--red);"></div>
+      <div id="ext-loading" style="display: none; margin-top: 10px; align-items: center; gap: 10px;">
+        <div style="width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite;"></div>
+        <span style="font-size: 13px; color: var(--muted);">Extraindo via proxy público...</span>
+      </div>
+    </div>
+
+    <div id="ext-results" style="display: none;">
+      <div class="card">
+        <div class="card-title">📊 Resultados</div>
+        <div id="ext-stats" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px;"></div>
+        <div id="ext-content"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="zip-upload" accept=".zip" style="display: none;" onchange="handleZipUpload(event)">
+
+<style>
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════
+function qs(s) { return document.querySelector(s); }
+function qsa(s) { return document.querySelectorAll(s); }
+function ls(k) { try { return localStorage.getItem(k); } catch { return null; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch { } }
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+let toastTimer;
+function showToast(msg, type = 'success') {
+  let t = qs('#toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'toast';
+    document.body.appendChild(t);
+    Object.assign(t.style, {
+      position: 'fixed',
+      bottom: '24px',
+      right: '24px',
+      padding: '10px 18px',
+      borderRadius: '8px',
+      fontSize: '13px',
+      fontWeight: '600',
+      zIndex: '999',
+      transition: 'opacity .3s',
+      opacity: '0'
+    });
+  }
+  t.textContent = msg;
+  t.style.background = type === 'err' ? 'var(--red)' : 'var(--green)';
+  t.style.color = '#fff';
+  t.style.opacity = '1';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 2500);
+}
+
+function dlBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('📋 Copiado!'));
+}
+
+// ════════════════════════════════════════════════════════════
+// TAB SWITCHING
+// ════════════════════════════════════════════════════════════
+function switchTab(name) {
+  qsa('.tab-btn').forEach(b => b.classList.remove('active'));
+  qsa('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  qs('#' + name + '-panel').classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════════
+// CODE EDITOR
+// ════════════════════════════════════════════════════════════
+let files = {};
+let currentFile = null;
+
+function initEditor() {
+  const saved = ls('iara-files');
+  if (saved) files = JSON.parse(saved);
+
+  if (!Object.keys(files).length) {
+    files['index.html'] = '<!DOCTYPE html>\n<html lang="pt-BR">\n<head>\n  <meta charset="UTF-8">\n  <title>Meu App</title>\n</head>\n<body>\n  <h1>Olá, Mundo!</h1>\n</body>\n</html>';
+    files['style.css'] = '/* Estilos */\nbody { font-family: sans-serif; }\n';
+    files['script.js'] = '// JavaScript\nconsole.log("App iniciado!");\n';
+  }
+
+  renderFileList();
+  if (Object.keys(files).length) openFile(Object.keys(files)[0]);
+}
+
+function renderFileList() {
+  const list = qs('#file-list');
+  list.innerHTML = Object.keys(files).map(f => `
+    <div class="file-item ${f === currentFile ? 'active' : ''}" onclick="openFile('${escHtml(f)}')">
+      <span>${fileIcon(f)}</span>
+      <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${escHtml(f)}</span>
+    </div>
+  `).join('');
+}
+
+function fileIcon(name) {
+  const ext = name.split('.').pop() || '';
+  const icons = { html: '🌐', css: '🎨', js: '📜', json: '📋', md: '📝', py: '🐍' };
+  return icons[ext] || '📄';
+}
+
+function openFile(name) {
+  if (currentFile && files[currentFile] !== undefined) {
+    files[currentFile] = qs('#code-textarea').value;
+  }
+  currentFile = name;
+  qs('#code-textarea').value = files[name] || '';
+  qs('#current-filename').textContent = name;
+  renderFileList();
+}
+
+function onCodeChange() {
+  if (currentFile) files[currentFile] = qs('#code-textarea').value;
+}
+
+function saveFile() {
+  onCodeChange();
+  lsSet('iara-files', JSON.stringify(files));
+  showToast('💾 Salvo!');
+}
+
+function newFile() {
+  const name = prompt('Nome do arquivo:', 'novo.js');
+  if (!name || !name.trim()) return;
+  files[name.trim()] = '';
+  renderFileList();
+  openFile(name.trim());
+  saveFile();
+}
+
+async function downloadZip() {
+  onCodeChange();
+  if (!window.JSZip) {
+    showToast('JSZip não carregado', 'err');
+    return;
+  }
+  try {
+    const zip = new JSZip();
+    for (const [name, content] of Object.entries(files)) {
+      zip.file(name, content);
+    }
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    dlBlob(blob, `iara-projeto-${Date.now()}.zip`);
+    showToast('📥 ZIP baixado!');
+  } catch (err) {
+    showToast('Erro: ' + err.message, 'err');
+  }
+}
+
+function uploadZip() {
+  qs('#zip-upload').click();
+}
+
+async function handleZipUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (!window.JSZip) {
+    showToast('JSZip não carregado', 'err');
+    return;
+  }
+  try {
+    const zip = await JSZip.loadAsync(file);
+    files = {};
+    for (const [path, obj] of Object.entries(zip.files)) {
+      if (obj.dir) continue;
+      const content = await obj.async('string');
+      files[path] = content;
+    }
+    renderFileList();
+    const first = Object.keys(files)[0];
+    if (first) openFile(first);
+    saveFile();
+    showToast(`📤 ${Object.keys(files).length} arquivos importados`);
+  } catch (err) {
+    showToast('Erro: ' + err.message, 'err');
+  }
+  e.target.value = '';
+}
+
+function handleTabKey(e) {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const ta = e.target;
+    const s = ta.selectionStart;
+    ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(ta.selectionEnd);
+    ta.selectionStart = ta.selectionEnd = s + 2;
+    onCodeChange();
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// APK BUILDER
+// ════════════════════════════════════════════════════════════
+let apkFiles = [];
+let buildTarget = 'apk';
+
+function dragOver(e) {
+  e.preventDefault();
+  qs('#drop-zone').classList.add('drag-over');
+}
+
+function dragLeave() {
+  qs('#drop-zone').classList.remove('drag-over');
+}
+
+function drop(e) {
+  e.preventDefault();
+  dragLeave();
+  const file = e.dataTransfer.files[0];
+  if (file) loadApkZip(file);
+}
+
+function apkFileSelected(e) {
+  const file = e.target.files[0];
+  if (file) loadApkZip(file);
+  e.target.value = '';
+}
+
+async function loadApkZip(file) {
+  if (!window.JSZip) {
+    showToast('JSZip não carregado', 'err');
+    return;
+  }
+
+  try {
+    const zip = await JSZip.loadAsync(file);
+    apkFiles = [];
+
+    for (const [path, obj] of Object.entries(zip.files)) {
+      if (obj.dir) continue;
+      const isBin = /\.(png|jpg|jpeg|gif|webp|ico|svg|woff|woff2|ttf|otf|eot|pdf|zip|mp3|mp4)$/i.test(path);
+      const content = isBin ? await obj.async('uint8array') : await obj.async('string');
+      apkFiles.push({ path, content, binary: isBin });
+    }
+
+    const webRoot = detectWebRoot(apkFiles);
+    apkFiles = apkFiles.filter(f => {
+      const p = f.path.replace(/^\/+/, '');
+      return webRoot ? p.startsWith(webRoot) : true;
+    }).map(f => ({
+      ...f,
+      path: f.path.replace(/^\/+/, '').slice(webRoot.length)
+    }));
+
+    const info = qs('#upload-info');
+    info.style.display = 'block';
+    info.textContent = `✅ ${file.name} — ${apkFiles.length} arquivos carregados`;
+    apkLog(`Projeto carregado: ${file.name} — ${apkFiles.length} arquivos`);
+  } catch (err) {
+    showToast('Erro ao carregar ZIP: ' + err.message, 'err');
+  }
+}
+
+function detectWebRoot(files) {
+  const paths = files.map(f => f.path.replace(/^\/+/, '').toLowerCase());
+  if (paths.some(p => p === 'index.html')) return '';
+  for (const d of ['dist', 'www', 'public', 'build', 'out', 'html', 'app', 'static']) {
+    if (paths.some(p => p === d + '/index.html')) return d + '/';
+  }
+  return '';
+}
+
+function autoId() {
+  const name = qs('#app-name').value.trim();
+  if (!name) return;
+  const slug = name.toLowerCase().replace(/[^a-z0-9]/g, '.').replace(/\.+/g, '.').replace(/^\.|\.$/g, '');
+  if (!qs('#app-id').value) qs('#app-id').value = `br.adv.${slug}`;
+}
+
+function syncColor(picId, txtId) {
+  const txt = qs('#' + txtId).value;
+  if (/^#[0-9a-fA-F]{6}$/.test(txt)) qs('#' + picId).value = txt;
+}
+
+function setTarget(t) {
+  buildTarget = t;
+  ['apk', 'eas', 'electron'].forEach(x => {
+    qs('#tgt-' + x).classList.toggle('active', x === t);
+  });
+
+  const info = qs('#target-info');
+  if (t === 'apk') {
+    info.textContent = '📱 Gera ZIP com projeto Android Studio pronto. Abra no Android Studio → Build APK.';
+  } else if (t === 'eas') {
+    info.textContent = '🚀 Gera repositório com GitHub Actions. Suba no GitHub → APK compilado automaticamente.';
+  } else if (t === 'electron') {
+    info.textContent = '🖥 Gera projeto Electron. Execute npm install && npm start para rodar no PC.';
+  }
+}
+
+function getConfig() {
+  return {
+    appName: qs('#app-name').value || 'Meu App',
+    appId: qs('#app-id').value || 'br.adv.app',
+    versionName: qs('#app-version').value || '1.0.0',
+    versionCode: parseInt(qs('#app-version-code').value) || 1,
+    themeColor: qs('#theme-color').value,
+    bgColor: qs('#bg-color').value,
+    orientation: qs('#orientation').value,
+    minSdk: parseInt(qs('#min-sdk').value) || 22,
+  };
+}
+
+function apkLog(msg) {
+  const el = qs('#apk-log');
+  el.textContent += (el.textContent ? '\n' : '') + msg;
+  el.scrollTop = el.scrollHeight;
+}
+
+function setProgress(pct) {
+  qs('#progress-bar').style.width = pct + '%';
+}
+
+async function buildAPK() {
+  if (!apkFiles.length) {
+    showToast('Carregue um ZIP primeiro', 'err');
+    return;
+  }
+
+  const cfg = getConfig();
+  qs('#progress').style.display = 'block';
+  qs('#apk-log').textContent = '';
+  setProgress(5);
+
+  const btn = qs('#build-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando...';
+
+  try {
+    if (buildTarget === 'apk') await buildCapacitor(cfg);
+    else if (buildTarget === 'eas') await buildEAS(cfg);
+    else if (buildTarget === 'electron') await buildElectron(cfg);
+  } catch (err) {
+    apkLog('❌ Erro: ' + err.message);
+    showToast('Erro: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Gerar agora';
+    setProgress(100);
+  }
+}
+
+async function buildCapacitor(cfg) {
+  const zip = new JSZip();
+  apkLog('→ Criando estrutura Capacitor...');
+  setProgress(15);
+
+  apkFiles.forEach(f => {
+    const p = 'dist/' + f.path;
+    zip.file(p, f.content);
+  });
+  setProgress(30);
+
+  zip.file('capacitor.config.js', `const config = {
+  appId: '${cfg.appId}',
+  appName: '${cfg.appName}',
+  webDir: 'dist',
+  server: { androidScheme: 'https', cleartext: false },
+};
+module.exports = config;`);
+
+  zip.file('package.json', JSON.stringify({
+    name: cfg.appName.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase() || 'meu-app',
+    version: cfg.versionName,
+    private: true,
+    scripts: {
+      copy: 'npx cap copy android',
+      build: 'cd android && ./gradlew assembleDebug --no-daemon'
+    },
+    dependencies: {
+      '@capacitor/android': '6.1.2',
+      '@capacitor/core': '6.1.2'
+    }
+  }, null, 2));
+
+  setProgress(50);
+
+  const pkg = cfg.appId.split('.');
+  const sp = pkg.join('/');
+  const appBase = 'android/app/src/main/';
+  
+  zip.file(appBase + 'AndroidManifest.xml', `<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <application android:allowBackup="true" android:label="@string/app_name">
+    <activity android:name=".MainActivity" android:screenOrientation="${cfg.orientation === 'portrait' ? 'portrait' : cfg.orientation === 'landscape' ? 'landscape' : 'unspecified'}" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>`);
+
+  zip.file(appBase + `java/${sp}/MainActivity.java`, `package ${cfg.appId};
+import com.getcapacitor.BridgeActivity;
+public class MainActivity extends BridgeActivity {}`);
+
+  setProgress(75);
+  apkLog('→ Comprimindo ZIP...');
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  setProgress(98);
+
+  const safe = cfg.appName.replace(/[^a-zA-Z0-9]/g, '-');
+  dlBlob(blob, `${safe}-android.zip`);
+  apkLog(`✅ Download iniciado: ${safe}-android.zip`);
+  showToast('✅ ZIP Android gerado!');
+}
+
+async function buildElectron(cfg) {
+  const zip = new JSZip();
+  apkLog('→ Criando estrutura Electron (PC)...');
+  setProgress(20);
+
+  apkFiles.forEach(f => zip.file('src/' + f.path, f.content));
+  setProgress(40);
+
+  zip.file('main.js', `const { app, BrowserWindow } = require('electron');
+const path = require('path');
+
+function createWindow() {
+  const win = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    title: '${cfg.appName}',
+    backgroundColor: '${cfg.bgColor}',
+  });
+  win.loadFile(path.join(__dirname, 'src', 'index.html'));
+}
+
+app.whenReady().then(createWindow);
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});`);
+
+  zip.file('package.json', JSON.stringify({
+    name: cfg.appName.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase() || 'meu-app',
+    version: cfg.versionName,
+    main: 'main.js',
+    scripts: { start: 'electron .', dist: 'electron-builder' },
+    devDependencies: { electron: '^31.0.0' }
+  }, null, 2));
+
+  setProgress(70);
+  apkLog('→ Comprimindo...');
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  setProgress(96);
+
+  const safe = cfg.appName.replace(/[^a-zA-Z0-9]/g, '-');
+  dlBlob(blob, `${safe}-electron.zip`);
+  apkLog(`✅ Download: ${safe}-electron.zip`);
+  showToast('✅ ZIP Electron gerado!');
+}
+
+async function buildEAS(cfg) {
+  const zip = new JSZip();
+  apkLog('→ Criando estrutura EAS (GitHub Actions)...');
+  setProgress(20);
+
+  apkFiles.forEach(f => zip.file('www/' + f.path, f.content));
+  
+  zip.file('app.json', JSON.stringify({
+    expo: {
+      name: cfg.appName,
+      version: cfg.versionName,
+      orientation: cfg.orientation === 'landscape' ? 'landscape' : 'portrait',
+      backgroundColor: cfg.bgColor
+    }
+  }, null, 2));
+
+  zip.file('package.json', JSON.stringify({
+    name: cfg.appName.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase() || 'meu-app',
+    version: cfg.versionName,
+    scripts: { start: 'expo start', android: 'expo run:android' },
+    dependencies: { expo: '~51.0.28', 'react-native': '0.74.5' }
+  }, null, 2));
+
+  setProgress(80);
+  const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+  const safe = cfg.appName.replace(/[^a-zA-Z0-9]/g, '-');
+  dlBlob(blob, `${safe}-eas.zip`);
+  apkLog(`✅ Download: ${safe}-eas.zip`);
+  showToast('✅ ZIP EAS gerado!');
+}
+
+// ════════════════════════════════════════════════════════════
+// SITE EXTRACTOR
+// ════════════════════════════════════════════════════════════
+const PROXY_URLS = [
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+];
+
+async function fetchViaProxy(url) {
+  for (let i = 0; i < PROXY_URLS.length; i++) {
+    try {
+      const r = await fetch(PROXY_URLS[i](url), { signal: AbortSignal.timeout(15000) });
+      if (!r.ok) continue;
+      const d = await r.json();
+      const html = d.contents || d.data || d;
+      if (typeof html === 'string' && html.length > 50) return html;
+    } catch (e) {
+      if (i === PROXY_URLS.length - 1) throw e;
+    }
+  }
+  throw new Error('Todos os proxies falharam');
+}
+
+function quickExtract(url) {
+  qs('#ext-url').value = url;
+  doExtract();
+}
+
+async function doExtract() {
+  let url = qs('#ext-url').value.trim();
+  if (!url) {
+    showToast('Digite uma URL', 'err');
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+
+  qs('#ext-error').style.display = 'none';
+  qs('#ext-results').style.display = 'none';
+  qs('#ext-loading').style.display = 'flex';
+
+  try {
+    const html = await fetchViaProxy(url);
+    const scripts = extractScripts(html);
+    const assets = extractAssets(html, url);
+
+    qs('#ext-stats').innerHTML = [
+      { num: scripts.length, lbl: 'Scripts' },
+      { num: assets.length, lbl: 'Arquivos' },
+      { num: scripts.filter(s => s.hasCalculo).length, lbl: 'Cálculos' },
+    ].map(s => `
+      <div style="background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center;">
+        <div style="font-size: 28px; font-weight: 700; font-family: 'Courier New', monospace;">${s.num}</div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">${s.lbl}</div>
+      </div>
+    `).join('');
+
+    qs('#ext-content').innerHTML = `
+      <div style="margin-top: 20px;">
+        <h3 style="font-size: 14px; margin-bottom: 10px;">📜 Scripts encontrados:</h3>
+        ${scripts.map((s, i) => `
+          <div style="background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12px; font-weight: 600;">Script #${i + 1} (${s.size} chars)</span>
+              ${s.hasCalculo ? '<span class="badge badge-yellow">⚖️ Cálculo</span>' : ''}
+              ${s.hasFormula ? '<span class="badge badge-yellow">📐 Fórmula</span>' : ''}
+            </div>
+            <div style="background: var(--bg); padding: 10px; border-radius: 6px; font-size: 11px; font-family: 'Courier New', monospace; color: #79c0ff; max-height: 150px; overflow: hidden; white-space: pre-wrap; word-break: break-all;">
+              ${escHtml(s.content.slice(0, 300))}${s.content.length > 300 ? '...' : ''}
+            </div>
+            <button class="btn" style="margin-top: 8px; font-size: 11px; padding: 4px 10px;" onclick="copyText(\`${escHtml(s.content).replace(/`/g, '\\`')}\`)">📋 Copiar</button>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    qs('#ext-results').style.display = 'block';
+    qs('#ext-loading').style.display = 'none';
+    showToast(`✅ ${scripts.length} scripts encontrados!`);
+  } catch (err) {
+    qs('#ext-loading').style.display = 'none';
+    qs('#ext-error').style.display = 'block';
+    qs('#ext-error').textContent = '⚠️ ' + err.message;
+  }
+}
+
+function extractScripts(html) {
+  const scripts = [];
+  const pat = /<script(?![^>]+src=)[^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = pat.exec(html)) !== null) {
+    const content = (m[1] || '').trim();
+    if (!content || content.length < 20) continue;
+    const hasCalculo = /calc[uú]|c[aá]lculo|remuner|salário|benef[ií]cio|previdenci|inss|aposentad|pens[aã]o/i.test(content);
+    const hasFormula = /Math\.|function\s+calc|=\s*[\d.]+\s*[\*\/\+\-]|parseFloat|parseInt|\.toFixed\(/i.test(content);
+    scripts.push({ content, size: content.length, hasCalculo, hasFormula });
+  }
+  return scripts;
+}
+
+function extractAssets(html, base) {
+  const assets = [];
+  const seen = new Set();
+  const patterns = [
+    [/<script[^>]+src=["']([^"']+)["']/gi, 'script'],
+    [/<link[^>]+href=["']([^"']+\.css[^"']*)["']/gi, 'css'],
+    [/<img[^>]+src=["']([^"']+)["']/gi, 'image'],
+  ];
+  for (const [pat, type] of patterns) {
+    let m;
+    while ((m = pat.exec(html)) !== null) {
+      try {
+        const src = m[1].trim();
+        if (!src || src.startsWith('data:')) continue;
+        const abs = src.startsWith('http') ? src : new URL(src, base).toString();
+        if (seen.has(abs)) continue;
+        seen.add(abs);
+        assets.push({ url: abs, type });
+      } catch { }
+    }
+  }
+  return assets.slice(0, 100);
+}
+
+// ════════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', initEditor);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<title>Cirurgião de Código 3.0</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; background: #0a0f1e; color: #e2e8f0; padding: 10px; }
+h1 { text-align: center; color: #38bdf8; padding: 15px; font-size: 22px; }
+.subtitulo { text-align: center; color: #64748b; margin-bottom: 20px; font-size: 13px; }
+.grid { display: grid; grid-template-columns: 340px 1fr; gap: 15px; max-width: 1800px; margin: 0 auto; }
+@media(max-width:800px){ .grid { grid-template-columns: 1fr; } }
+.card { background: #111827; border: 1px solid #1e3a5f; border-radius: 12px; padding: 16px; margin-bottom: 15px; }
+.card h2 { color: #7dd3fc; font-size: 15px; margin-bottom: 12px; border-bottom: 1px solid #1e3a5f; padding-bottom: 8px; }
+button { background: #1d4ed8; color: white; border: none; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin: 4px 0; font-size: 13px; transition: background 0.2s; }
+button:hover { background: #2563eb; }
+button.verde { background: #065f46; } button.verde:hover { background: #047857; }
+button.laranja { background: #92400e; } button.laranja:hover { background: #b45309; }
+button.roxo { background: #4c1d95; } button.roxo:hover { background: #6d28d9; }
+button.vermelho { background: #7f1d1d; } button.vermelho:hover { background: #991b1b; }
+button.ciano { background: #0e7490; } button.ciano:hover { background: #0891b2; }
+button.rosa { background: #831843; } button.rosa:hover { background: #9d174d; }
+button.amarelo { background: #78350f; } button.amarelo:hover { background: #92400e; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+input[type="file"] { width: 100%; background: #0f172a; color: #94a3b8; border: 1px dashed #334155; border-radius: 8px; padding: 10px; margin-bottom: 8px; cursor: pointer; }
+input[type="text"], textarea, select { width: 100%; background: #0f172a; color: #e2e8f0; border: 1px solid #334155; border-radius: 8px; padding: 8px 10px; font-size: 13px; margin-bottom: 6px; }
+textarea { resize: vertical; font-family: monospace; }
+.bloco-resultado { background: #020617; border: 1px solid #1e3a5f; border-radius: 8px; padding: 12px; margin: 8px 0; font-family: 'Consolas', monospace; font-size: 12px; max-height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; }
+.tag { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; margin: 2px; }
+.tag-verde { background: #064e3b; color: #6ee7b7; }
+.tag-azul { background: #1e3a5f; color: #7dd3fc; }
+.tag-roxo { background: #3b0764; color: #c4b5fd; }
+.tag-amarelo { background: #451a03; color: #fcd34d; }
+.tag-vermelho { background: #450a0a; color: #fca5a5; }
+.tag-laranja { background: #431407; color: #fb923c; }
+.item-funcao { background: #0f172a; border-left: 4px solid #3b82f6; padding: 8px 12px; margin: 6px 0; border-radius: 0 6px 6px 0; cursor: pointer; transition: background 0.2s; }
+.item-funcao:hover { background: #1e293b; }
+.item-funcao.json { border-left-color: #a78bfa; }
+.item-funcao.local { border-left-color: #4ade80; }
+.item-funcao.api { border-left-color: #fb923c; }
+.item-funcao.classe { border-left-color: #f472b6; }
+.item-funcao.arquivo { border-left-color: #38bdf8; }
+.item-funcao.replit { border-left-color: #ef4444; }
+.item-funcao.bug { border-left-color: #f59e0b; }
+.nome-funcao { color: #93c5fd; font-weight: bold; font-size: 13px; }
+.desc-funcao { color: #64748b; font-size: 11px; margin-top: 2px; }
+.linha-funcao { color: #475569; font-size: 10px; }
+#areaVisualizacao { background: #020617; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; min-height: 400px; max-height: 70vh; overflow-y: auto; white-space: pre-wrap; word-break: break-word; color: #a5b4fc; }
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0; }
+.stat-box { background: #0f172a; border: 1px solid #1e3a5f; border-radius: 8px; padding: 10px; text-align: center; }
+.stat-numero { font-size: 24px; font-weight: bold; color: #38bdf8; }
+.stat-label { font-size: 11px; color: #64748b; margin-top: 2px; }
+details { margin: 6px 0; }
+summary { cursor: pointer; color: #67e8f9; font-weight: bold; padding: 6px; background: #0f172a; border-radius: 6px; font-size: 13px; }
+summary:hover { background: #1e293b; }
+.aviso { background: #1c1917; border: 1px solid #78350f; border-radius: 8px; padding: 10px; color: #fcd34d; font-size: 12px; margin: 8px 0; }
+.aviso-verde { background: #052e16; border: 1px solid #166534; border-radius: 8px; padding: 10px; color: #86efac; font-size: 12px; margin: 8px 0; }
+.aviso-vermelho { background: #450a0a; border: 1px solid #991b1b; border-radius: 8px; padding: 10px; color: #fca5a5; font-size: 12px; margin: 8px 0; }
+#listaBlocos { max-height: 500px; overflow-y: auto; }
+.copiado { background: #065f46 !important; }
+.ia-panel { background: #0f172a; border: 1px solid #1e3a5f; border-radius: 8px; padding: 12px; margin: 10px 0; }
+.ia-panel label { font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px; }
+.ia-resp { background: #020617; border: 1px solid #1e3a5f; border-radius: 8px; padding: 12px; margin-top: 8px; font-size: 13px; color: #a5b4fc; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+.spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #334155; border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite; vertical-align: middle; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.arquivo-item { display: flex; align-items: center; gap: 8px; background: #0f172a; border: 1px solid #1e3a5f; border-radius: 6px; padding: 8px 10px; margin: 4px 0; cursor: pointer; transition: background 0.2s; font-size: 12px; }
+.arquivo-item:hover { background: #1e293b; }
+.arquivo-item .ext { font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+.ext-js { background: #451a03; color: #fcd34d; }
+.ext-html { background: #1e3a5f; color: #7dd3fc; }
+.ext-json { background: #3b0764; color: #c4b5fd; }
+.ext-txt { background: #064e3b; color: #6ee7b7; }
+.ext-outro { background: #1e293b; color: #94a3b8; }
+.busca-resultado { background: #0f172a; border-left: 3px solid #38bdf8; padding: 8px; margin: 4px 0; border-radius: 0 6px 6px 0; font-size: 12px; font-family: monospace; }
+.busca-linha { color: #64748b; font-size: 10px; }
+.busca-conteudo { color: #e2e8f0; }
+.busca-destaque { background: #451a03; color: #fcd34d; padding: 0 2px; border-radius: 3px; }
+.busca-destaque-2 { background: #3b0764; color: #c4b5fd; padding: 0 2px; border-radius: 3px; }
+.busca-destaque-3 { background: #064e3b; color: #6ee7b7; padding: 0 2px; border-radius: 3px; }
+.memoria-item { background: #0f172a; border: 1px solid #1e3a5f; border-radius: 8px; padding: 10px; margin: 6px 0; }
+.memoria-nome { color: #38bdf8; font-size: 12px; font-weight: bold; }
+.memoria-valor { color: #94a3b8; font-size: 11px; font-family: monospace; margin-top: 4px; word-break: break-all; }
+.tab-bar { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.tab { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; border: 1px solid #1e3a5f; background: #0f172a; color: #64748b; transition: all 0.2s; width: auto; margin: 0; }
+.tab.ativo { background: #1d4ed8; color: white; border-color: #1d4ed8; }
+/* MODAL COLAR */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999; align-items: center; justify-content: center; }
+.modal-overlay.aberto { display: flex; }
+.modal-box { background: #111827; border: 1px solid #1e3a5f; border-radius: 12px; padding: 24px; width: 90vw; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; gap: 12px; }
+.modal-box h3 { color: #38bdf8; font-size: 16px; margin-bottom: 4px; }
+.modal-box textarea { flex: 1; height: 50vh; font-size: 12px; background: #020617; border-color: #1e3a5f; color: #a5b4fc; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btns button { margin: 0; }
+/* HISTÓRICO IA */
+.hist-item { background: #0f172a; border: 1px solid #1e3a5f; border-radius: 8px; padding: 10px; margin: 6px 0; }
+.hist-pergunta { color: #fcd34d; font-size: 11px; font-weight: bold; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hist-resposta { color: #94a3b8; font-size: 11px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.hist-meta { color: #475569; font-size: 10px; margin-top: 4px; }
+/* TRIAGEM */
+.nota-item { background: #0f172a; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 10px; margin: 6px 0; }
+.nota-texto { color: #e2e8f0; font-size: 12px; white-space: pre-wrap; }
+.nota-meta { color: #475569; font-size: 10px; margin-top: 4px; }
+/* BUG */
+.bug-item { background: #1c1203; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 8px 12px; margin: 6px 0; font-size: 12px; }
+.bug-tipo { color: #fcd34d; font-weight: bold; font-size: 11px; }
+.bug-linha { color: #64748b; font-size: 10px; }
+.bug-desc { color: #d1d5db; margin-top: 2px; }
+.bug-solucao { color: #6ee7b7; font-size: 11px; margin-top: 3px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<h1>🔬 CIRURGIÃO DE CÓDIGO 3.0</h1>
+<p class="subtitulo">Abre qualquer arquivo · ZIP · APK · Detecta bugs · Rastreia Replit · IA integrada · Histórico completo · Triagem</p>
+
+<!-- MODAL COLAR CÓDIGO -->
+<div class="modal-overlay" id="modalColar">
+  <div class="modal-box">
+    <h3>📋 Colar Código — sem limite de tamanho</h3>
+    <div style="font-size:12px; color:#64748b;">Cole aqui qualquer código, por maior que seja. Funciona com HTML, JS, JSON, Python, qualquer coisa.</div>
+    <textarea id="textoColar" placeholder="Cole seu código aqui... (Ctrl+V)&#10;&#10;Aceita qualquer tamanho — sem limite!"></textarea>
+    <div style="font-size:11px; color:#475569;" id="contadorColar">0 caracteres</div>
+    <div class="modal-btns">
+      <button class="verde" onclick="confirmarColagem()" style="flex:1">✅ Analisar este código</button>
+      <button class="vermelho" onclick="fecharModal('modalColar')" style="flex:1; width:auto">✕ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRIAGEM / ANOTAÇÃO -->
+<div class="modal-overlay" id="modalNota">
+  <div class="modal-box" style="max-width:600px;">
+    <h3>📌 Salvar anotação de triagem</h3>
+    <textarea id="textoNota" rows="6" placeholder="Ex: Linha 234 — função fetch usa rota /api/code-assistant que é da Replit. Trocar por chamada direta ao Gemini."></textarea>
+    <div class="modal-btns">
+      <button class="amarelo" onclick="confirmarNota()" style="flex:1">💾 Salvar anotação</button>
+      <button class="vermelho" onclick="fecharModal('modalNota')" style="flex:1; width:auto">✕ Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- COLUNA ESQUERDA -->
+  <div>
+
+    <!-- CARREGAR -->
+    <div class="card">
+      <h2>📂 1. Carregar Arquivo</h2>
+      <input type="file" id="arquivo" accept=".html,.js,.txt,.json,.zip,.apk,.tar,.taz,.tsx,.ts,.jsx,.css,.xml,.md,.py,.kt,.java,.php,.cs">
+      <div style="font-size:11px; color:#64748b; margin-bottom:8px; text-align:center;">
+        Aceita: HTML · JS · JSON · TXT · <strong style="color:#38bdf8">ZIP · APK · TAR</strong> · TSX · CSS · XML · PY · Java · PHP
+      </div>
+      <button onclick="carregarArquivo()">🚀 Analisar Arquivo</button>
+      <button class="laranja" onclick="abrirModal('modalColar')">📋 Colar Código (sem limite)</button>
+      <button class="vermelho" onclick="limparTudo()">🗑️ Limpar Tudo</button>
+      <div id="statusCarga" style="color:#64748b; font-size:12px; margin-top:8px; text-align:center;">
+        Nenhum arquivo carregado
+      </div>
+    </div>
+
+    <!-- BUSCA AVANÇADA -->
+    <div class="card" id="cardBusca" style="display:none">
+      <h2>🔍 2. Busca Avançada</h2>
+      <input type="text" id="campoBusca" placeholder="Palavra 1, palavra 2, palavra 3 (separe por vírgula)"
+             onkeydown="if(event.key==='Enter') buscarNoCodigo()">
+      <div style="font-size:11px; color:#475569; margin-bottom:6px;">💡 Digite múltiplos termos separados por vírgula</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button onclick="buscarNoCodigo()" style="flex:1">🔍 Buscar</button>
+        <button onclick="buscarReplit()" class="vermelho" style="flex:1">🚨 Caçar Replit</button>
+        <button onclick="buscarBugsRapido()" class="amarelo" style="flex:1">🐛 Caçar Bugs</button>
+      </div>
+      <div id="resultadoBusca"></div>
+    </div>
+
+    <!-- ESTATÍSTICAS -->
+    <div class="card" id="cardStats" style="display:none">
+      <h2>📊 3. Estatísticas</h2>
+      <div class="stats">
+        <div class="stat-box"><div class="stat-numero" id="statLinhas">0</div><div class="stat-label">Linhas</div></div>
+        <div class="stat-box"><div class="stat-numero" id="statKB">0</div><div class="stat-label">KB</div></div>
+        <div class="stat-box"><div class="stat-numero" id="statFunctions">0</div><div class="stat-label">Functions</div></div>
+        <div class="stat-box"><div class="stat-numero" id="statJsons">0</div><div class="stat-label">JSONs</div></div>
+      </div>
+      <div id="tagDetectadas"></div>
+    </div>
+
+    <!-- AÇÕES -->
+    <div class="card" id="cardAcoes" style="display:none">
+      <h2>🔧 4. Ações</h2>
+      <button class="verde" onclick="mostrarFunctions()">📋 Ver Todas as Functions</button>
+      <button class="verde" onclick="extrairLocalStorage()">🧠 Extrair localStorage (Cérebro)</button>
+      <button class="roxo" onclick="extrairJSON()">📦 Extrair Blocos JSON</button>
+      <button class="roxo" onclick="extrairAPI()">🌐 Extrair Chamadas de API/IA</button>
+      <button class="vermelho" onclick="detectarReplit()">🚨 Detectar Vínculos Replit</button>
+      <button class="amarelo" onclick="detectarBugs()">🐛 Detectar Bugs e Erros de Sintaxe</button>
+      <button class="amarelo" onclick="detectarConflitos()">⚡ Detectar Conflitos de Dependência</button>
+      <button class="laranja" onclick="organizarCodigo()">✨ Organizar/Beautify Código</button>
+      <button class="laranja" onclick="extrairHTMLPuro()">🖼️ Extrair Só o HTML</button>
+      <button onclick="gerarManual()">📖 Gerar Manual do Código</button>
+      <button class="ciano" onclick="salvarNaMemoria()">💾 Salvar na Memória</button>
+      <button class="rosa" onclick="abrirModal('modalNota')">📌 Anotar Triagem</button>
+      <button onclick="copiarTudoOrganizado()">📤 Copiar Tudo</button>
+    </div>
+
+    <!-- MEMÓRIA SALVA -->
+    <div class="card">
+      <h2>💾 5. Memória Salva</h2>
+      <div id="listaMemoria">
+        <div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">
+          Nenhum arquivo salvo ainda.
+        </div>
+      </div>
+      <button class="vermelho" onclick="limparMemoria()" style="margin-top:8px;">🗑️ Limpar Memória</button>
+      <button class="roxo" onclick="baixarMemoriaCompleta()" style="margin-top:4px;">⬇️ Baixar Memória Completa</button>
+    </div>
+
+    <!-- TRIAGEM / ANOTAÇÕES -->
+    <div class="card">
+      <h2>📌 6. Triagem e Anotações</h2>
+      <div style="font-size:11px; color:#64748b; margin-bottom:8px;">Registre o que você encontrou para analisar depois com a IA.</div>
+      <div id="listaNotas">
+        <div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">Nenhuma anotação ainda.</div>
+      </div>
+      <button class="rosa" onclick="abrirModal('modalNota')" style="margin-top:8px;">📌 Nova anotação</button>
+      <button class="ciano" onclick="analisarNotasComIA()" style="margin-top:4px;">🤖 Analisar anotações com IA</button>
+      <button class="vermelho" onclick="limparNotas()" style="margin-top:4px;">🗑️ Limpar anotações</button>
+      <button class="roxo" onclick="baixarNotas()" style="margin-top:4px;">⬇️ Baixar anotações</button>
+    </div>
+
+    <!-- IA INTEGRADA -->
+    <div class="card">
+      <h2>🤖 7. Consultar IA</h2>
+      <div class="ia-panel">
+        <label>Chave de API (Groq, Gemini, OpenAI, OpenRouter...)</label>
+        <div style="display:flex; gap:4px;">
+          <input type="password" id="iaApiKey" placeholder="gsk_... / AIza... / sk-... / sk-or-..." style="flex:1; margin:0;">
+          <button onclick="toggleVerChave()" style="width:40px; padding:8px; margin:0; font-size:16px;">👁️</button>
+        </div>
+        <div id="iaProviderDetectado" style="font-size:11px; color:#4ade80; margin:4px 0; min-height:16px;"></div>
+        <label style="margin-top:6px;">Pergunta para a IA:</label>
+        <textarea id="iaPergunta" rows="3" placeholder="Ex: O que esse código faz? Tem dependências da Replit? Como corrigir?"></textarea>
+        <button onclick="consultarIA()" id="btnConsultarIA">🤖 Consultar IA</button>
+        <button class="verde" onclick="analisarReplitComIA()">🚨 Pedir IA: Limpar Replit</button>
+        <button class="amarelo" onclick="pedirCorrecaoIA()">🔧 Pedir IA: Corrigir Bugs</button>
+        <button class="rosa" onclick="pedirJuridicoIA()">⚖️ Pedir IA: Analisar Projeto Jurídico</button>
+        <div id="iaResposta" class="ia-resp" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- HISTÓRICO DA IA -->
+    <div class="card">
+      <h2>📜 8. Histórico de Respostas IA</h2>
+      <div style="font-size:11px; color:#64748b; margin-bottom:8px;">Todas as respostas ficam salvas aqui automaticamente.</div>
+      <div id="listaHistorico" style="max-height:400px; overflow-y:auto;">
+        <div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">Nenhuma consulta ainda.</div>
+      </div>
+      <button class="vermelho" onclick="limparHistorico()" style="margin-top:8px;">🗑️ Limpar Histórico</button>
+      <button class="roxo" onclick="baixarHistorico()" style="margin-top:4px;">⬇️ Baixar Histórico Completo</button>
+    </div>
+
+    <!-- MANUAL -->
+    <div class="card">
+      <h2>📖 O que é cada coisa?</h2>
+      <details><summary>function nome() { }</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          Uma <strong>ação</strong> que o código sabe fazer. Começa com <code>function</code>, tem um nome, e tudo que ela faz fica entre <code>{ }</code>.
+          <div style="background:#020617; color:#4ade80; padding:8px; border-radius:6px; font-family:monospace; font-size:11px; margin-top:6px;">function salvarMemoria() { }</div>
+        </div>
+      </details>
+      <details><summary>localStorage</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          É onde o <strong>cérebro</strong> do projeto fica salvo no navegador. Mesmo fechando, os dados ficam lá.
+        </div>
+      </details>
+      <details><summary>fetch() / API / Gemini / OpenAI</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          É a parte que <strong>conversa com a IA</strong>. <code>fetch</code> faz uma chamada para a internet com uma chave secreta (<code>apiKey</code>).
+        </div>
+      </details>
+      <details><summary>import / export / require</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          São as <strong>conexões entre arquivos</strong>. Em código embolado isso pode estar quebrado e causar erros.
+        </div>
+      </details>
+      <details><summary>🚨 O que é vínculo Replit?</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          Partes do código que só funcionam <strong>dentro da Replit</strong>. Quando você para de pagar, o app para. Exemplos:<br><br>
+          <code style="color:#fca5a5;">replit.com</code> · <code style="color:#fca5a5;">/api/code-assistant</code> · <code style="color:#fca5a5;">/api/tts</code> · <code style="color:#fca5a5;">REPL_ID</code> · <code style="color:#fca5a5;">REPLIT_DB</code>
+        </div>
+      </details>
+      <details><summary>🐛 O que são bugs?</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          São erros no código que fazem ele não funcionar direito. Podem ser: chaves <code>{ }</code> faltando, parênteses <code>( )</code> sobrando, variáveis com erro de digitação, ou funções sendo chamadas que não existem.
+        </div>
+      </details>
+      <details><summary>⚡ O que são conflitos de dependência?</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          Quando o projeto usa duas bibliotecas que brigam entre si, ou uma biblioteca que precisa de outra que não foi instalada. O botão "Detectar Conflitos" ajuda a encontrar isso.
+        </div>
+      </details>
+      <details><summary>📌 Para que serve a Triagem?</summary>
+        <div style="background:#0f172a; padding:10px; border-radius:6px; margin-top:6px; font-size:12px; color:#94a3b8; line-height:1.6;">
+          Você anota o que encontrou (linha X tem problema Y) e depois manda tudo para a IA analisar de uma vez. Perfeito para economizar créditos — você faz a triagem primeiro, depois resolve tudo de uma vez.
+        </div>
+      </details>
+    </div>
+
+  </div>
+
+  <!-- COLUNA DIREITA -->
+  <div>
+
+    <!-- EXPLORADOR ZIP/APK -->
+    <div class="card" id="cardExplorador" style="display:none">
+      <h2>📦 Explorador de Arquivos (ZIP/APK)</h2>
+      <div style="display:flex; gap:6px; margin-bottom:8px; flex-wrap:wrap; align-items:center;">
+        <input type="text" id="campoBuscaArquivo" placeholder="Buscar arquivo por nome..."
+               style="flex:1; margin:0;" oninput="filtrarArquivos()">
+        <span id="contadorArquivos" style="font-size:11px; color:#64748b; white-space:nowrap;"></span>
+      </div>
+      <div id="listaArquivos" style="max-height:300px; overflow-y:auto;"></div>
+    </div>
+
+    <!-- VISUALIZAÇÃO PRINCIPAL -->
+    <div class="card">
+      <h2 id="tituloVisualizacao">👁️ Visualização / Resultado</h2>
+      <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+        <button onclick="copiarVisualizacao()" style="width:auto; padding:8px 14px;" class="verde">📋 Copiar</button>
+        <button onclick="baixarVisualizacao()" style="width:auto; padding:8px 14px;" class="roxo">💾 Baixar .txt</button>
+        <button onclick="analisarAtualComIA()" style="width:auto; padding:8px 14px;" class="ciano">🤖 Analisar com IA</button>
+        <button onclick="salvarComoNota()" style="width:auto; padding:8px 14px;" class="rosa">📌 Salvar como nota</button>
+        <button onclick="limparVisualizacao()" style="width:auto; padding:8px 14px;" class="vermelho">🗑️ Limpar</button>
+      </div>
+      <div id="areaVisualizacao">
+Bem-vindo ao Cirurgião de Código 3.0.
+
+NOVIDADES DESTA VERSÃO:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ COLAR SEM LIMITE — aceita código de qualquer tamanho
+✅ DETECTAR BUGS — encontra erros de sintaxe automaticamente
+✅ DETECTAR CONFLITOS — acha conflitos de dependência
+✅ BUSCA MULTI-TERMO — pesquise várias palavras de uma vez
+✅ HISTÓRICO DA IA — todas as respostas ficam salvas
+✅ TRIAGEM — anote o que encontrar para analisar depois
+✅ ANÁLISE JURÍDICA — botão específico para projetos jurídicos
+✅ Abre ZIP e APK · Detecta Replit · IA integrada
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Carregue um arquivo ou cole o código para começar.
+      </div>
+    </div>
+
+    <!-- LISTA DE BLOCOS -->
+    <div class="card" id="cardBlocos" style="display:none">
+      <h2 id="tituloBlocos">📋 Lista de Blocos Encontrados</h2>
+      <div id="listaBlocos"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// =====================
+// ESTADO GLOBAL
+// =====================
+let codigoOriginal = "";
+let nomArquivo = "";
+let arquivosZip = [];
+let memoriaArquivos = JSON.parse(localStorage.getItem("cirurgiao_memoria") || "[]");
+let historicoIA = JSON.parse(localStorage.getItem("cirurgiao_historico") || "[]");
+let notasTriagem = JSON.parse(localStorage.getItem("cirurgiao_notas") || "[]");
+
+// =====================
+// PROVEDORES DE IA
+// =====================
+const PROVEDORES = [
+  { prefix: "gsk_",   url: "https://api.groq.com/openai/v1",                         model: "llama-3.3-70b-versatile", nome: "Groq" },
+  { prefix: "sk-or-", url: "https://openrouter.ai/api/v1",                            model: "openai/gpt-4o-mini",      nome: "OpenRouter" },
+  { prefix: "pplx-",  url: "https://api.perplexity.ai",                               model: "sonar-pro",               nome: "Perplexity" },
+  { prefix: "AIza",   url: "https://generativelanguage.googleapis.com/v1beta/openai", model: "gemini-2.0-flash",        nome: "Google Gemini" },
+  { prefix: "xai-",   url: "https://api.x.ai/v1",                                    model: "grok-2-latest",           nome: "xAI/Grok" },
+  { prefix: "sk-ant", url: "https://api.anthropic.com/v1",                            model: "claude-3-5-haiku-20241022", nome: "Anthropic" },
+  { prefix: "sk-",    url: "https://api.openai.com/v1",                               model: "gpt-4o-mini",             nome: "OpenAI" },
+];
+
+function detectarProvedor(chave) {
+  const k = (chave || "").trim();
+  for (const p of PROVEDORES) { if (k.startsWith(p.prefix)) return p; }
+  return null;
+}
+
+document.getElementById("iaApiKey").addEventListener("input", function() {
+  const p = detectarProvedor(this.value);
+  const el = document.getElementById("iaProviderDetectado");
+  el.textContent = p ? `✅ Detectado: ${p.nome} · Modelo: ${p.model}` : (this.value ? "❓ Chave não reconhecida" : "");
+  if (this.value.trim()) localStorage.setItem("cirurgiao_apikey", this.value.trim());
+});
+
+window.addEventListener("load", () => {
+  const k = localStorage.getItem("cirurgiao_apikey");
+  if (k) {
+    document.getElementById("iaApiKey").value = k;
+    const p = detectarProvedor(k);
+    if (p) document.getElementById("iaProviderDetectado").textContent = `✅ Detectado: ${p.nome} · Modelo: ${p.model}`;
+  }
+  renderizarMemoria();
+  renderizarHistorico();
+  renderizarNotas();
+});
+
+function toggleVerChave() {
+  const inp = document.getElementById("iaApiKey");
+  inp.type = inp.type === "password" ? "text" : "password";
+}
+
+// =====================
+// MODAIS
+// =====================
+function abrirModal(id) { document.getElementById(id).classList.add("aberto"); }
+function fecharModal(id) { document.getElementById(id).classList.remove("aberto"); }
+
+// Fechar com ESC
+document.addEventListener("keydown", e => { if (e.key === "Escape") document.querySelectorAll(".modal-overlay.aberto").forEach(m => m.classList.remove("aberto")); });
+
+// =====================
+// COLAR CÓDIGO (SEM LIMITE)
+// =====================
+document.getElementById("textoColar").addEventListener("input", function() {
+  document.getElementById("contadorColar").textContent = this.value.length.toLocaleString("pt-BR") + " caracteres";
+});
+
+function confirmarColagem() {
+  const texto = document.getElementById("textoColar").value.trim();
+  if (!texto) { alert("Cole algum código primeiro!"); return; }
+  codigoOriginal = texto;
+  nomArquivo = "codigo-colado.txt";
+  arquivosZip = [];
+  document.getElementById("cardExplorador").style.display = "none";
+  fecharModal("modalColar");
+  document.getElementById("textoColar").value = "";
+  document.getElementById("contadorColar").textContent = "0 caracteres";
+  processarCodigo("Código Colado (" + (texto.length / 1024).toFixed(1) + " KB)");
+}
+
+// =====================
+// CARREGAR ARQUIVO
+// =====================
+function carregarArquivo() {
+  const input = document.getElementById("arquivo");
+  const file = input.files[0];
+  if (!file) { alert("Selecione um arquivo primeiro!"); return; }
+  nomArquivo = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === "zip" || ext === "apk") { carregarZIP(file); return; }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    codigoOriginal = e.target.result;
+    document.getElementById("cardExplorador").style.display = "none";
+    arquivosZip = [];
+    processarCodigo(file.name);
+  };
+  reader.readAsText(file, "UTF-8");
+}
+
+async function carregarZIP(file) {
+  setStatus("⏳ Abrindo " + file.name + "...", "#38bdf8");
+  try {
+    const zip = await JSZip.loadAsync(file);
+    arquivosZip = [];
+    const promessas = [];
+    zip.forEach((caminho, entrada) => {
+      if (!entrada.dir) {
+        const ext = caminho.split('.').pop().toLowerCase();
+        const legivel = ["js","ts","tsx","jsx","html","htm","css","json","txt","md","xml","yaml","yml","env","config","gradle","properties","kt","java","swift","py","php","cs"].includes(ext);
+        arquivosZip.push({ caminho, entrada, ext, legivel, tamanho: 0 });
+      }
+    });
+    for (const arq of arquivosZip) {
+      promessas.push(arq.entrada.async("uint8array").then(data => { arq.tamanho = data.length; }));
+    }
+    await Promise.all(promessas);
+    arquivosZip.sort((a, b) => { if (a.legivel && !b.legivel) return -1; if (!a.legivel && b.legivel) return 1; return a.caminho.localeCompare(b.caminho); });
+    renderizarListaArquivos(arquivosZip);
+    document.getElementById("cardExplorador").style.display = "block";
+    let conteudoTotal = "", count = 0;
+    for (const arq of arquivosZip) {
+      if (arq.legivel && arq.tamanho < 500000) {
+        try { const t = await arq.entrada.async("text"); conteudoTotal += `\n\n${"═".repeat(60)}\n📄 ARQUIVO: ${arq.caminho}\n${"═".repeat(60)}\n${t}`; count++; }
+        catch(e) {}
+      }
+    }
+    codigoOriginal = conteudoTotal;
+    processarCodigo(`${file.name} (${count} arquivos legíveis de ${arquivosZip.length} total)`);
+  } catch(e) { setStatus("❌ Erro ao abrir ZIP/APK: " + e.message, "#ef4444"); }
+}
+
+function renderizarListaArquivos(lista) {
+  const container = document.getElementById("listaArquivos");
+  document.getElementById("contadorArquivos").textContent = `${lista.length} arquivos`;
+  if (!lista.length) { container.innerHTML = '<div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">Nenhum arquivo</div>'; return; }
+  container.innerHTML = lista.map((arq, i) => {
+    const icone = arq.legivel ? "📄" : "🔒";
+    const extClass = ["js","ts","tsx","jsx"].includes(arq.ext) ? "ext-js" : ["html","htm"].includes(arq.ext) ? "ext-html" : arq.ext === "json" ? "ext-json" : ["txt","md"].includes(arq.ext) ? "ext-txt" : "ext-outro";
+    return `<div class="arquivo-item" onclick="abrirArquivoDoZip(${i})" title="${arq.caminho}">
+      <span>${icone}</span><span class="ext ${extClass}">.${arq.ext}</span>
+      <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${arq.caminho}</span>
+      <span style="color:#475569; font-size:10px; white-space:nowrap;">${(arq.tamanho/1024).toFixed(1)}KB</span>
+    </div>`;
+  }).join("");
+}
+
+function filtrarArquivos() {
+  const t = document.getElementById("campoBuscaArquivo").value.toLowerCase();
+  renderizarListaArquivos(arquivosZip.filter(a => a.caminho.toLowerCase().includes(t)));
+}
+
+async function abrirArquivoDoZip(idx) {
+  const arq = arquivosZip[idx];
+  if (!arq) return;
+  if (!arq.legivel) { mostrarNaVisualizacao(`🔒 ${arq.caminho}`, `Arquivo binário — não pode ser lido como texto.\nExtensão: .${arq.ext}\nTamanho: ${(arq.tamanho/1024).toFixed(1)} KB`); return; }
+  try {
+    const texto = await arq.entrada.async("text");
+    codigoOriginal = texto; nomArquivo = arq.caminho;
+    mostrarNaVisualizacao(`📄 ${arq.caminho}`, texto);
+    processarCodigo(arq.caminho);
+  } catch(e) { mostrarNaVisualizacao(`❌ Erro`, `Não foi possível ler: ${e.message}`); }
+}
+
+// =====================
+// PROCESSAR
+// =====================
+function processarCodigo(nome) {
+  const linhas = codigoOriginal.split('\n').length;
+  const kb = (codigoOriginal.length / 1024).toFixed(1);
+  const funcs = [...codigoOriginal.matchAll(/function\s+(\w+)\s*\(/g)];
+  const arrows = [...codigoOriginal.matchAll(/const\s+(\w+)\s*=\s*(?:async\s*)?\(/g)];
+  const totalFuncs = funcs.length + arrows.length;
+  const jsonMatches = codigoOriginal.match(/\{[^{}]{10,}\}/g) || [];
+
+  document.getElementById("statLinhas").textContent = linhas.toLocaleString();
+  document.getElementById("statKB").textContent = kb;
+  document.getElementById("statFunctions").textContent = totalFuncs;
+  document.getElementById("statJsons").textContent = jsonMatches.length;
+
+  let tags = "";
+  if (codigoOriginal.includes("localStorage")) tags += '<span class="tag tag-verde">🧠 localStorage</span>';
+  if (/replit\.com|replit\.dev|REPL_ID|REPLIT/i.test(codigoOriginal)) tags += '<span class="tag tag-vermelho">🚨 Replit</span>';
+  if (/gemini|generativelanguage/i.test(codigoOriginal)) tags += '<span class="tag tag-azul">🤖 Gemini</span>';
+  if (/openai|gpt-/i.test(codigoOriginal)) tags += '<span class="tag tag-azul">🤖 OpenAI</span>';
+  if (/groq\.com/i.test(codigoOriginal)) tags += '<span class="tag tag-azul">🤖 Groq</span>';
+  if (codigoOriginal.includes("fetch(")) tags += '<span class="tag tag-amarelo">🌐 fetch/API</span>';
+  if (/<html|<!DOCTYPE/i.test(codigoOriginal)) tags += '<span class="tag tag-azul">🖼️ HTML</span>';
+  if (/import |require\(/i.test(codigoOriginal)) tags += '<span class="tag tag-amarelo">📦 Módulos</span>';
+  if (/class /i.test(codigoOriginal)) tags += '<span class="tag tag-roxo">🏗️ Classes</span>';
+  if (/capacitor|ionic/i.test(codigoOriginal)) tags += '<span class="tag tag-laranja">📱 Capacitor</span>';
+  if (/electron/i.test(codigoOriginal)) tags += '<span class="tag tag-roxo">🖥️ Electron</span>';
+  if (/processo|advogad|juridic|vara|tribunal|cpf|cnpj/i.test(codigoOriginal)) tags += '<span class="tag tag-verde">⚖️ Jurídico</span>';
+
+  document.getElementById("tagDetectadas").innerHTML = tags;
+  document.getElementById("cardStats").style.display = "block";
+  document.getElementById("cardAcoes").style.display = "block";
+  document.getElementById("cardBusca").style.display = "block";
+
+  const temReplit = /replit\.com|replit\.dev|REPL_ID|REPLIT/i.test(codigoOriginal);
+  setStatus(`✅ <strong>${nome}</strong> carregado`, "#4ade80");
+
+  mostrarNaVisualizacao("📊 ANÁLISE: " + nome, `
+ARQUIVO: ${nome}
+TAMANHO: ${kb} KB
+LINHAS: ${linhas.toLocaleString()}
+FUNCTIONS: ${totalFuncs}
+BLOCOS JSON: ${jsonMatches.length}
+
+TECNOLOGIAS DETECTADAS:
+${tags.replace(/<[^>]+>/g, '').trim() || "Nenhuma detectada automaticamente"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PRÓXIMOS PASSOS RECOMENDADOS:
+${temReplit ? "⚠️  ATENÇÃO: Vínculos com Replit detectados!\n   → Clique em '🚨 Detectar Vínculos Replit'\n   → Ou use a IA para limpar automaticamente\n\n" : ""}1. 🐛 Detectar Bugs → encontrar erros de sintaxe
+2. 🚨 Detectar Replit → saber o que precisa ser trocado
+3. 📋 Ver functions → entender o que o código faz
+4. 🧠 Extrair localStorage → pegar a parte de memória
+5. 🤖 Consultar IA → análise e correção automática
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  `);
+}
+
+// =====================
+// BUSCA AVANÇADA (MULTI-TERMO)
+// =====================
+function buscarNoCodigo() {
+  const campo = document.getElementById("campoBusca").value.trim();
+  if (!campo) return;
+  if (!codigoOriginal) { alert("Carregue um arquivo primeiro!"); return; }
+
+  const termos = campo.split(",").map(t => t.trim()).filter(Boolean);
+  const linhas = codigoOriginal.split('\n');
+  const resultados = [];
+  const cores = ["busca-destaque", "busca-destaque-2", "busca-destaque-3"];
+
+  linhas.forEach((linha, i) => {
+    const linhaLower = linha.toLowerCase();
+    const termosEncontrados = termos.filter(t => linhaLower.includes(t.toLowerCase()));
+    if (termosEncontrados.length > 0) {
+      resultados.push({ linha: i + 1, conteudo: linha.trim(), termos: termosEncontrados });
+    }
+  });
+
+  const container = document.getElementById("resultadoBusca");
+  if (!resultados.length) {
+    container.innerHTML = `<div class="aviso">Nenhum resultado para: ${termos.map(t=>`"${t}"`).join(", ")}</div>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="aviso-verde" style="margin-bottom:6px;">✅ ${resultados.length} linha(s) encontrada(s) para: ${termos.map(t=>`"${t}"`).join(", ")}</div>
+    <div style="max-height:220px; overflow-y:auto;">
+      ${resultados.slice(0, 60).map(r => {
+        let conteudo = r.conteudo;
+        r.termos.forEach((t, idx) => {
+          const cls = cores[idx % cores.length];
+          conteudo = conteudo.replace(new RegExp(t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'gi'), m => `<span class="${cls}">${m}</span>`);
+        });
+        return `<div class="busca-resultado" onclick="irParaLinha(${r.linha})">
+          <div class="busca-linha">Linha ${r.linha} · encontrou: ${r.termos.join(", ")}</div>
+          <div class="busca-conteudo">${conteudo}</div>
+        </div>`;
+      }).join("")}
+      ${resultados.length > 60 ? `<div style="color:#64748b; font-size:11px; text-align:center; padding:6px;">... e mais ${resultados.length - 60} resultados</div>` : ""}
+    </div>
+  `;
+}
+
+function buscarReplit() {
+  document.getElementById("campoBusca").value = "replit.com, replit.dev, REPL_ID, REPLIT_DB, /api/code-assistant, /api/tts";
+  buscarNoCodigo();
+}
+
+function buscarBugsRapido() {
+  document.getElementById("campoBusca").value = "undefined is not, cannot read, is not a function, syntax error, unexpected token";
+  buscarNoCodigo();
+}
+
+function irParaLinha(numLinha) {
+  const linhas = codigoOriginal.split('\n');
+  const inicio = Math.max(0, numLinha - 5);
+  const fim = Math.min(linhas.length, numLinha + 10);
+  const contexto = linhas.slice(inicio, fim).map((l, i) => {
+    const n = inicio + i + 1;
+    return (n === numLinha ? `>>> ` : `    `) + `[${n}] ${l}`;
+  }).join('\n');
+  mostrarNaVisualizacao(`🔍 Contexto da Linha ${numLinha}`, contexto);
+}
+
+// =====================
+// DETECTAR REPLIT
+// =====================
+function detectarReplit() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  const padroes = [
+    { regex: /replit\.com/gi,          tipo: "🌐 URL replit.com",            solucao: "Substituir pela URL do seu próprio servidor ou GitHub Pages" },
+    { regex: /replit\.dev/gi,          tipo: "🌐 URL replit.dev",            solucao: "Substituir pela URL do seu próprio servidor" },
+    { regex: /REPL_ID/g,               tipo: "🔑 Variável REPL_ID",          solucao: "Remover ou substituir por variável própria" },
+    { regex: /REPLIT_DB_URL/g,         tipo: "🗄️ Banco Replit DB",           solucao: "Substituir por localStorage ou Neon (gratuito)" },
+    { regex: /replit\.nix/g,           tipo: "⚙️ Config replit.nix",         solucao: "Pode remover — é configuração interna da Replit" },
+    { regex: /\.replit/g,              tipo: "⚙️ Arquivo .replit",           solucao: "Pode remover — é configuração interna da Replit" },
+    { regex: /\/api\/code-assistant/g, tipo: "🔗 Rota /api/code-assistant",  solucao: "Substituir por chamada direta à API de IA com sua chave" },
+    { regex: /\/api\/tts/g,            tipo: "🔗 Rota /api/tts",             solucao: "Substituir por Web Speech API (gratuita, funciona no navegador)" },
+    { regex: /\/api\//g,               tipo: "🔗 Rota /api/ genérica",       solucao: "Verificar se é rota da Replit ou do seu próprio backend" },
+    { regex: /process\.env\./g,        tipo: "🔑 Variável de ambiente",      solucao: "Substituir por campo de input para o usuário colar a chave" },
+    { regex: /@replit\//g,             tipo: "📦 Pacote @replit/",           solucao: "Remover ou substituir por alternativa sem Replit" },
+    { regex: /replit-dev\.com/g,       tipo: "🌐 Domínio replit-dev",        solucao: "Substituir pelo seu próprio domínio" },
+  ];
+
+  const encontrados = [];
+  padroes.forEach(p => {
+    linhas.forEach((linha, i) => {
+      if (p.regex.test(linha)) { p.regex.lastIndex = 0; encontrados.push({ linha: i+1, tipo: p.tipo, conteudo: linha.trim(), solucao: p.solucao }); }
+    });
+    p.regex.lastIndex = 0;
+  });
+
+  if (!encontrados.length) {
+    mostrarNaVisualizacao("✅ VERIFICAÇÃO REPLIT", "Nenhum vínculo com a Replit encontrado!\n\nSeu código parece limpo de dependências da Replit.");
+    return;
+  }
+
+  const porTipo = {};
+  encontrados.forEach(e => { if (!porTipo[e.tipo]) porTipo[e.tipo] = []; porTipo[e.tipo].push(e); });
+
+  let resultado = `🚨 VÍNCULOS COM REPLIT: ${encontrados.length} ocorrências\n${"═".repeat(60)}\n\n`;
+  resultado += "⚠️  Estas partes param de funcionar quando você para de pagar!\n\n" + "═".repeat(60) + "\n\n";
+
+  Object.entries(porTipo).forEach(([tipo, itens]) => {
+    resultado += `${tipo} (${itens.length}x)\n`;
+    resultado += `💡 Solução: ${itens[0].solucao}\n${"─".repeat(40)}\n`;
+    itens.slice(0, 5).forEach(item => { resultado += `  Linha ${item.linha}: ${item.conteudo.substring(0, 80)}\n`; });
+    if (itens.length > 5) resultado += `  ... e mais ${itens.length - 5} ocorrências\n`;
+    resultado += "\n";
+  });
+  resultado += `${"═".repeat(60)}\n💡 PRÓXIMO PASSO: Use '🤖 Pedir IA: Limpar Replit' para corrigir automaticamente.`;
+
+  mostrarNaVisualizacao(`🚨 ${encontrados.length} VÍNCULOS REPLIT`, resultado);
+
+  const listaBlocos = document.getElementById("listaBlocos");
+  document.getElementById("tituloBlocos").textContent = `🚨 ${encontrados.length} Vínculos Replit`;
+  document.getElementById("cardBlocos").style.display = "block";
+  listaBlocos.innerHTML = encontrados.slice(0, 40).map(e => `
+    <div class="item-funcao replit" onclick="irParaLinha(${e.linha})">
+      <div class="nome-funcao">${e.tipo}</div>
+      <div class="desc-funcao">${e.conteudo.substring(0, 80)}</div>
+      <div class="linha-funcao">Linha ${e.linha} · ${e.solucao}</div>
+    </div>
+  `).join("");
+}
+
+// =====================
+// DETECTAR BUGS E ERROS DE SINTAXE
+// =====================
+function detectarBugs() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  const bugs = [];
+
+  // Padrões de bugs comuns
+  const padroesBug = [
+    { regex: /console\.log\s*\([^)]*$/, tipo: "🐛 console.log incompleto", solucao: "Parêntese não fechado — adicione ) no final" },
+    { regex: /=\s*undefined\b/, tipo: "⚠️ Atribuição para undefined", solucao: "Variável recebe 'undefined' diretamente — provavelmente um erro" },
+    { regex: /[^=!<>]==[^=]/, tipo: "⚠️ Comparação fraca (==)", solucao: "Use === em vez de == para comparação segura" },
+    { regex: /\.\.\/\.\.\/\.\.\/\.\.\//, tipo: "📁 Caminho relativo muito profundo", solucao: "Caminho ../../../../ pode estar errado — verifique a estrutura de pastas" },
+    { regex: /http:\/\/localhost/, tipo: "🌐 URL localhost no código", solucao: "URL localhost não funciona em produção — use URL relativa ou variável" },
+    { regex: /http:\/\/127\.0\.0\.1/, tipo: "🌐 URL 127.0.0.1 no código", solucao: "URL local não funciona em produção" },
+    { regex: /throw\s+["']/, tipo: "⚠️ throw com string simples", solucao: "Use 'throw new Error(...)' em vez de 'throw \"...\"'" },
+    { regex: /catch\s*\(\s*\)\s*\{/, tipo: "🐛 catch vazio sem variável de erro", solucao: "Use catch(e) para capturar o erro e saber o que deu errado" },
+    { regex: /var\s+\w+/, tipo: "⚠️ Uso de 'var' (obsoleto)", solucao: "Prefira 'const' ou 'let' em vez de 'var'" },
+    { regex: /XMLHttpRequest/, tipo: "🌐 XMLHttpRequest (obsoleto)", solucao: "Substitua por fetch() que é mais moderno e simples" },
+    { regex: /innerHTML\s*\+=/, tipo: "⚠️ innerHTML += (lento e inseguro)", solucao: "Pode causar problemas de performance — considere usar textContent ou createElement" },
+    { regex: /eval\s*\(/, tipo: "🔴 EVAL detectado (perigoso)", solucao: "eval() é perigoso e pode ser bloqueado pelo navegador — evite usar" },
+    { regex: /document\.write\s*\(/, tipo: "⚠️ document.write (obsoleto)", solucao: "Substituir por getElementById + innerHTML ou appendChild" },
+    { regex: /\bNaN\b/, tipo: "🐛 Comparação com NaN", solucao: "NaN nunca é igual a nada — use isNaN() ou Number.isNaN() para verificar" },
+    { regex: /setTimeout\s*\([^,]+,\s*0\s*\)/, tipo: "⚠️ setTimeout com 0ms", solucao: "setTimeout com 0ms é hack — verifique se há forma melhor" },
+    { regex: /async\s+function.*(?!await)/, tipo: "⚠️ Função async sem await", solucao: "Função declarada async mas pode não usar await — verifique se é necessário" },
+  ];
+
+  linhas.forEach((linha, i) => {
+    const trim = linha.trim();
+    if (!trim || trim.startsWith("//") || trim.startsWith("*")) return;
+    padroesBug.forEach(p => {
+      if (p.regex.test(linha)) {
+        bugs.push({ linha: i+1, tipo: p.tipo, conteudo: trim.substring(0, 80), solucao: p.solucao });
+      }
+    });
+  });
+
+  // Verificar balanço de chaves (básico)
+  let abertas = 0, fechadas = 0;
+  let primeiraDesbalanceada = -1;
+  for (let i = 0; i < linhas.length; i++) {
+    const l = linhas[i];
+    for (const c of l) {
+      if (c === '{') abertas++;
+      if (c === '}') { fechadas++; if (fechadas > abertas && primeiraDesbalanceada === -1) primeiraDesbalanceada = i+1; }
+    }
+  }
+  if (abertas !== fechadas) {
+    bugs.push({
+      linha: primeiraDesbalanceada > 0 ? primeiraDesbalanceada : linhas.length,
+      tipo: `🔴 CHAVES DESBALANCEADAS: ${abertas} abertas × ${fechadas} fechadas`,
+      conteudo: `Diferença de ${Math.abs(abertas-fechadas)} chave(s) ${abertas > fechadas ? 'faltando fechar }' : 'sobrando }'}`,
+      solucao: abertas > fechadas ? `Falta(m) ${abertas-fechadas} chave(s) de fechamento } no código` : `Sobra(m) ${fechadas-abertas} chave(s) de fechamento }`
+    });
+  }
+
+  // Verificar parênteses
+  let parenA = 0, parenF = 0;
+  for (const l of linhas) { for (const c of l) { if (c==='(') parenA++; if (c===')') parenF++; } }
+  if (parenA !== parenF) {
+    bugs.push({
+      linha: linhas.length,
+      tipo: `🔴 PARÊNTESES DESBALANCEADOS: ${parenA} abertos × ${parenF} fechados`,
+      conteudo: `Diferença de ${Math.abs(parenA-parenF)} parêntese(s)`,
+      solucao: parenA > parenF ? `Falta(m) ${parenA-parenF} parêntese(s) de fechamento )` : `Sobra(m) ${parenF-parenA} parêntese(s) de fechamento )`
+    });
+  }
+
+  if (!bugs.length) {
+    mostrarNaVisualizacao("✅ VERIFICAÇÃO DE BUGS", "Nenhum bug óbvio detectado!\n\nIsso não significa que o código está 100% correto — bugs de lógica precisam da IA para serem encontrados.\n\n💡 Use '🔧 Pedir IA: Corrigir Bugs' para uma análise mais profunda.");
+    return;
+  }
+
+  let resultado = `🐛 ${bugs.length} PROBLEMA(S) ENCONTRADO(S)\n${"═".repeat(60)}\n\n`;
+  bugs.forEach((b, i) => {
+    resultado += `${i+1}. ${b.tipo}\n`;
+    resultado += `   Linha ${b.linha}: ${b.conteudo}\n`;
+    resultado += `   💡 ${b.solucao}\n\n`;
+  });
+  resultado += `${"═".repeat(60)}\n💡 Use '🤖 Pedir IA: Corrigir Bugs' para corrigir automaticamente.`;
+
+  mostrarNaVisualizacao(`🐛 ${bugs.length} PROBLEMAS DETECTADOS`, resultado);
+
+  document.getElementById("tituloBlocos").textContent = `🐛 ${bugs.length} Bugs Encontrados`;
+  document.getElementById("cardBlocos").style.display = "block";
+  document.getElementById("listaBlocos").innerHTML = bugs.map((b, i) => `
+    <div class="bug-item" onclick="irParaLinha(${b.linha})">
+      <div class="bug-tipo">${b.tipo}</div>
+      <div class="bug-linha">Linha ${b.linha}</div>
+      <div class="bug-desc">${b.conteudo}</div>
+      <div class="bug-solucao">💡 ${b.solucao}</div>
+    </div>
+  `).join("");
+}
+
+// =====================
+// DETECTAR CONFLITOS DE DEPENDÊNCIA
+// =====================
+function detectarConflitos() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  const conflitos = [];
+  const importados = new Map();
+  const usados = new Set();
+
+  // Coletar imports/requires
+  linhas.forEach((linha, i) => {
+    const importMatch = linha.match(/import\s+.*?\s+from\s+['"](.+?)['"]/);
+    const requireMatch = linha.match(/require\s*\(\s*['"](.+?)['"]\s*\)/);
+    const scriptMatch = linha.match(/src=["'].*?([\w@/-]+\.js)["']/);
+
+    if (importMatch) importados.set(importMatch[1], i+1);
+    if (requireMatch) importados.set(requireMatch[1], i+1);
+    if (scriptMatch) importados.set(scriptMatch[1], i+1);
+  });
+
+  // Verificar conflitos conhecidos
+  const conflitosConhecidos = [
+    { libs: ["react", "react-dom"], descricao: "React detectado", nota: "Verifique se as versões de react e react-dom são iguais" },
+    { libs: ["jquery", "react"], descricao: "jQuery + React", nota: "Mistura de jQuery com React pode causar conflitos de DOM" },
+    { libs: ["moment", "date-fns"], descricao: "Duas libs de data", nota: "Moment.js e date-fns fazem a mesma coisa — use apenas uma" },
+    { libs: ["lodash", "underscore"], descricao: "Duas libs de utilitários", nota: "Lodash e Underscore se sobrepõem — use apenas uma" },
+    { libs: ["axios", "fetch"], descricao: "Axios + fetch", nota: "Axios e fetch fazem requisições HTTP — mantenha apenas um padrão" },
+    { libs: ["bootstrap", "tailwind"], descricao: "Bootstrap + Tailwind", nota: "Duas libs CSS pode causar conflito de estilos" },
+    { libs: ["webpack", "vite"], descricao: "Webpack + Vite", nota: "Dois bundlers diferentes — use apenas um" },
+  ];
+
+  conflitosConhecidos.forEach(c => {
+    const encontradas = c.libs.filter(lib => {
+      return [...importados.keys()].some(k => k.toLowerCase().includes(lib)) ||
+             codigoOriginal.toLowerCase().includes(`"${lib}"`) ||
+             codigoOriginal.toLowerCase().includes(`'${lib}'`);
+    });
+    if (encontradas.length >= 2) {
+      conflitos.push({ tipo: `⚡ ${c.descricao}`, libs: encontradas, nota: c.nota });
+    }
+  });
+
+  // Verificar variáveis declaradas mas não usadas (simplificado)
+  const varsDeclaradas = [];
+  linhas.forEach((linha, i) => {
+    const m = linha.match(/^(?:const|let|var)\s+(\w+)\s*=/);
+    if (m && m[1].length > 2) varsDeclaradas.push({ nome: m[1], linha: i+1 });
+  });
+
+  const codigoSemDecls = codigoOriginal.replace(/^(?:const|let|var)\s+\w+\s*=.*$/gm, '');
+  let naoUsadas = 0;
+  varsDeclaradas.slice(0, 30).forEach(v => {
+    const regex = new RegExp(`\\b${v.nome}\\b`, 'g');
+    const ocorrencias = (codigoSemDecls.match(regex) || []).length;
+    if (ocorrencias === 0) {
+      naoUsadas++;
+      if (naoUsadas <= 10) conflitos.push({ tipo: `⚠️ Variável declarada mas não usada`, libs: [v.nome], nota: `Linha ${v.linha}: '${v.nome}' foi declarada mas nunca usada no código` });
+    }
+  });
+
+  // Múltiplas declarações da mesma variável
+  const nomesVars = varsDeclaradas.map(v => v.nome);
+  const duplicadas = nomesVars.filter((v, i) => nomesVars.indexOf(v) !== i);
+  [...new Set(duplicadas)].slice(0, 5).forEach(nome => {
+    const linhasD = varsDeclaradas.filter(v => v.nome === nome).map(v => v.linha).join(", ");
+    conflitos.push({ tipo: `🔴 Variável declarada mais de uma vez`, libs: [nome], nota: `'${nome}' foi declarada nas linhas: ${linhasD}` });
+  });
+
+  if (!conflitos.length) {
+    mostrarNaVisualizacao("✅ VERIFICAÇÃO DE CONFLITOS", "Nenhum conflito de dependência óbvio detectado!\n\nPara uma análise mais profunda, use '🤖 Consultar IA' e pergunte:\n'Este código tem conflitos de dependência ou variáveis duplicadas?'");
+    return;
+  }
+
+  let resultado = `⚡ ${conflitos.length} CONFLITO(S) DETECTADO(S)\n${"═".repeat(60)}\n\n`;
+  conflitos.forEach((c, i) => {
+    resultado += `${i+1}. ${c.tipo}\n`;
+    if (c.libs.length > 0) resultado += `   Envolvidos: ${c.libs.join(", ")}\n`;
+    resultado += `   ⚠️ ${c.nota}\n\n`;
+  });
+  resultado += `${"═".repeat(60)}\n💡 Para corrigir, use '🤖 Pedir IA: Corrigir Bugs' ou pergunte à IA sobre cada conflito.`;
+
+  mostrarNaVisualizacao(`⚡ ${conflitos.length} CONFLITOS ENCONTRADOS`, resultado);
+}
+
+// =====================
+// VER FUNCTIONS
+// =====================
+function mostrarFunctions() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  const blocos = [];
+  linhas.forEach((linha, i) => {
+    const limpada = linha.trim();
+    const mFunc = limpada.match(/^(?:async\s+)?function\s+(\w+)\s*\(/);
+    if (mFunc) blocos.push({ tipo: 'function', nome: mFunc[1], linha: i+1, preview: limpada.substring(0, 80) });
+    const mArrow = limpada.match(/^(?:export\s+)?(?:const|let)\s+(\w+)\s*=\s*(?:async\s*)?\(/);
+    if (mArrow) blocos.push({ tipo: 'arrow', nome: mArrow[1], linha: i+1, preview: limpada.substring(0, 80) });
+    const mClasse = limpada.match(/^class\s+(\w+)/);
+    if (mClasse) blocos.push({ tipo: 'classe', nome: mClasse[1], linha: i+1, preview: limpada.substring(0, 80) });
+    if (limpada.includes("localStorage")) blocos.push({ tipo: 'local', nome: 'localStorage', linha: i+1, preview: limpada.substring(0, 80) });
+    if (limpada.includes("fetch(") || limpada.includes("apiKey")) blocos.push({ tipo: 'api', nome: 'API/fetch', linha: i+1, preview: limpada.substring(0, 80) });
+  });
+
+  document.getElementById("tituloBlocos").textContent = `📋 ${blocos.length} Blocos Encontrados`;
+  document.getElementById("cardBlocos").style.display = "block";
+  if (!blocos.length) { document.getElementById("listaBlocos").innerHTML = '<div class="aviso">Nenhuma function encontrada. O código pode estar minificado.</div>'; return; }
+  document.getElementById("listaBlocos").innerHTML = blocos.map((b, idx) => {
+    const cor = b.tipo === 'local' ? 'local' : b.tipo === 'api' ? 'api' : b.tipo === 'classe' ? 'classe' : 'function';
+    return `<div class="item-funcao ${cor}" onclick="extrairFuncaoEspecifica(${idx})">
+      <div class="nome-funcao">${b.nome}</div>
+      <div class="desc-funcao">${b.preview}</div>
+      <div class="linha-funcao">Linha ${b.linha} · ${b.tipo}</div>
+    </div>`;
+  }).join("");
+  window._blocos = blocos;
+  mostrarNaVisualizacao(`⚡ ${blocos.length} FUNÇÕES`, blocos.map(b => `[Linha ${b.linha}] ${b.tipo.toUpperCase()}: ${b.nome}\n  ${b.preview}`).join('\n\n'));
+}
+
+function extrairFuncaoEspecifica(idx) {
+  const bloco = window._blocos[idx];
+  if (!bloco) return;
+  const linhas = codigoOriginal.split('\n');
+  let codigo = "", abertas = 0, comecou = false;
+  for (let i = bloco.linha - 1; i < Math.min(bloco.linha + 200, linhas.length); i++) {
+    const linha = linhas[i]; codigo += linha + '\n';
+    for (const c of linha) { if (c==='{'){abertas++;comecou=true;} if(c==='}')abertas--; }
+    if (comecou && abertas <= 0) break;
+  }
+  mostrarNaVisualizacao(`📋 BLOCO: ${bloco.nome} (Linha ${bloco.linha})`, codigo);
+}
+
+// =====================
+// EXTRAIR localStorage
+// =====================
+function extrairLocalStorage() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  const encontrados = [];
+  linhas.forEach((linha, i) => {
+    if (linha.includes("localStorage")) {
+      const inicio = Math.max(0, i-2), fim = Math.min(linhas.length, i+3);
+      encontrados.push(`[Linha ${i+1}]:\n${linhas.slice(inicio, fim).join('\n')}`);
+    }
+  });
+  if (!encontrados.length) { mostrarNaVisualizacao("🧠 localStorage", "❌ localStorage não encontrado."); return; }
+  mostrarNaVisualizacao(`🧠 ${encontrados.length} usos de localStorage`, encontrados.join('\n\n' + '─'.repeat(60) + '\n\n'));
+}
+
+// =====================
+// EXTRAIR JSON
+// =====================
+function extrairJSON() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const matches = codigoOriginal.match(/\{(?:[^{}]|\{[^{}]*\})*\}/g) || [];
+  const jsonsValidos = [];
+  matches.forEach((m, i) => {
+    if (m.length < 20) return;
+    try { jsonsValidos.push({ index: i, parsed: JSON.stringify(JSON.parse(m), null, 2) }); }
+    catch(e) { if (m.length > 50) jsonsValidos.push({ index: i, parsed: m }); }
+  });
+  if (!jsonsValidos.length) { mostrarNaVisualizacao("📦 JSONs", "Nenhum JSON válido encontrado."); return; }
+  mostrarNaVisualizacao(`📦 ${jsonsValidos.length} BLOCOS JSON`, jsonsValidos.slice(0, 20).map((j, i) => `═══ JSON #${i+1} ═══\n${j.parsed}`).join('\n\n'));
+}
+
+// =====================
+// EXTRAIR API
+// =====================
+function extrairAPI() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  const encontrados = [];
+  const palavras = ['fetch(','apiKey','api_key','Authorization','Bearer','gemini','openai','gpt-','claude','anthropic','generativelanguage','googleapis','groq','openrouter','perplexity','xai'];
+  linhas.forEach((linha, i) => {
+    const lb = linha.toLowerCase();
+    if (palavras.some(p => lb.includes(p.toLowerCase()))) {
+      const inicio = Math.max(0, i-1), fim = Math.min(linhas.length, i+4);
+      encontrados.push(`[Linha ${i+1}]:\n${linhas.slice(inicio, fim).join('\n')}`);
+    }
+  });
+  if (!encontrados.length) { mostrarNaVisualizacao("🌐 API/IA", "Nenhuma chamada de API encontrada."); return; }
+  mostrarNaVisualizacao(`🌐 ${encontrados.length} CHAMADAS DE API/IA`, encontrados.join('\n\n' + '─'.repeat(60) + '\n\n'));
+}
+
+// =====================
+// ORGANIZAR / BEAUTIFY
+// =====================
+function organizarCodigo() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  let organizado = codigoOriginal.replace(/;(?!\n)/g,';\n').replace(/\{(?!\n)/g,'{\n').replace(/\}(?!\n)/g,'}\n').replace(/,(?!\n)(?!\s)/g,',\n').replace(/\n{3,}/g,'\n\n');
+  const linhas = organizado.split('\n');
+  let nivel = 0;
+  const indentado = linhas.map(linha => {
+    const trim = linha.trim();
+    if (!trim) return '';
+    if (trim.startsWith('}') || trim.startsWith(']')) nivel = Math.max(0, nivel-1);
+    const resultado = '  '.repeat(nivel) + trim;
+    if (trim.endsWith('{') || trim.endsWith('[')) nivel++;
+    return resultado;
+  });
+  mostrarNaVisualizacao("✨ CÓDIGO ORGANIZADO", indentado.join('\n'));
+}
+
+// =====================
+// EXTRAIR HTML PURO
+// =====================
+function extrairHTMLPuro() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const idx = codigoOriginal.indexOf('<script');
+  mostrarNaVisualizacao("🖼️ HTML PURO (sem scripts)", idx === -1 ? codigoOriginal : codigoOriginal.substring(0, idx));
+}
+
+// =====================
+// GERAR MANUAL
+// =====================
+function gerarManual() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  const linhas = codigoOriginal.split('\n');
+  let manual = "📖 MANUAL DO SEU CÓDIGO\n" + "═".repeat(60) + "\n\n";
+  const tem = s => new RegExp(s, 'i').test(codigoOriginal);
+  manual += "🔍 O QUE ESTE CÓDIGO FAZ:\n" + "─".repeat(40) + "\n";
+  if (tem("localStorage"))  manual += "✅ Salva dados no navegador (localStorage)\n";
+  if (tem("fetch\\("))      manual += "✅ Faz chamadas para a internet (fetch/API)\n";
+  if (tem("gemini"))        manual += "✅ Usa a IA do Google Gemini\n";
+  if (tem("openai|gpt-"))   manual += "✅ Usa OpenAI / ChatGPT\n";
+  if (tem("groq"))          manual += "✅ Usa Groq (IA rápida)\n";
+  if (tem("capacitor"))     manual += "📱 Pode virar APK (Capacitor)\n";
+  if (tem("electron"))      manual += "🖥️ Pode virar app de computador (Electron)\n";
+  if (tem("processo|advogad|juridic")) manual += "⚖️ Tem funcionalidades jurídicas\n";
+  if (tem("replit\\.com|REPL_ID"))  manual += "\n⚠️  ATENÇÃO: TEM VÍNCULOS COM A REPLIT!\n   Partes param quando você para de pagar.\n   Use 'Detectar Vínculos Replit' para ver o que trocar.\n";
+
+  const secoes = [];
+  linhas.forEach((linha, i) => {
+    const trim = linha.trim();
+    if (trim.match(/^\/\/\s*.{3,}/)) secoes.push(`Linha ${i+1}: COMENTÁRIO → ${trim}`);
+    if (trim.match(/^function\s+\w+/)) secoes.push(`Linha ${i+1}: FUNÇÃO → ${trim.substring(0, 60)}`);
+    if (trim.match(/^class\s+\w+/)) secoes.push(`Linha ${i+1}: CLASSE → ${trim.substring(0, 60)}`);
+  });
+
+  manual += "\n📋 ESTRUTURA:\n" + "─".repeat(40) + "\n";
+  if (secoes.length > 0) { secoes.slice(0, 50).forEach(s => { manual += s + "\n"; }); }
+  else { manual += "⚠️ Código muito minificado — use 'Organizar Código' primeiro.\n"; }
+
+  manual += "\n💡 RECOMENDAÇÃO:\n" + "─".repeat(40) + "\n";
+  manual += "1. 🐛 Detecte bugs → encontrar erros de sintaxe\n";
+  manual += "2. 🚨 Detecte Replit → saber o que precisa trocar\n";
+  manual += "3. 🧠 Extraia localStorage → parte mais valiosa\n";
+  manual += "4. 🌐 Extraia chamadas API → qual IA o código usava\n";
+  manual += "5. 🤖 Consulte IA → análise e correção automática\n";
+
+  mostrarNaVisualizacao("📖 MANUAL DO CÓDIGO", manual);
+}
+
+// =====================
+// MEMÓRIA
+// =====================
+function salvarNaMemoria() {
+  if (!codigoOriginal) return alert("Carregue um arquivo primeiro!");
+  const nome = nomArquivo || "arquivo-" + Date.now();
+  const item = { id: Date.now().toString(), nome, conteudo: codigoOriginal, tamanho: (codigoOriginal.length/1024).toFixed(1), data: new Date().toLocaleString("pt-BR") };
+  const existe = memoriaArquivos.findIndex(m => m.nome === nome);
+  if (existe >= 0) memoriaArquivos[existe] = item; else memoriaArquivos.push(item);
+  localStorage.setItem("cirurgiao_memoria", JSON.stringify(memoriaArquivos));
+  renderizarMemoria();
+  mostrarNaVisualizacao("💾 SALVO NA MEMÓRIA", `✅ "${nome}" salvo!\n\nTamanho: ${item.tamanho} KB\nData: ${item.data}\nTotal na memória: ${memoriaArquivos.length} arquivo(s)`);
+}
+
+function renderizarMemoria() {
+  const c = document.getElementById("listaMemoria");
+  if (!memoriaArquivos.length) { c.innerHTML = '<div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">Nenhum arquivo salvo ainda.</div>'; return; }
+  c.innerHTML = memoriaArquivos.map((m, i) => `
+    <div class="memoria-item">
+      <div style="display:flex; justify-content:space-between; align-items:start; gap:6px;">
+        <div style="flex:1; min-width:0;">
+          <div class="memoria-nome" style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${m.nome}">${m.nome}</div>
+          <div class="memoria-valor">${m.tamanho} KB · ${m.data}</div>
+        </div>
+        <div style="display:flex; gap:4px; flex-shrink:0;">
+          <button onclick="carregarDaMemoria(${i})" style="width:auto; padding:4px 8px; font-size:11px; margin:0;" class="verde">📂</button>
+          <button onclick="baixarDaMemoria(${i})" style="width:auto; padding:4px 8px; font-size:11px; margin:0;" class="roxo">⬇️</button>
+          <button onclick="removerDaMemoria(${i})" style="width:auto; padding:4px 8px; font-size:11px; margin:0;" class="vermelho">🗑️</button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function carregarDaMemoria(idx) { const m = memoriaArquivos[idx]; if (!m) return; codigoOriginal = m.conteudo; nomArquivo = m.nome; processarCodigo(m.nome); }
+function baixarDaMemoria(idx) { const m = memoriaArquivos[idx]; if (!m) return; baixarTexto(m.conteudo, m.nome.replace(/[^a-z0-9._-]/gi, "_")); }
+function removerDaMemoria(idx) { if (!confirm("Remover?")) return; memoriaArquivos.splice(idx, 1); localStorage.setItem("cirurgiao_memoria", JSON.stringify(memoriaArquivos)); renderizarMemoria(); }
+function limparMemoria() { if (!confirm("Limpar TODA a memória?")) return; memoriaArquivos = []; localStorage.setItem("cirurgiao_memoria", "[]"); renderizarMemoria(); }
+function baixarMemoriaCompleta() {
+  if (!memoriaArquivos.length) return alert("Nenhum arquivo na memória.");
+  let c = `=== MEMÓRIA COMPLETA — CIRURGIÃO 3.0 ===\nData: ${new Date().toLocaleString("pt-BR")}\nArquivos: ${memoriaArquivos.length}\n\n`;
+  memoriaArquivos.forEach((m, i) => { c += "═".repeat(70)+"\n"+`ARQUIVO ${i+1}: ${m.nome}\n${m.tamanho} KB · ${m.data}\n`+"═".repeat(70)+"\n"+m.conteudo+"\n\n"; });
+  baixarTexto(c, `memoria-cirurgiao-${Date.now()}.txt`);
+}
+
+// =====================
+// TRIAGEM / ANOTAÇÕES
+// =====================
+function confirmarNota() {
+  const texto = document.getElementById("textoNota").value.trim();
+  if (!texto) { alert("Digite a anotação!"); return; }
+  const item = { id: Date.now().toString(), texto, arquivo: nomArquivo || "sem arquivo", data: new Date().toLocaleString("pt-BR") };
+  notasTriagem.push(item);
+  localStorage.setItem("cirurgiao_notas", JSON.stringify(notasTriagem));
+  document.getElementById("textoNota").value = "";
+  fecharModal("modalNota");
+  renderizarNotas();
+}
+
+function salvarComoNota() {
+  const conteudo = document.getElementById("areaVisualizacao").textContent;
+  if (!conteudo || conteudo.includes("Bem-vindo")) return;
+  document.getElementById("textoNota").value = conteudo.substring(0, 1000);
+  abrirModal("modalNota");
+}
+
+function renderizarNotas() {
+  const c = document.getElementById("listaNotas");
+  if (!notasTriagem.length) { c.innerHTML = '<div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">Nenhuma anotação ainda.</div>'; return; }
+  c.innerHTML = notasTriagem.map((n, i) => `
+    <div class="nota-item">
+      <div class="nota-texto">${n.texto.substring(0, 200)}${n.texto.length > 200 ? '...' : ''}</div>
+      <div class="nota-meta">${n.arquivo} · ${n.data}</div>
+      <div style="display:flex; gap:4px; margin-top:6px;">
+        <button onclick="verNotaCompleta(${i})" style="width:auto; padding:3px 8px; font-size:11px; margin:0;" class="ciano">👁️ Ver</button>
+        <button onclick="removerNota(${i})" style="width:auto; padding:3px 8px; font-size:11px; margin:0;" class="vermelho">🗑️</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function verNotaCompleta(idx) { const n = notasTriagem[idx]; if (!n) return; mostrarNaVisualizacao(`📌 Anotação de Triagem`, `Arquivo: ${n.arquivo}\nData: ${n.data}\n\n${n.texto}`); }
+function removerNota(idx) { notasTriagem.splice(idx, 1); localStorage.setItem("cirurgiao_notas", JSON.stringify(notasTriagem)); renderizarNotas(); }
+function limparNotas() { if (!confirm("Limpar todas as anotações?")) return; notasTriagem = []; localStorage.setItem("cirurgiao_notas", "[]"); renderizarNotas(); }
+function baixarNotas() {
+  if (!notasTriagem.length) return alert("Nenhuma anotação.");
+  let c = `=== TRIAGEM — CIRURGIÃO 3.0 ===\nData: ${new Date().toLocaleString("pt-BR")}\nAnotações: ${notasTriagem.length}\n\n`;
+  notasTriagem.forEach((n, i) => { c += `${"─".repeat(50)}\nNota ${i+1} · ${n.arquivo} · ${n.data}\n${n.texto}\n\n`; });
+  baixarTexto(c, `triagem-${Date.now()}.txt`);
+}
+
+function analisarNotasComIA() {
+  if (!notasTriagem.length) { alert("Nenhuma anotação. Adicione anotações de triagem primeiro."); return; }
+  const todasAsNotas = notasTriagem.map((n, i) => `Nota ${i+1} (${n.arquivo}):\n${n.texto}`).join("\n\n" + "─".repeat(40) + "\n\n");
+  const pergunta = `Analise estas anotações de triagem do meu código e me diga:\n1. Qual é o problema mais crítico?\n2. Em que ordem devo corrigir?\n3. O que posso corrigir sem precisar da Replit?\n4. Que partes precisam ser refeitas do zero?\n\nANOTAÇÕES:\n${todasAsNotas.substring(0, 6000)}`;
+  document.getElementById("iaPergunta").value = pergunta;
+  consultarIA(pergunta);
+}
+
+// =====================
+// HISTÓRICO DA IA
+// =====================
+function salvarNoHistorico(pergunta, resposta, provedor) {
+  const item = { id: Date.now().toString(), pergunta: pergunta.substring(0, 200), resposta, provedor, arquivo: nomArquivo || "sem arquivo", data: new Date().toLocaleString("pt-BR") };
+  historicoIA.unshift(item); // mais recente primeiro
+  if (historicoIA.length > 50) historicoIA = historicoIA.slice(0, 50); // máx 50
+  localStorage.setItem("cirurgiao_historico", JSON.stringify(historicoIA));
+  renderizarHistorico();
+}
+
+function renderizarHistorico() {
+  const c = document.getElementById("listaHistorico");
+  if (!historicoIA.length) { c.innerHTML = '<div style="color:#64748b; font-size:12px; text-align:center; padding:10px;">Nenhuma consulta ainda.</div>'; return; }
+  c.innerHTML = historicoIA.map((h, i) => `
+    <div class="hist-item" onclick="verHistoricoCompleto(${i})" style="cursor:pointer;">
+      <div class="hist-pergunta">❓ ${h.pergunta}</div>
+      <div class="hist-resposta">${h.resposta.substring(0, 120)}...</div>
+      <div class="hist-meta">🤖 ${h.provedor} · ${h.arquivo} · ${h.data}</div>
+    </div>
+  `).join("");
+}
+
+function verHistoricoCompleto(idx) {
+  const h = historicoIA[idx];
+  if (!h) return;
+  mostrarNaVisualizacao(`📜 Resposta IA (${h.data})`, `PROVEDOR: ${h.provedor}\nARQUIVO: ${h.arquivo}\nDATA: ${h.data}\n\nPERGUNTA:\n${h.pergunta}\n\n${"═".repeat(60)}\n\nRESPOSTA:\n${h.resposta}`);
+}
+
+function limparHistorico() { if (!confirm("Limpar todo o histórico?")) return; historicoIA = []; localStorage.setItem("cirurgiao_historico", "[]"); renderizarHistorico(); }
+function baixarHistorico() {
+  if (!historicoIA.length) return alert("Nenhuma consulta no histórico.");
+  let c = `=== HISTÓRICO IA — CIRURGIÃO 3.0 ===\nData: ${new Date().toLocaleString("pt-BR")}\nConsultas: ${historicoIA.length}\n\n`;
+  historicoIA.forEach((h, i) => { c += `${"═".repeat(60)}\nConsulta ${i+1} · ${h.provedor} · ${h.data}\nArquivo: ${h.arquivo}\n\nPERGUNTA:\n${h.pergunta}\n\nRESPOSTA:\n${h.resposta}\n\n`; });
+  baixarTexto(c, `historico-ia-${Date.now()}.txt`);
+}
+
+// =====================
+// IA INTEGRADA
+// =====================
+async function consultarIA(perguntaOverride) {
+  const chave = document.getElementById("iaApiKey").value.trim();
+  if (!chave) { alert("Cole sua chave de API no painel da IA."); return; }
+  const pergunta = perguntaOverride || document.getElementById("iaPergunta").value.trim();
+  if (!pergunta) { alert("Digite uma pergunta para a IA."); return; }
+  const provedor = detectarProvedor(chave);
+  if (!provedor) { alert("Chave não reconhecida. Use: gsk_ (Groq), AIza (Gemini), sk- (OpenAI), sk-or- (OpenRouter), xai- (xAI), sk-ant (Anthropic)"); return; }
+
+  const contexto = codigoOriginal
+    ? `\n\nCÓDIGO ATUAL (${nomArquivo || "sem nome"}, ${(codigoOriginal.length/1024).toFixed(1)}KB):\n\`\`\`\n${codigoOriginal.substring(0, 8000)}${codigoOriginal.length > 8000 ? "\n... [truncado]" : ""}\n\`\`\``
+    : "";
+
+  const btn = document.getElementById("btnConsultarIA");
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Consultando...';
+  const respostaEl = document.getElementById("iaResposta");
+  respostaEl.style.display = "block"; respostaEl.textContent = "⏳ Aguardando resposta...";
+
+  try {
+    const resp = await fetch(`${provedor.url}/chat/completions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${chave}` },
+      body: JSON.stringify({
+        model: provedor.model,
+        messages: [
+          { role: "system", content: "Você é especialista em análise e limpeza de código. Responda sempre em português brasileiro. Seja direto e prático para usuário leigo. Quando sugerir código, forneça completo e pronto para usar." },
+          { role: "user", content: pergunta + contexto }
+        ],
+        max_tokens: 2000, temperature: 0.3
+      })
+    });
+
+    if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err?.error?.message || `Erro ${resp.status}`); }
+    const data = await resp.json();
+    const resposta = data.choices?.[0]?.message?.content || "Sem resposta.";
+    respostaEl.textContent = resposta;
+    mostrarNaVisualizacao(`🤖 RESPOSTA DA IA (${provedor.nome})`, resposta);
+    salvarNoHistorico(pergunta, resposta, provedor.nome); // ← SALVA NO HISTÓRICO
+  } catch(e) {
+    const msg = `❌ Erro: ${e.message}\n\nVerifique se a chave está correta e tem créditos disponíveis.`;
+    respostaEl.textContent = msg;
+  } finally {
+    btn.disabled = false; btn.innerHTML = '🤖 Consultar IA';
+  }
+}
+
+function analisarReplitComIA() {
+  const p = `Analise este código e faça:\n1. Liste TODOS os vínculos com a Replit (URLs, rotas /api/, variáveis REPL_ID, etc.)\n2. Para cada vínculo, mostre EXATAMENTE como substituir por alternativa gratuita e independente\n3. Substitua rotas /api/code-assistant e /api/tts por chamadas diretas às APIs de IA\n4. Entregue o código COMPLETO já corrigido, pronto para usar sem a Replit`;
+  document.getElementById("iaPergunta").value = p;
+  consultarIA(p);
+}
+
+function pedirCorrecaoIA() {
+  const p = `Analise este código e:\n1. Liste todos os bugs e erros que encontrar\n2. Explique em linguagem simples o que cada erro causa\n3. Corrija todos os bugs\n4. Entregue o código completo corrigido e funcional\n5. Destaque o que foi mudado e por quê`;
+  document.getElementById("iaPergunta").value = p;
+  consultarIA(p);
+}
+
+function pedirJuridicoIA() {
+  const p = `Este é um projeto jurídico. Analise e me diga:\n1. Quais funcionalidades jurídicas estão implementadas (processos, clientes, prazos, etc.)\n2. O que está quebrado ou incompleto\n3. O que depende da Replit e para de funcionar\n4. Como corrigir os bugs mais críticos para o projeto funcionar de forma independente\n5. Quais partes estão vinculadas a serviços pagos e como substituir por alternativas gratuitas`;
+  document.getElementById("iaPergunta").value = p;
+  consultarIA(p);
+}
+
+function analisarAtualComIA() {
+  const conteudo = document.getElementById("areaVisualizacao").textContent;
+  if (!conteudo || conteudo.includes("Bem-vindo")) { alert("Primeiro gere algum resultado (functions, API, Replit, bugs...) para analisar com a IA."); return; }
+  const p = `Analise este trecho extraído e diga:\n1. O que ele faz\n2. Se tem algum problema ou bug\n3. Como melhorar ou corrigir\n\nTRECHO:\n${conteudo.substring(0, 4000)}`;
+  document.getElementById("iaPergunta").value = p;
+  consultarIA(p);
+}
+
+// =====================
+// UTILITÁRIOS
+// =====================
+function mostrarNaVisualizacao(titulo, conteudo) {
+  document.getElementById("tituloVisualizacao").textContent = titulo;
+  document.getElementById("areaVisualizacao").textContent = conteudo;
+}
+
+function copiarVisualizacao() {
+  const texto = document.getElementById("areaVisualizacao").textContent;
+  if (!texto) return;
+  navigator.clipboard.writeText(texto).then(() => {
+    const btn = event.target.closest("button");
+    const original = btn.textContent;
+    btn.textContent = "✅ Copiado!"; btn.classList.add("copiado");
+    setTimeout(() => { btn.textContent = original; btn.classList.remove("copiado"); }, 2000);
+  });
+}
+
+function baixarVisualizacao() {
+  const texto = document.getElementById("areaVisualizacao").textContent;
+  if (texto) baixarTexto(texto, `cirurgiao-${Date.now()}.txt`);
+}
+
+function limparVisualizacao() {
+  document.getElementById("areaVisualizacao").textContent = "Área limpa. Escolha uma ação no painel esquerdo.";
+  document.getElementById("tituloVisualizacao").textContent = "👁️ Visualização / Resultado";
+}
+
+function copiarTudoOrganizado() {
+  if (!codigoOriginal) return alert("Carregue o arquivo primeiro!");
+  navigator.clipboard.writeText(codigoOriginal).then(() => alert("✅ Código original copiado!"));
+}
+
+function limparTudo() {
+  codigoOriginal = ""; nomArquivo = ""; arquivosZip = [];
+  document.getElementById("arquivo").value = "";
+  ["cardStats","cardAcoes","cardBlocos","cardBusca","cardExplorador"].forEach(id => { document.getElementById(id).style.display = "none"; });
+  document.getElementById("resultadoBusca").innerHTML = "";
+  document.getElementById("iaResposta").style.display = "none";
+  setStatus("Nenhum arquivo carregado", "#64748b");
+  limparVisualizacao();
+}
+
+function setStatus(html, cor) { const el = document.getElementById("statusCarga"); el.innerHTML = html; el.style.color = cor; }
+
+function baixarTexto(conteudo, nome) {
+  const blob = new Blob([conteudo], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = nome; a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>

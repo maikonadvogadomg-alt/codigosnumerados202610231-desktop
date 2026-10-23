@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Ícones PWA - Maikon Caldeira</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1200px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 0.9rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .painel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #e9ecef;
+        }
+
+        .painel h2 {
+            font-size: 1.2rem;
+            color: #495057;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .grupo {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        input[type="color"] {
+            width: 100%;
+            height: 50px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .preview-area {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px dashed #dee2e6;
+        }
+
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            max-width: 100%;
+            height: auto;
+        }
+
+        .tamanhos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 10px;
+        }
+
+        .tamanho-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tamanho-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .tamanho-item label {
+            margin: 0;
+            cursor: pointer;
+            font-weight: normal;
+        }
+
+        .botoes {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-gerar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-gerar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-baixar {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-baixar:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-baixar-todos {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-baixar-todos:hover {
+            background: #138496;
+            transform: translateY(-2px);
+        }
+
+        .btn-limpar {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-limpar:hover {
+            background: #5a6268;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #0c5460;
+        }
+
+        .formato-grupo {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .formato-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .formato-item input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .preset-cores {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .preset-cor {
+            width: 100%;
+            height: 40px;
+            border-radius: 5px;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .preset-cor:hover {
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 Gerador de Ícones PWA</h1>
+        <p class="subtitle">Crie ícones profissionais para seu aplicativo em todos os tamanhos</p>
+
+        <div class="grid">
+            <!-- PAINEL DE CONFIGURAÇÃO -->
+            <div class="painel">
+                <h2>⚙️ Configurações</h2>
+
+                <!-- TEXTO -->
+                <div class="grupo">
+                    <label for="texto">Texto/Letra:</label>
+                    <input type="text" id="texto" value="M" maxlength="3" placeholder="Ex: M, MC, 123">
+                </div>
+
+                <!-- FONTE -->
+                <div class="grupo">
+                    <label for="fonte">Fonte:</label>
+                    <select id="fonte">
+                        <option value="Georgia">Georgia (Serifada)</option>
+                        <option value="Arial">Arial (Sem Serifa)</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Courier New">Courier New (Mono)</option>
+                        <option value="Impact">Impact (Bold)</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Comic Sans MS">Comic Sans MS</option>
+                    </select>
+                </div>
+
+                <!-- TAMANHO DA FONTE -->
+                <div class="grupo">
+                    <label for="tamanhoFonte">Tamanho da Fonte: <span id="tamanhoFonteValor">300</span>px</label>
+                    <input type="range" id="tamanhoFonte" min="100" max="450" value="300" style="width: 100%;">
+                </div>
+
+                <!-- COR DE FUNDO -->
+                <div class="grupo">
+                    <label for="corFundo">Cor de Fundo:</label>
+                    <input type="color" id="corFundo" value="#a3a082">
+                    <div class="preset-cores">
+                        <div class="preset-cor" style="background: #a3a082;" onclick="aplicarCor('fundo', '#a3a082')"></div>
+                        <div class="preset-cor" style="background: #667eea;" onclick="aplicarCor('fundo', '#667eea')"></div>
+                        <div class="preset-cor" style="background: #764ba2;" onclick="aplicarCor('fundo', '#764ba2')"></div>
+                        <div class="preset-cor" style="background: #f093fb;" onclick="aplicarCor('fundo', '#f093fb')"></div>
+                        <div class="preset-cor" style="background: #4facfe;" onclick="aplicarCor('fundo', '#4facfe')"></div>
+                        <div class="preset-cor" style="background: #43e97b;" onclick="aplicarCor('fundo', '#43e97b')"></div>
+                        <div class="preset-cor" style="background: #fa709a;" onclick="aplicarCor('fundo', '#fa709a')"></div>
+                        <div class="preset-cor" style="background: #feca57;" onclick="aplicarCor('fundo', '#feca57')"></div>
+                        <div class="preset-cor" style="background: #ff6348;" onclick="aplicarCor('fundo', '#ff6348')"></div>
+                        <div class="preset-cor" style="background: #1e3799;" onclick="aplicarCor('fundo', '#1e3799')"></div>
+                    </div>
+                </div>
+
+                <!-- COR DO TEXTO -->
+                <div class="grupo">
+                    <label for="corTexto">Cor do Texto:</label>
+                    <input type="color" id="corTexto" value="#0a0a0a">
+                    <div class="preset-cores">
+                        <div class="preset-cor" style="background: #0a0a0a;" onclick="aplicarCor('texto', '#0a0a0a')"></div>
+                        <div class="preset-cor" style="background: #ffffff;" onclick="aplicarCor('texto', '#ffffff')"></div>
+                        <div class="preset-cor" style="background: #f3f4f6;" onclick="aplicarCor('texto', '#f3f4f6')"></div>
+                        <div class="preset-cor" style="background: #667eea;" onclick="aplicarCor('texto', '#667eea')"></div>
+                        <div class="preset-cor" style="background: #764ba2;" onclick="aplicarCor('texto', '#764ba2')"></div>
+                    </div>
+                </div>
+
+                <!-- COR DA BORDA -->
+                <div class="grupo">
+                    <label for="corBorda">Cor da Borda:</label>
+                    <input type="color" id="corBorda" value="#ffffff">
+                </div>
+
+                <!-- ESPESSURA DA BORDA -->
+                <div class="grupo">
+                    <label for="espessuraBorda">Espessura da Borda: <span id="espessuraBordaValor">10</span>px</label>
+                    <input type="range" id="espessuraBorda" min="0" max="30" value="10" style="width: 100%;">
+                </div>
+
+                <!-- FORMATO -->
+                <div class="grupo">
+                    <label>Formato de Exportação:</label>
+                    <div class="formato-grupo">
+                        <div class="formato-item">
+                            <input type="radio" id="formatoPNG" name="formato" value="png" checked>
+                            <label for="formatoPNG">PNG</label>
+                        </div>
+                        <div class="formato-item">
+                            <input type="radio" id="formatoJPG" name="formato" value="jpg">
+                            <label for="formatoJPG">JPG</label>
+                        </div>
+                        <div class="formato-item">
+                            <input type="radio" id="formatoWEBP" name="formato" value="webp">
+                            <label for="formatoWEBP">WEBP</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAINEL DE PREVIEW -->
+            <div class="painel">
+                <h2>👁️ Preview</h2>
+                <div class="preview-area">
+                    <canvas id="canvas" width="512" height="512"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAMANHOS -->
+        <div class="painel">
+            <h2>📐 Tamanhos para Gerar</h2>
+            <div class="tamanhos-grid">
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam16" value="16" checked>
+                    <label for="tam16">16x16</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam32" value="32" checked>
+                    <label for="tam32">32x32</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam48" value="48" checked>
+                    <label for="tam48">48x48</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam72" value="72" checked>
+                    <label for="tam72">72x72</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam96" value="96" checked>
+                    <label for="tam96">96x96</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam128" value="128" checked>
+                    <label for="tam128">128x128</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam144" value="144" checked>
+                    <label for="tam144">144x144</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam152" value="152" checked>
+                    <label for="tam152">152x152</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam192" value="192" checked>
+                    <label for="tam192">192x192</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam384" value="384" checked>
+                    <label for="tam384">384x384</label>
+                </div>
+                <div class="tamanho-item">
+                    <input type="checkbox" id="tam512" value="512" checked>
+                    <label for="tam512">512x512</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOTÕES -->
+        <div class="botoes">
+            <button class="btn-gerar" onclick="gerarIcone()">
+                🎨 Gerar Preview
+            </button>
+            <button class="btn-baixar" onclick="baixarIcone(512)">
+                💾 Baixar Preview (512x512)
+            </button>
+            <button class="btn-baixar-todos" onclick="baixarTodos()">
+                📦 Baixar Todos os Tamanhos
+            </button>
+            <button class="btn-limpar" onclick="limpar()">
+                🗑️ Limpar
+            </button>
+        </div>
+
+        <div class="info">
+            <strong>💡 Dica:</strong> Após gerar, clique em "Baixar Todos os Tamanhos" para criar um pacote completo com todos os ícones selecionados. Perfeito para PWAs!
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        // ========================================
+        // ELEMENTOS
+        // ========================================
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const texto = document.getElementById('texto');
+        const fonte = document.getElementById('fonte');
+        const tamanhoFonte = document.getElementById('tamanhoFonte');
+        const tamanhoFonteValor = document.getElementById('tamanhoFonteValor');
+        const corFundo = document.getElementById('corFundo');
+        const corTexto = document.getElementById('corTexto');
+        const corBorda = document.getElementById('corBorda');
+        const espessuraBorda = document.getElementById('espessuraBorda');
+        const espessuraBordaValor = document.getElementById('espessuraBordaValor');
+
+        // ========================================
+        // EVENTOS
+        // ========================================
+        texto.addEventListener('input', gerarIcone);
+        fonte.addEventListener('change', gerarIcone);
+        tamanhoFonte.addEventListener('input', () => {
+            tamanhoFonteValor.textContent = tamanhoFonte.value;
+            gerarIcone();
+        });
+        corFundo.addEventListener('input', gerarIcone);
+        corTexto.addEventListener('input', gerarIcone);
+        corBorda.addEventListener('input', gerarIcone);
+        espessuraBorda.addEventListener('input', () => {
+            espessuraBordaValor.textContent = espessuraBorda.value;
+            gerarIcone();
+        });
+
+        // ========================================
+        // GERAR ÍCONE
+        // ========================================
+        function gerarIcone() {
+            // Limpar canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Fundo
+            ctx.fillStyle = corFundo.value;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Borda
+            const espessura = parseInt(espessuraBorda.value);
+            if (espessura > 0) {
+                ctx.strokeStyle = corBorda.value;
+                ctx.lineWidth = espessura;
+                ctx.strokeRect(espessura / 2, espessura / 2, canvas.width - espessura, canvas.height - espessura);
+            }
+
+            // Texto
+            const tamanho = parseInt(tamanhoFonte.value);
+            ctx.fillStyle = corTexto.value;
+            ctx.font = `bold ${tamanho}px ${fonte.value}`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(texto.value || 'M', canvas.width / 2, canvas.height / 2);
+        }
+
+        // ========================================
+        // APLICAR COR PRESET
+        // ========================================
+        function aplicarCor(tipo, cor) {
+            if (tipo === 'fundo') {
+                corFundo.value = cor;
+            } else if (tipo === 'texto') {
+                corTexto.value = cor;
+            }
+            gerarIcone();
+        }
+
+        // ========================================
+        // BAIXAR ÍCONE INDIVIDUAL
+        // ========================================
+        function baixarIcone(tamanho) {
+            const formato = document.querySelector('input[name="formato"]:checked').value;
+            const mimeType = formato === 'png' ? 'image/png' : formato === 'jpg' ? 'image/jpeg' : 'image/webp';
+            
+            // Criar canvas temporário com tamanho específico
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = tamanho;
+            tempCanvas.height = tamanho;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // Desenhar versão redimensionada
+            desenharIcone(tempCtx, tamanho);
+
+            // Baixar
+            tempCanvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${tamanho}.${formato}`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }, mimeType);
+        }
+
+        // ========================================
+        // BAIXAR TODOS OS TAMANHOS
+        // ========================================
+        async function baixarTodos() {
+            const zip = new JSZip();
+            const formato = document.querySelector('input[name="formato"]:checked').value;
+            const mimeType = formato === 'png' ? 'image/png' : formato === 'jpg' ? 'image/jpeg' : 'image/webp';
+            
+            // Pegar tamanhos selecionados
+            const checkboxes = document.querySelectorAll('.tamanho-item input[type="checkbox"]:checked');
+            const tamanhos = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (tamanhos.length === 0) {
+                alert('⚠️ Selecione pelo menos um tamanho!');
+                return;
+            }
+
+            // Gerar cada tamanho
+            for (const tamanho of tamanhos) {
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = tamanho;
+                tempCanvas.height = tamanho;
+                const tempCtx = tempCanvas.getContext('2d');
+
+                desenharIcone(tempCtx, tamanho);
+
+                // Converter para blob
+                const blob = await new Promise(resolve => {
+                    tempCanvas.toBlob(resolve, mimeType);
+                });
+
+                // Adicionar ao ZIP
+                zip.file(`icon-${tamanho}.${formato}`, blob);
+            }
+
+            // Gerar e baixar ZIP
+            const zipBlob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `icones-pwa-${Date.now()}.zip`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            alert('✅ Ícones baixados com sucesso!');
+        }
+
+        // ========================================
+        // DESENHAR ÍCONE (reutilizável)
+        // ========================================
+        function desenharIcone(contexto, tamanho) {
+            const escala = tamanho / 512;
+
+            // Limpar
+            contexto.clearRect(0, 0, tamanho, tamanho);
+
+            // Fundo
+            contexto.fillStyle = corFundo.value;
+            contexto.fillRect(0, 0, tamanho, tamanho);
+
+            // Borda
+            const espessura = parseInt(espessuraBorda.value) * escala;
+            if (espessura > 0) {
+                contexto.strokeStyle = corBorda.value;
+                contexto.lineWidth = espessura;
+                contexto.strokeRect(espessura / 2, espessura / 2, tamanho - espessura, tamanho - espessura);
+            }
+
+            // Texto
+            const tamanhoTexto = parseInt(tamanhoFonte.value) * escala;
+            contexto.fillStyle = corTexto.value;
+            contexto.font = `bold ${tamanhoTexto}px ${fonte.value}`;
+            contexto.textAlign = 'center';
+            contexto.textBaseline = 'middle';
+            contexto.fillText(texto.value || 'M', tamanho / 2, tamanho / 2);
+        }
+
+        // ========================================
+        // LIMPAR
+        // ========================================
+        function limpar() {
+            texto.value = 'M';
+            fonte.value = 'Georgia';
+            tamanhoFonte.value = 300;
+            tamanhoFonteValor.textContent = '300';
+            corFundo.value = '#a3a082';
+            corTexto.value = '#0a0a0a';
+            corBorda.value = '#ffffff';
+            espessuraBorda.value = 10;
+            espessuraBordaValor.textContent = '10';
+            document.getElementById('formatoPNG').checked = true;
+            gerarIcone();
+        }
+
+        // ========================================
+        // INICIALIZAR
+        // ========================================
+        gerarIcone();
+    </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>COMO_BUILDAR</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:860px;margin:0 auto;padding:12px 16px 40px;color:#1f2230;background:#fffdf8}h1,h2,h3{line-height:1.25}h2{border-bottom:1px solid #e3ddc8;padding-bottom:4px}code{background:#f1ede0;padding:1px 5px;border-radius:4px;font:14px ui-monospace,Consolas,monospace}.bloco{border:1px solid #d9d2bb;border-radius:8px;margin:10px 0;overflow:hidden}.bloco-bar{display:flex;gap:6px;align-items:center;background:#efe9d6;padding:5px 8px;font:600 12px ui-monospace,monospace;color:#6b6450}.bloco-bar span{flex:1}.bloco-bar button,.topo button{font:600 13px system-ui,sans-serif;border:1px solid #8a7b45;background:#fff;color:#4a4020;border-radius:6px;padding:5px 9px;cursor:pointer}.bloco pre{margin:0;padding:10px;overflow-x:auto;background:#fbf9f2}.bloco pre code{background:none;padding:0;white-space:pre}.tab{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}th,td{border-bottom:1px solid #e3ddc8;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f6f2e4}blockquote{margin:8px 0;padding:6px 12px;border-left:4px solid #c9b77a;background:#faf6e8}.topo{position:sticky;top:0;background:#fffdf8;padding:8px 0;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #eee;margin-bottom:8px;z-index:2}a{color:#7a6526}</style></head><body><div class="topo"><button id="md-todos">📋 Copiar todos os blocos (7)</button></div><h1>Assistente Jurídico — Como Gerar o APK</h1>
+<h2>Projeto já registrado no Expo ✅</h2>
+<ul><li>Conta: <code>maikons-individual</code></li><li>Projeto: <code>assistente-juridico</code></li><li>ID: <code>95b2b515-def0-4c2a-90c8-2b4e2194a634</code></li></ul>
+<hr>
+<h2>Como o app funciona (sem servidor)</h2>
+<ul><li>Chama a IA <b>diretamente do celular</b> — sem servidor próprio</li><li>Salva histórico <b>no próprio celular</b> (AsyncStorage)</li><li>Opcionalmente sincroniza com o <b>banco Neon</b> (PostgreSQL na nuvem)</li><li><b>Não depende do Replit</b> para funcionar</li></ul>
+<hr>
+<h2>Passo a passo para gerar o APK</h2>
+<h3>1. Instale o Node.js no seu computador (se não tiver)</h3>
+<p>Acesse https://nodejs.org → baixe a versão <b>LTS</b> → instale normalmente.</p>
+<hr>
+<h3>2. Abra o Terminal</h3>
+<ul><li><b>Windows</b>: pressione <code>Win + R</code>, digite <code>cmd</code>, Enter</li><li><b>Mac</b>: abra o Spotlight e procure &quot;Terminal&quot;</li></ul>
+<hr>
+<h3>3. Entre na pasta do projeto</h3>
+<p>Descompacte o ZIP e navegue até a pasta:</p>
+<ul><li><b>Windows:</b> <code>cd %USERPROFILE%\Desktop\assistente-juridico</code></li><li><b>Mac/Linux:</b> <code>cd ~/Desktop/assistente-juridico</code></li></ul>
+<hr>
+<h3>4. Instale as dependências</h3>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="0">📋 Copiar</button><button data-rodar="0" class="so-app">▶ Terminal</button></div><pre><code>npm install</code></pre></div>
+<p>Aguarde terminar (1-2 minutos).</p>
+<hr>
+<h3>5. Configure o token</h3>
+<p><b>Mac/Linux:</b></p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="1">📋 Copiar</button><button data-rodar="1" class="so-app">▶ Terminal</button></div><pre><code>export EXPO_TOKEN=Jqn3oZYPovCelKuLh0WeXUulKQTNe_6FNhqossqv</code></pre></div>
+<p><b>Windows (CMD):</b></p>
+<div class="bloco"><div class="bloco-bar"><span>cmd</span><button data-copiar="2">📋 Copiar</button><button data-rodar="2" class="so-app">▶ Terminal</button></div><pre><code>set EXPO_TOKEN=Jqn3oZYPovCelKuLh0WeXUulKQTNe_6FNhqossqv</code></pre></div>
+<p><b>Windows (PowerShell):</b></p>
+<div class="bloco"><div class="bloco-bar"><span>powershell</span><button data-copiar="3">📋 Copiar</button><button data-rodar="3" class="so-app">▶ Terminal</button></div><pre><code>$env:EXPO_TOKEN=&quot;Jqn3oZYPovCelKuLh0WeXUulKQTNe_6FNhqossqv&quot;</code></pre></div>
+<hr>
+<h3>6. Inicialize o git (necessário uma vez)</h3>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="4">📋 Copiar</button><button data-rodar="4" class="so-app">▶ Terminal</button></div><pre><code>git init
+git add .
+git commit -m &quot;build&quot;</code></pre></div>
+<hr>
+<h3>7. Gere o APK</h3>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="5">📋 Copiar</button><button data-rodar="5" class="so-app">▶ Terminal</button></div><pre><code>npx eas build --platform android --profile preview --non-interactive</code></pre></div>
+<ul><li>Leva <b>5 a 10 minutos</b> na nuvem da Expo</li><li>No final aparece um <b>link para baixar o APK</b></li><li>Você também pode acompanhar em:</li></ul>
+<p>  https://expo.dev/accounts/maikons-individual/projects/assistente-juridico/builds</p>
+<hr>
+<h3>8. Instale no celular</h3>
+<ol><li>Baixe o APK pelo link</li><li>Envie para o celular (WhatsApp, Drive, email ou cabo USB)</li><li>No celular: <b>Configurações → Segurança → Fontes desconhecidas → Permitir</b></li><li>Abra o arquivo APK e instale</li></ol>
+<hr>
+<h3>9. Configure no celular (primeira vez)</h3>
+<ol><li>Abra o app</li><li>Vá na aba <b>⚙️ Config.</b></li><li>Cole sua <b>chave de API</b> (Groq, Gemini, OpenAI, etc.)</li><li>Opcionalmente cole a <b>URL do Neon</b> para salvar histórico na nuvem</li><li>Toque em <b>Salvar configurações</b></li></ol>
+<hr>
+<h2>Chaves de API gratuitas</h2>
+<ul><li><b>Groq</b> (recomendado): https://console.groq.com → API Keys</li><li><b>Gemini</b>: https://aistudio.google.com → Get API Key</li><li><b>OpenAI</b>: https://platform.openai.com → API Keys</li></ul>
+<hr>
+<h2>Banco Neon (opcional, gratuito)</h2>
+<ol><li>Acesse https://neon.tech → crie conta gratuita</li><li>Crie um projeto e copie a <b>Connection String</b></li><li>Cole no app em ⚙️ Config. → URL do Neon</li><li>Toque em <b>Testar e criar tabelas</b></li></ol>
+<p>As tabelas são criadas automaticamente.</p>
+<hr>
+<h2>Se der erro de quota no EAS</h2>
+<p>Aguarde alguns minutos e tente novamente — é o limite do plano gratuito.<br>Ou tente o perfil production:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="6">📋 Copiar</button><button data-rodar="6" class="so-app">▶ Terminal</button></div><pre><code>npx eas build --platform android --profile production --non-interactive</code></pre></div><script>var B=["npm install","export EXPO_TOKEN=Jqn3oZYPovCelKuLh0WeXUulKQTNe_6FNhqossqv","set EXPO_TOKEN=Jqn3oZYPovCelKuLh0WeXUulKQTNe_6FNhqossqv","$env:EXPO_TOKEN=\"Jqn3oZYPovCelKuLh0WeXUulKQTNe_6FNhqossqv\"","git init\ngit add .\ngit commit -m \"build\"","npx eas build --platform android --profile preview --non-interactive","npx eas build --platform android --profile production --non-interactive"];var EMB=window.parent!==window;if(!EMB)document.querySelectorAll(".so-app").forEach(function(b){b.remove()});function marca(b,t){var a=b.textContent;b.textContent=t;setTimeout(function(){b.textContent=a},1400)}function copiar(t,b){if(EMB){parent.postMessage({sk:"md",acao:"copiar",texto:t},"*");marca(b,"✔ Copiado");return}navigator.clipboard.writeText(t).then(function(){marca(b,"✔ Copiado")},function(){var r=document.createRange();r.selectNodeContents(b.closest(".bloco").querySelector("pre"));var s=getSelection();s.removeAllRanges();s.addRange(r);marca(b,"Selecionado")})}document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.copiar!=null)copiar(B[+b.dataset.copiar],b);if(b.dataset.rodar!=null){parent.postMessage({sk:"md",acao:"rodar",texto:B[+b.dataset.rodar]},"*");marca(b,"✔ Mandado")}if(b.id==="md-baixar")parent.postMessage({sk:"md",acao:"baixar"},"*");if(b.id==="md-todos"){var t=B.join("\n\n");copiar(t,b)}});</script></body></html>

@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iara Dissecador — Extrator e Montador de Código</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', monospace; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+
+#header { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+#header h1 { font-size: 15px; color: #58a6ff; }
+#header span { font-size: 11px; color: #8b949e; }
+#sel-count { margin-left: auto; background: #238636; color: #fff; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; display: none; }
+
+#layout { display: flex; height: calc(100vh - 44px); }
+
+/* SIDEBAR */
+#sidebar { width: 300px; background: #161b22; border-right: 1px solid #30363d; display: flex; flex-direction: column; }
+#sidebar-header { padding: 10px; border-bottom: 1px solid #30363d; }
+#sidebar-header h2 { font-size: 12px; color: #8b949e; margin-bottom: 8px; }
+.upload-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+#file-list { flex: 1; overflow-y: auto; padding: 6px; }
+.file-entry { padding: 8px 10px; border-radius: 5px; cursor: pointer; border: 1px solid transparent; margin-bottom: 3px; transition: all 0.15s; }
+.file-entry:hover { background: #21262d; }
+.file-entry.active { background: #1c2128; border-color: #58a6ff; }
+.file-entry .fe-name { font-size: 12px; color: #e6edf3; }
+.file-entry .fe-meta { font-size: 10px; color: #8b949e; margin-top: 2px; }
+.file-entry .fe-bar { height: 3px; background: #21262d; border-radius: 2px; margin-top: 5px; }
+.file-entry .fe-fill { height: 100%; border-radius: 2px; background: #238636; transition: width 0.3s; }
+
+/* CENTRO */
+#center { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+#center-toolbar { background: #161b22; border-bottom: 1px solid #30363d; padding: 8px 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+#search-box { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 5px 10px; border-radius: 5px; font-size: 12px; width: 180px; }
+#search-box:focus { outline: none; border-color: #58a6ff; }
+#filter-type { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 5px 8px; border-radius: 5px; font-size: 12px; }
+#sort-mode { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 5px 8px; border-radius: 5px; font-size: 12px; }
+.toolbar-sep { width: 1px; height: 20px; background: #30363d; }
+#sel-all-btn { margin-left: auto; }
+
+#index-area { flex: 1; overflow-y: auto; padding: 10px; }
+.file-section { margin-bottom: 16px; }
+.file-section-title { font-size: 11px; color: #8b949e; padding: 6px 8px; background: #161b22; border-radius: 4px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; border: 1px solid #30363d; }
+.file-section-title strong { color: #e6edf3; }
+
+.block-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; border-radius: 5px; border: 1px solid #30363d; margin-bottom: 4px; cursor: pointer; transition: all 0.15s; background: #0d1117; }
+.block-item:hover { border-color: #58a6ff; background: #1c2128; }
+.block-item.selected { border-color: #238636; background: rgba(35,134,54,0.1); }
+.block-item.selected .bi-check { background: #238636; border-color: #238636; color: #fff; }
+.bi-check { width: 16px; height: 16px; border: 1px solid #30363d; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; margin-top: 1px; transition: all 0.15s; }
+.bi-info { flex: 1; }
+.bi-name { font-size: 12px; font-weight: 600; color: #e6edf3; margin-bottom: 2px; }
+.bi-meta { font-size: 10px; color: #8b949e; display: flex; gap: 10px; flex-wrap: wrap; }
+.bi-type { padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 700; }
+.bi-type.function   { background: #1f3a5f; color: #79c0ff; }
+.bi-type.component  { background: #1a3a2a; color: #56d364; }
+.bi-type.hook       { background: #3a1a3a; color: #d2a8ff; }
+.bi-type.class      { background: #3a2a1a; color: #ffa657; }
+.bi-type.interface  { background: #1a2a3a; color: #a5d6ff; }
+.bi-type.type       { background: #2a1a3a; color: #c9b1ff; }
+.bi-type.constant   { background: #3a3a1a; color: #e3b341; }
+.bi-type.section    { background: #1a3a3a; color: #56d4d4; }
+.bi-type.export     { background: #2a3a1a; color: #7ee787; }
+.bi-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+/* PAINEL DIREITO — MONTADOR */
+#assembler { width: 340px; background: #161b22; border-left: 1px solid #30363d; display: flex; flex-direction: column; }
+#assembler-header { padding: 10px 14px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 8px; }
+#assembler-header h2 { font-size: 12px; color: #e3b341; flex: 1; }
+#assembler-list { flex: 1; overflow-y: auto; padding: 8px; }
+#assembler-empty { padding: 20px; text-align: center; color: #6e7681; font-size: 11px; }
+.asm-item { padding: 8px 10px; border-radius: 5px; border: 1px solid #30363d; margin-bottom: 4px; background: #0d1117; display: flex; align-items: center; gap: 6px; cursor: grab; }
+.asm-item:active { cursor: grabbing; }
+.asm-item.drag-over { border-color: #e3b341; background: rgba(227,179,65,0.05); }
+.asm-drag { color: #6e7681; font-size: 12px; }
+.asm-info { flex: 1; }
+.asm-name { font-size: 11px; font-weight: 600; color: #e6edf3; }
+.asm-from { font-size: 10px; color: #8b949e; }
+.asm-warn { font-size: 10px; color: #e3b341; margin-top: 2px; }
+.asm-remove { background: none; border: none; color: #6e7681; cursor: pointer; font-size: 14px; padding: 0 2px; }
+.asm-remove:hover { color: #f85149; }
+
+#assembler-footer { padding: 10px; border-top: 1px solid #30363d; }
+#assembler-footer .dep-warn { background: rgba(227,179,65,0.1); border: 1px solid #e3b341; border-radius: 5px; padding: 8px; font-size: 11px; color: #e3b341; margin-bottom: 8px; display: none; }
+#out-name { background: #0d1117; border: 1px solid #30363d; color: #e6edf3; padding: 6px 10px; border-radius: 5px; font-size: 12px; width: 100%; margin-bottom: 6px; }
+#out-name:focus { outline: none; border-color: #58a6ff; }
+.export-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* MODAL */
+#modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; }
+#modal.open { display: flex; }
+#modal-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; width: 860px; max-width: 96%; max-height: 88vh; display: flex; flex-direction: column; }
+#modal-head { padding: 12px 16px; border-bottom: 1px solid #30363d; display: flex; align-items: center; gap: 10px; }
+#modal-title { flex: 1; font-size: 13px; font-weight: 600; color: #e6edf3; }
+#modal-body { flex: 1; overflow: auto; padding: 0; }
+.code-view { font-family: 'Courier New', monospace; font-size: 11px; line-height: 1.55; padding: 12px; }
+.code-line { display: flex; gap: 10px; }
+.ln { color: #6e7681; min-width: 36px; text-align: right; user-select: none; border-right: 1px solid #21262d; padding-right: 8px; }
+.lc { flex: 1; white-space: pre-wrap; word-break: break-all; color: #e6edf3; }
+.lc.hl { background: rgba(88,166,255,0.12); border-radius: 2px; }
+#modal-foot { padding: 10px 16px; border-top: 1px solid #30363d; display: flex; gap: 8px; }
+
+/* BOTÕES */
+.btn { padding: 6px 14px; border-radius: 5px; border: 1px solid #30363d; cursor: pointer; font-size: 11px; font-weight: 600; transition: all 0.2s; }
+.btn-green { background: #238636; border-color: #2ea043; color: #fff; }
+.btn-green:hover { background: #2ea043; }
+.btn-blue { background: #1f6feb; border-color: #388bfd; color: #fff; }
+.btn-blue:hover { background: #388bfd; }
+.btn-yellow { background: #7d4e00; border-color: #e3b341; color: #e3b341; }
+.btn-yellow:hover { background: #9a6200; }
+.btn-ghost { background: #21262d; color: #e6edf3; }
+.btn-ghost:hover { background: #30363d; }
+.btn-red { background: #da3633; border-color: #f85149; color: #fff; }
+.btn-red:hover { background: #f85149; }
+.btn-sm { padding: 3px 8px; font-size: 10px; }
+.btn-xs { padding: 2px 6px; font-size: 10px; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { background: #30363d; border-radius: 3px; }
+
+.empty-state { text-align: center; padding: 40px 20px; color: #6e7681; }
+.empty-state h2 { font-size: 32px; margin-bottom: 10px; }
+.empty-state p { font-size: 12px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🧩 Iara Dissecador — Extrator e Montador de Código</h1>
+  <span>Dr. Maikon Caldeira · OAB/MG 183712</span>
+  <div id="sel-count">0 selecionados</div>
+</div>
+
+<div id="layout">
+
+  <!-- SIDEBAR: ARQUIVOS -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h2>📁 ARQUIVOS CARREGADOS</h2>
+      <div class="upload-btn-row">
+        <button class="btn btn-green" onclick="document.getElementById('inp-files').click()">+ Arquivos</button>
+        <button class="btn btn-ghost" onclick="clearAll()">🗑️ Limpar</button>
+      </div>
+      <input type="file" id="inp-files" multiple accept=".ts,.tsx,.js,.jsx,.html,.css,.vue" style="display:none">
+    </div>
+    <div id="file-list">
+      <div class="empty-state" style="padding:20px">
+        <p style="font-size:11px">Nenhum arquivo carregado.<br>Clique em "+ Arquivos" para começar.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CENTRO: ÍNDICE -->
+  <div id="center">
+    <div id="center-toolbar">
+      <input type="text" id="search-box" placeholder="🔍 Buscar bloco..." oninput="renderIndex()">
+      <select id="filter-type" onchange="renderIndex()">
+        <option value="">Todos os tipos</option>
+        <option value="function">Funções</option>
+        <option value="component">Componentes</option>
+        <option value="hook">Hooks</option>
+        <option value="class">Classes</option>
+        <option value="interface">Interfaces</option>
+        <option value="type">Types</option>
+        <option value="constant">Constantes</option>
+        <option value="section">Seções</option>
+      </select>
+      <select id="sort-mode" onchange="renderIndex()">
+        <option value="line">Por linha</option>
+        <option value="name">Por nome</option>
+        <option value="type">Por tipo</option>
+        <option value="size">Por tamanho</option>
+      </select>
+      <div class="toolbar-sep"></div>
+      <button class="btn btn-ghost btn-sm" onclick="selectAllVisible()">☑️ Todos visíveis</button>
+      <button class="btn btn-ghost btn-sm" onclick="deselectAll()">☐ Limpar seleção</button>
+      <button class="btn btn-yellow btn-sm" id="sel-all-btn" onclick="addSelectedToAssembler()">🧩 → Montador</button>
+    </div>
+    <div id="index-area">
+      <div class="empty-state">
+        <h2>🧩</h2>
+        <p>Carregue arquivos na barra lateral.<br>O índice de blocos aparecerá aqui.<br><br>
+        <span style="color:#8b949e">Selecione os blocos que quer extrair<br>e envie para o Montador →</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIREITA: MONTADOR -->
+  <div id="assembler">
+    <div id="assembler-header">
+      <h2>🧩 MONTADOR</h2>
+      <button class="btn btn-ghost btn-sm" onclick="clearAssembler()">🗑️</button>
+    </div>
+    <div id="assembler-list">
+      <div id="assembler-empty">
+        <p>Selecione blocos no índice<br>e clique em "→ Montador"<br><br>
+        <span style="color:#6e7681">Arraste para reordenar</span></p>
+      </div>
+    </div>
+    <div id="assembler-footer">
+      <div id="dep-warn"></div>
+      <input type="text" id="out-name" placeholder="nome-do-arquivo-novo.ts" value="novo-arquivo.ts">
+      <div class="export-row">
+        <button class="btn btn-green" onclick="mountAndExport('ts')">⬇️ .ts</button>
+        <button class="btn btn-blue" onclick="mountAndExport('md')">📝 .md</button>
+        <button class="btn btn-blue" onclick="mountAndExport('html')">🌐 .html</button>
+        <button class="btn btn-ghost" onclick="mountAndPreview()">👁️ Preview</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="modal">
+  <div id="modal-box">
+    <div id="modal-head">
+      <span id="modal-title">Bloco</span>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div id="modal-foot">
+      <button class="btn btn-green btn-sm" onclick="addModalBlockToAssembler()">🧩 Adicionar ao Montador</button>
+      <button class="btn btn-blue btn-sm" onclick="copyModalBlock()">📋 Copiar</button>
+      <button class="btn btn-blue btn-sm" onclick="downloadModalBlock()">⬇️ Baixar</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// ESTADO
+// ============================================================
+const S = {
+  files: {},      // name -> { name, content, ext, blocks[] }
+  selected: new Set(),   // "filename::blockId"
+  assembler: [],  // [ blockRef ]
+  activeFile: null,
+  modalBlock: null,
+  dragSrc: null
+};
+
+// ============================================================
+// UPLOAD
+// ============================================================
+document.getElementById('inp-files').addEventListener('change', e => {
+  Array.from(e.target.files).forEach(readFile);
+  e.target.value = '';
+});
+
+function readFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const ext = file.name.split('.').pop().toLowerCase();
+    const content = ev.target.result;
+    S.files[file.name] = { name: file.name, content, ext, blocks: dissect(file.name, content, ext) };
+    renderFileList();
+    if (!S.activeFile) setActiveFile(file.name);
+    else renderIndex();
+  };
+  reader.readAsText(file);
+}
+
+// ============================================================
+// DISSECADOR — CORAÇÃO DA FERRAMENTA
+// ============================================================
+function dissect(filename, content, ext) {
+  const lines = content.split('\n');
+  const blocks = [];
+  let id = 0;
+
+  // Padrões de detecção
+  const patterns = [
+    // Seções por comentário
+    { rx: /^\/\/\s*[=\-]{3,}\s*(.+?)\s*[=\-]*\s*$/, type: 'section', nameIdx: 1 },
+    { rx: /^\/\*\*?\s*[=\-]{2,}\s*(.+?)\s*[=\-]*\s*\*?\*\/$/, type: 'section', nameIdx: 1 },
+
+    // Interfaces e Types (TS)
+    { rx: /^export\s+interface\s+(\w+)/, type: 'interface', nameIdx: 1 },
+    { rx: /^interface\s+(\w+)/, type: 'interface', nameIdx: 1 },
+    { rx: /^export\s+type\s+(\w+)\s*[=<]/, type: 'type', nameIdx: 1 },
+    { rx: /^type\s+(\w+)\s*[=<]/, type: 'type', nameIdx: 1 },
+
+    // Classes
+    { rx: /^export\s+(?:default\s+)?class\s+(\w+)/, type: 'class', nameIdx: 1 },
+    { rx: /^class\s+(\w+)/, type: 'class', nameIdx: 1 },
+
+    // Hooks React
+    { rx: /^export\s+(?:default\s+)?function\s+(use[A-Z]\w*)/, type: 'hook', nameIdx: 1 },
+    { rx: /^(?:export\s+)?const\s+(use[A-Z]\w*)\s*=\s*(?:async\s+)?\(/, type: 'hook', nameIdx: 1 },
+
+    // Componentes React (começa com maiúscula, retorna JSX)
+    { rx: /^export\s+(?:default\s+)?function\s+([A-Z]\w*)/, type: 'component', nameIdx: 1 },
+    { rx: /^(?:export\s+)?const\s+([A-Z]\w*)\s*(?::\s*React\.FC[^=]*)?\s*=\s*(?:async\s+)?\(/, type: 'component', nameIdx: 1 },
+    { rx: /^(?:export\s+)?const\s+([A-Z]\w*)\s*=\s*React\.memo/, type: 'component', nameIdx: 1 },
+
+    // Funções normais
+    { rx: /^export\s+(?:async\s+)?function\s+([a-z]\w*)/, type: 'function', nameIdx: 1 },
+    { rx: /^(?:async\s+)?function\s+([a-z]\w*)/, type: 'function', nameIdx: 1 },
+    { rx: /^(?:export\s+)?const\s+([a-z]\w*)\s*=\s*(?:async\s+)?\(/, type: 'function', nameIdx: 1 },
+    { rx: /^(?:export\s+)?const\s+([a-z]\w*)\s*=\s*async\s+\(/, type: 'function', nameIdx: 1 },
+
+    // Constantes / configs
+    { rx: /^export\s+const\s+([A-Z_]{2,})\s*=/, type: 'constant', nameIdx: 1 },
+    { rx: /^const\s+([A-Z_]{2,})\s*=/, type: 'constant', nameIdx: 1 },
+    { rx: /^export\s+const\s+(\w+)\s*=\s*\{/, type: 'constant', nameIdx: 1 },
+    { rx: /^export\s+default\s+\{/, type: 'export', name: 'export default' },
+  ];
+
+  // Detecta início de cada bloco
+  const starts = [];
+  lines.forEach((line, idx) => {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('import ') || trimmed.startsWith('//') && trimmed.length < 5) return;
+    for (const p of patterns) {
+      const m = p.rx.exec(trimmed);
+      if (m) {
+        starts.push({ lineStart: idx, type: p.type, name: p.name || m[p.nameIdx] || 'anônimo' });
+        break;
+      }
+    }
+  });
+
+  // Calcula fim de cada bloco usando contagem de chaves
+  starts.forEach((s, si) => {
+    const nextStart = starts[si + 1]?.lineStart ?? lines.length;
+    let end = s.lineStart;
+    let depth = 0;
+    let started = false;
+
+    for (let i = s.lineStart; i < Math.min(nextStart + 5, lines.length); i++) {
+      const l = lines[i];
+      for (const ch of l) {
+        if (ch === '{' || ch === '(' || ch === '[') { depth++; started = true; }
+        if (ch === '}' || ch === ')' || ch === ']') depth--;
+      }
+      end = i;
+      if (started && depth <= 0) break;
+    }
+
+    // Captura comentários JSDoc acima
+    let docStart = s.lineStart;
+    while (docStart > 0 && (lines[docStart-1].trim().startsWith('*') || lines[docStart-1].trim().startsWith('/**') || lines[docStart-1].trim().startsWith('//'))) {
+      docStart--;
+    }
+
+    const blockLines = lines.slice(docStart, end + 1);
+    const deps = extractDeps(blockLines.join('\n'));
+
+    blocks.push({
+      id: `${filename}::${id++}`,
+      filename,
+      name: s.name,
+      type: s.type,
+      lineStart: docStart + 1,
+      lineEnd: end + 1,
+      lines: blockLines,
+      size: blockLines.length,
+      deps,
+      code: blockLines.join('\n')
+    });
+  });
+
+  // Captura imports do arquivo
+  const importLines = [];
+  lines.forEach((l, i) => {
+    if (/^import\s+/.test(l.trim())) importLines.push({ line: i+1, code: l });
+  });
+  if (importLines.length) {
+    blocks.unshift({
+      id: `${filename}::imports`,
+      filename,
+      name: `imports (${importLines.length})`,
+      type: 'section',
+      lineStart: importLines[0].line,
+      lineEnd: importLines[importLines.length-1].line,
+      lines: importLines.map(l => l.code),
+      size: importLines.length,
+      deps: [],
+      code: importLines.map(l => l.code).join('\n')
+    });
+  }
+
+  return blocks;
+}
+
+function extractDeps(code) {
+  const deps = new Set();
+  const rx = /\b(use[A-Z]\w+|[A-Z]\w+(?:Context|Provider|Hook)?)\b/g;
+  let m;
+  while ((m = rx.exec(code)) !== null) deps.add(m[1]);
+  return [...deps];
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderFileList() {
+  const el = document.getElementById('file-list');
+  const files = Object.values(S.files);
+  if (!files.length) { el.innerHTML = '<div class="empty-state" style="padding:20px"><p style="font-size:11px">Nenhum arquivo.</p></div>'; return; }
+
+  el.innerHTML = files.map(f => {
+    const selCount = f.blocks.filter(b => S.selected.has(b.id)).length;
+    const pct = f.blocks.length ? Math.round(selCount/f.blocks.length*100) : 0;
+    return `
+    <div class="file-entry ${S.activeFile===f.name?'active':''}" onclick="setActiveFile('${f.name}')">
+      <div class="fe-name">${f.name}</div>
+      <div class="fe-meta">${f.blocks.length} blocos · ${selCount} selecionados · ${(f.content.length/1024).toFixed(1)}KB</div>
+      <div class="fe-bar"><div class="fe-fill" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function setActiveFile(name) {
+  S.activeFile = name;
+  renderFileList();
+  renderIndex();
+}
+
+function renderIndex() {
+  const el = document.getElementById('index-area');
+  if (!S.activeFile || !S.files[S.activeFile]) {
+    el.innerHTML = '<div class="empty-state"><h2>🧩</h2><p>Selecione um arquivo na barra lateral.</p></div>';
+    return;
+  }
+
+  const search = document.getElementById('search-box').value.toLowerCase();
+  const filterType = document.getElementById('filter-type').value;
+  const sortMode = document.getElementById('sort-mode').value;
+
+  // Agrupa por arquivo se mostrar todos, ou só o ativo
+  const filesToShow = S.activeFile === '__all__' ? Object.values(S.files) : [S.files[S.activeFile]];
+
+  let html = '';
+  filesToShow.forEach(f => {
+    let blocks = [...f.blocks];
+    if (search) blocks = blocks.filter(b => b.name.toLowerCase().includes(search) || b.type.includes(search));
+    if (filterType) blocks = blocks.filter(b => b.type === filterType);
+    if (sortMode === 'name') blocks.sort((a,b) => a.name.localeCompare(b.name));
+    else if (sortMode === 'type') blocks.sort((a,b) => a.type.localeCompare(b.type));
+    else if (sortMode === 'size') blocks.sort((a,b) => b.size - a.size);
+    else blocks.sort((a,b) => a.lineStart - b.lineStart);
+
+    if (!blocks.length) return;
+
+    html += `<div class="file-section">
+      <div class="file-section-title">
+        📄 <strong>${f.name}</strong>
+        <span style="margin-left:auto;color:#8b949e">${blocks.length} blocos</span>
+        <button class="btn btn-ghost btn-xs" onclick="selectAllInFile('${f.name}')">☑️ todos</button>
+      </div>
+      ${blocks.map(b => renderBlock(b)).join('')}
+    </div>`;
+  });
+
+  el.innerHTML = html || '<div class="empty-state"><p>Nenhum bloco encontrado.</p></div>';
+  updateSelCount();
+}
+
+function renderBlock(b) {
+  const isSel = S.selected.has(b.id);
+  const typeIcons = { function:'⚡', component:'⚛️', hook:'🪝', class:'🏛️', interface:'📐', type:'🔷', constant:'📌', section:'📂', export:'📤' };
+  return `
+  <div class="block-item ${isSel?'selected':''}" onclick="toggleSelect('${b.id}')">
+    <div class="bi-check">${isSel?'✓':''}</div>
+    <div class="bi-info">
+      <div class="bi-name">${typeIcons[b.type]||'📄'} ${b.name}</div>
+      <div class="bi-meta">
+        <span class="bi-type ${b.type}">${b.type}</span>
+        <span>linhas ${b.lineStart}–${b.lineEnd}</span>
+        <span>${b.size} linhas</span>
+      </div>
+    </div>
+    <div class="bi-actions" onclick="event.stopPropagation()">
+      <button class="btn btn-ghost btn-xs" onclick="openModal('${b.id}')">👁️</button>
+      <button class="btn btn-yellow btn-xs" onclick="addOneToAssembler('${b.id}')">🧩</button>
+    </div>
+  </div>`;
+}
+
+function updateSelCount() {
+  const el = document.getElementById('sel-count');
+  const n = S.selected.size;
+  el.style.display = n > 0 ? 'block' : 'none';
+  el.textContent = `${n} selecionados`;
+}
+
+// ============================================================
+// SELEÇÃO
+// ============================================================
+function toggleSelect(id) {
+  if (S.selected.has(id)) S.selected.delete(id);
+  else S.selected.add(id);
+  renderIndex();
+  renderFileList();
+}
+
+function selectAllVisible() {
+  const search = document.getElementById('search-box').value.toLowerCase();
+  const filterType = document.getElementById('filter-type').value;
+  if (!S.activeFile) return;
+  S.files[S.activeFile].blocks.forEach(b => {
+    if ((!search || b.name.toLowerCase().includes(search)) && (!filterType || b.type === filterType))
+      S.selected.add(b.id);
+  });
+  renderIndex(); renderFileList();
+}
+
+function selectAllInFile(fname) {
+  S.files[fname]?.blocks.forEach(b => S.selected.add(b.id));
+  renderIndex(); renderFileList();
+}
+
+function deselectAll() {
+  S.selected.clear();
+  renderIndex(); renderFileList();
+}
+
+// ============================================================
+// MONTADOR
+// ============================================================
+function addSelectedToAssembler() {
+  S.selected.forEach(id => addOneToAssembler(id, false));
+  renderAssembler();
+}
+
+function addOneToAssembler(id, rerender = true) {
+  if (S.assembler.find(a => a.id === id)) return;
+  const block = findBlock(id);
+  if (block) S.assembler.push({ ...block });
+  if (rerender) renderAssembler();
+}
+
+function findBlock(id) {
+  for (const f of Object.values(S.files)) {
+    const b = f.blocks.find(b => b.id === id);
+    if (b) return b;
+  }
+  return null;
+}
+
+function renderAssembler() {
+  const el = document.getElementById('assembler-list');
+  const empty = document.getElementById('assembler-empty');
+
+  if (!S.assembler.length) {
+    el.innerHTML = '';
+    empty.style.display = 'block';
+    document.getElementById('dep-warn').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+
+  // Detecta dependências faltando
+  const allNames = new Set(S.assembler.map(b => b.name));
+  const missing = [];
+  S.assembler.forEach(b => {
+    b.deps.forEach(d => { if (!allNames.has(d) && d !== b.name) missing.push({ block: b.name, dep: d }); });
+  });
+
+  const dw = document.getElementById('dep-warn');
+  if (missing.length) {
+    dw.style.display = 'block';
+    dw.innerHTML = `⚠️ Dependências possivelmente faltando:<br>${[...new Set(missing.map(m=>m.dep))].slice(0,6).map(d=>`<code>${d}</code>`).join(', ')}`;
+  } else { dw.style.display = 'none'; }
+
+  el.innerHTML = S.assembler.map((b, i) => {
+    const typeIcons = { function:'⚡', component:'⚛️', hook:'🪝', class:'🏛️', interface:'📐', type:'🔷', constant:'📌', section:'📂', export:'📤' };
+    const hasMissing = b.deps.some(d => !allNames.has(d) && d !== b.name);
+    return `
+    <div class="asm-item" draggable="true"
+      ondragstart="dragStart(${i})" ondragover="dragOver(event,${i})" ondrop="dragDrop(event,${i})" ondragleave="dragLeave(event)">
+      <span class="asm-drag">⠿</span>
+      <div class="asm-info">
+        <div class="asm-name">${typeIcons[b.type]||'📄'} ${b.name}</div>
+        <div class="asm-from">📄 ${b.filename} · ${b.size} linhas</div>
+        ${hasMissing ? `<div class="asm-warn">⚠️ deps: ${b.deps.filter(d=>!allNames.has(d)&&d!==b.name).slice(0,3).join(', ')}</div>` : ''}
+      </div>
+      <button class="asm-remove" onclick="removeFromAssembler(${i})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function removeFromAssembler(i) {
+  S.assembler.splice(i, 1);
+  renderAssembler();
+}
+
+function clearAssembler() { S.assembler = []; renderAssembler(); }
+
+// Drag & Drop reordenação
+function dragStart(i) { S.dragSrc = i; }
+function dragOver(e, i) { e.preventDefault(); document.querySelectorAll('.asm-item')[i]?.classList.add('drag-over'); }
+function dragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+function dragDrop(e, i) {
+  e.preventDefault();
+  document.querySelectorAll('.asm-item').forEach(el => el.classList.remove('drag-over'));
+  if (S.dragSrc === null || S.dragSrc === i) return;
+  const item = S.assembler.splice(S.dragSrc, 1)[0];
+  S.assembler.splice(i, 0, item);
+  S.dragSrc = null;
+  renderAssembler();
+}
+
+// ============================================================
+// EXPORTAR
+// ============================================================
+function mountCode() {
+  // Ordena automaticamente: section/imports → interfaces → types → constants → classes → hooks → functions → components
+  const order = { section:0, interface:1, type:2, constant:3, class:4, hook:5, function:6, component:7, export:8 };
+  const sorted = [...S.assembler].sort((a,b) => (order[a.type]??5) - (order[b.type]??5));
+
+  let code = `// ============================================================\n`;
+  code += `// Gerado pelo Iara Dissecador — Dr. Maikon Caldeira\n`;
+  code += `// ${new Date().toLocaleString('pt-BR')}\n`;
+  code += `// Blocos: ${sorted.length} | Fontes: ${[...new Set(sorted.map(b=>b.filename))].join(', ')}\n`;
+  code += `// ============================================================\n\n`;
+
+  let lastType = null;
+  sorted.forEach(b => {
+    if (b.type !== lastType) {
+      const labels = { section:'SEÇÕES', interface:'INTERFACES', type:'TYPES', constant:'CONSTANTES', class:'CLASSES', hook:'HOOKS', function:'FUNÇÕES', component:'COMPONENTES', export:'EXPORTS' };
+      code += `\n// ─── ${labels[b.type]||b.type.toUpperCase()} ───────────────────────────────────\n\n`;
+      lastType = b.type;
+    }
+    code += `// [de: ${b.filename} · linhas ${b.lineStart}–${b.lineEnd}]\n`;
+    code += b.code + '\n\n';
+  });
+  return code;
+}
+
+function mountAndExport(fmt) {
+  if (!S.assembler.length) { alert('Adicione blocos ao Montador primeiro!'); return; }
+  const name = document.getElementById('out-name').value || 'novo-arquivo';
+  const code = mountCode();
+
+  if (fmt === 'ts') {
+    dlBlob(code, name.replace(/\.(ts|tsx|js|md|html)$/,'') + '.ts', 'text/plain');
+  } else if (fmt === 'md') {
+    const ext = name.split('.').pop();
+    let md = `# ${name}\n\n`;
+    md += `> Gerado pelo Iara Dissecador — Dr. Maikon Caldeira  \n`;
+    md += `> ${new Date().toLocaleString('pt-BR')}\n\n`;
+    md += `## Blocos incluídos\n\n`;
+    S.assembler.forEach(b => { md += `- **${b.name}** (\`${b.type}\`) — \`${b.filename}\` linhas ${b.lineStart}–${b.lineEnd}\n`; });
+    md += `\n## Código\n\n\`\`\`${ext}\n${code}\n\`\`\`\n`;
+    dlBlob(md, name.replace(/\.(ts|tsx|js|md|html)$/,'') + '.md', 'text/markdown');
+  } else if (fmt === 'html') {
+    const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${name}</title>
+<style>body{background:#0d1117;color:#e6edf3;font-family:Segoe UI,monospace;padding:20px;max-width:1000px;margin:0 auto}
+h1{color:#58a6ff;margin-bottom:4px}p{color:#8b949e;font-size:12px;margin-bottom:16px}
+pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;overflow:auto;font-size:12px;line-height:1.6}
+.copy-btn{background:#238636;border:none;color:#fff;padding:8px 16px;border-radius:5px;cursor:pointer;font-size:12px;margin-bottom:10px}
+.copy-btn:hover{background:#2ea043}.meta{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px;margin-bottom:16px;font-size:12px}
+table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px}td,th{padding:5px 10px;border:1px solid #30363d}th{background:#161b22;color:#58a6ff}
+</style></head><body>
+<h1>🧩 ${name}</h1>
+<p>Gerado pelo Iara Dissecador — Dr. Maikon Caldeira · ${new Date().toLocaleString('pt-BR')}</p>
+<div class="meta">
+<strong>Blocos:</strong> ${S.assembler.length} &nbsp;|&nbsp;
+<strong>Fontes:</strong> ${[...new Set(S.assembler.map(b=>b.filename))].join(', ')} &nbsp;|&nbsp;
+<strong>Total de linhas:</strong> ${S.assembler.reduce((s,b)=>s+b.size,0)}
+</div>
+<table><tr><th>Bloco</th><th>Tipo</th><th>Arquivo fonte</th><th>Linhas</th></tr>
+${S.assembler.map(b=>`<tr><td>${b.name}</td><td>${b.type}</td><td>${b.filename}</td><td>${b.lineStart}–${b.lineEnd}</td></tr>`).join('')}
+</table>
+<button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('code').textContent).then(()=>this.textContent='✅ Copiado!').catch(()=>{})">📋 Copiar código</button>
+<pre><code id="code">${escaped}</code></pre>
+</body></html>`;
+    dlBlob(html, name.replace(/\.(ts|tsx|js|md|html)$/,'') + '.html', 'text/html');
+  }
+}
+
+function mountAndPreview() {
+  if (!S.assembler.length) { alert('Adicione blocos ao Montador primeiro!'); return; }
+  const code = mountCode();
+  S.modalBlock = { name: '🧩 Preview do Montador', code, filename: 'montador', lineStart: 1, lineEnd: code.split('\n').length };
+  openModalWithBlock(S.modalBlock);
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function openModal(id) {
+  const block = findBlock(id);
+  if (!block) return;
+  S.modalBlock = block;
+  openModalWithBlock(block);
+}
+
+function openModalWithBlock(block) {
+  document.getElementById('modal-title').textContent =
+    `${block.name} — ${block.filename} · linhas ${block.lineStart}–${block.lineEnd} · ${block.size||block.code.split('\n').length} linhas`;
+  const lines = block.code.split('\n');
+  document.getElementById('modal-body').innerHTML = `
+    <div class="code-view">
+      ${lines.map((l, i) => `
+        <div class="code-line">
+          <span class="ln">${(block.lineStart||1)+i}</span>
+          <span class="lc">${escHtml(l)}</span>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+
+function addModalBlockToAssembler() {
+  if (S.modalBlock) { addOneToAssembler(S.modalBlock.id); closeModal(); }
+}
+
+function copyModalBlock() {
+  if (!S.modalBlock) return;
+  navigator.clipboard.writeText(S.modalBlock.code)
+    .then(() => alert('✅ Copiado!'))
+    .catch(() => { const ta = document.createElement('textarea'); ta.value = S.modalBlock.code; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert('✅ Copiado!'); });
+}
+
+function downloadModalBlock() {
+  if (!S.modalBlock) return;
+  dlBlob(S.modalBlock.code, S.modalBlock.name.replace(/[^a-zA-Z0-9_-]/g,'_') + '.ts', 'text/plain');
+}
+
+// ============================================================
+// UTILITÁRIOS
+// ============================================================
+function clearAll() {
+  S.files = {}; S.selected.clear(); S.assembler = []; S.activeFile = null;
+  document.getElementById('file-list').innerHTML = '<div class="empty-state" style="padding:20px"><p style="font-size:11px">Nenhum arquivo.</p></div>';
+  document.getElementById('index-area').innerHTML = '<div class="empty-state"><h2>🧩</h2><p>Carregue arquivos para começar.</p></div>';
+  renderAssembler(); updateSelCount();
+}
+
+function dlBlob(content, name, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escHtml(t) {
+  return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

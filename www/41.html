@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Manual SK Editor 4 — Completo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0d1117;color:#e6edf3;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.65;padding-bottom:80px}
+header{background:linear-gradient(135deg,#0d2a1a,#0d1f3c);border-bottom:3px solid #238636;padding:32px 24px 24px;text-align:center}
+header h1{font-size:30px;color:#fff;margin-bottom:6px}
+header h1 span{color:#3fb950}
+.sub{font-size:13px;color:#8b949e;margin-bottom:14px}
+.badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:12px}
+.badge{border-radius:20px;padding:4px 14px;font-size:11px;font-weight:bold}
+.bg{background:#1a3d1a;color:#3fb950;border:1px solid #3fb95040}
+.bb{background:#0f2040;color:#58a6ff;border:1px solid #58a6ff40}
+.by{background:#2a1a00;color:#e3b341;border:1px solid #e3b34140}
+.br{background:#2a0808;color:#f85149;border:1px solid #f8514940}
+nav{background:#161b22;border-bottom:1px solid #21262d;padding:10px 20px;display:flex;flex-wrap:wrap;gap:6px;position:sticky;top:0;z-index:100}
+nav a{color:#58a6ff;font-size:11px;text-decoration:none;background:#0d1f3c;padding:4px 10px;border-radius:20px;border:1px solid #1f3a5f;white-space:nowrap}
+nav a:hover{background:#1f3a5f}
+.container{max-width:880px;margin:0 auto;padding:0 20px}
+section{margin-top:40px;padding-top:8px}
+h2{font-size:20px;color:#fff;border-bottom:2px solid #238636;padding-bottom:10px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+h2 .icon{font-size:24px}
+h3{font-size:14px;color:#e3b341;margin:20px 0 8px;font-weight:700;letter-spacing:.3px}
+h4{font-size:13px;color:#79c0ff;margin:14px 0 6px;font-weight:600}
+p{font-size:13px;color:#8b949e;margin-bottom:10px}
+strong{color:#e6edf3}
+.card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px 22px;margin-bottom:14px}
+.card.green{border-color:#238636;background:#0a1f0a}
+.card.blue{border-color:#1f6feb;background:#0a1525}
+.card.yellow{border-color:#9e6a03;background:#1f1400}
+.card.red{border-color:#da3633;background:#1f0808}
+.feat{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.dg{background:#3fb950}
+.db{background:#58a6ff}
+.dy{background:#e3b341}
+.dr{background:#f85149}
+.feat-text strong{font-size:13px;color:#e6edf3;display:block;margin-bottom:1px}
+.feat-text span{font-size:11px;color:#8b949e}
+.step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start}
+.step-num{background:#238636;color:#fff;border-radius:50%;width:26px;height:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;margin-top:2px}
+.step-num.blue{background:#1f6feb}
+.step-num.yellow{background:#9e6a03}
+.step-body strong{font-size:13px;color:#e6edf3;display:block;margin-bottom:3px}
+.step-body span{font-size:12px;color:#8b949e}
+.step-body code{display:block;margin-top:6px;font-size:12px}
+code{background:#21262d;border-radius:5px;padding:2px 7px;color:#79c0ff;font-family:"Courier New",monospace;font-size:12px}
+pre{background:#161b22;border:1px solid #30363d;border-radius:10px;padding:14px 16px;font-size:12px;color:#79c0ff;overflow-x:auto;margin:12px 0;font-family:"Courier New",monospace;line-height:1.5}
+.warn{background:#1f1400;border:1px solid #9e6a03;border-radius:10px;padding:14px 16px;font-size:12px;color:#e3b341;margin:12px 0}
+.warn strong{color:#e3b341;display:block;margin-bottom:4px}
+.ok{background:#0a1f0a;border:1px solid #238636;border-radius:10px;padding:14px 16px;font-size:12px;color:#7ee787;margin:12px 0}
+.ok strong{color:#7ee787;display:block;margin-bottom:4px;font-size:13px}
+.info{background:#0a1525;border:1px solid #1f6feb;border-radius:10px;padding:14px 16px;font-size:12px;color:#79c0ff;margin:12px 0}
+.info strong{color:#58a6ff;display:block;margin-bottom:4px}
+table{width:100%;border-collapse:collapse;font-size:12px;margin:14px 0;border-radius:10px;overflow:hidden}
+th{background:#21262d;color:#e6edf3;padding:10px 14px;text-align:left;font-size:12px}
+td{padding:9px 14px;border-bottom:1px solid #21262d;color:#8b949e}
+td:first-child{color:#e6edf3;font-weight:600}
+.tok{color:#3fb950;font-weight:bold}
+.tno{color:#f85149;font-weight:bold}
+.twa{color:#e3b341;font-weight:bold}
+.sep{height:1px;background:#21262d;margin:30px 0}
+.callout{border-left:4px solid #238636;padding:12px 16px;background:#0a1f0a;margin:14px 0;border-radius:0 10px 10px 0}
+.callout.blue{border-color:#1f6feb;background:#0a1525}
+.callout.yellow{border-color:#9e6a03;background:#1f1400}
+.callout p{margin:0;font-size:12px;color:#8b949e}
+.callout strong{color:#e6edf3}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SK Editor <span>4</span> — Manual Completo</h1>
+  <div class="sub">Versão 4.0 · Build 18/06/2026 · Electron Desktop Windows · 100% Sem Replit</div>
+  <div class="badges">
+    <span class="badge bg">✅ 100% offline</span>
+    <span class="badge bg">✅ Zero Replit</span>
+    <span class="badge bb">💻 Terminal real cmd.exe</span>
+    <span class="badge bb">👁 Preview local 127.0.0.1</span>
+    <span class="badge by">💾 Salva no seu HD</span>
+    <span class="badge by">🤖 IA local com sua key</span>
+    <span class="badge br">📱 APK via Capacitor</span>
+  </div>
+</header>
+
+<nav>
+  <a href="#oque">📦 O que é</a>
+  <a href="#instalar">⚙️ Instalar</a>
+  <a href="#interface">🖥 Interface</a>
+  <a href="#editor">✏️ Editor</a>
+  <a href="#terminal">💻 Terminal</a>
+  <a href="#preview">👁 Preview</a>
+  <a href="#deploy">🚀 Deploy</a>
+  <a href="#projetos">💾 Projetos</a>
+  <a href="#ia">🤖 IA</a>
+  <a href="#github">🐙 GitHub</a>
+  <a href="#apk">📱 APK Android</a>
+  <a href="#problemas">🔧 Problemas</a>
+</nav>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════ O QUE É -->
+<section id="oque">
+<h2><span class="icon">📦</span> O que é o SK Editor 4</h2>
+
+<div class="ok">
+  <strong>Aplicativo Desktop 100% standalone — Não tem NADA do Replit</strong>
+  O SK Editor 4 é um editor de código profissional que roda no seu computador. Igual ao VS Code mas com terminal, preview e IA tudo num lugar só. Seus arquivos ficam no seu HD. Funciona sem internet.
+</div>
+
+<table>
+  <tr><th>Comparação</th><th>SK Editor 4</th><th>Replit (site)</th></tr>
+  <tr><td>Precisa de internet</td><td class="tok">NÃO — 100% offline</td><td class="tno">Sim, sempre</td></tr>
+  <tr><td>Seus projetos ficam</td><td class="tok">No seu PC (C:\Users\...)</td><td class="tno">Servidor deles</td></tr>
+  <tr><td>Terminal é real</td><td class="tok">Sim — cmd.exe do Windows</td><td class="tno">Não — virtualizado</td></tr>
+  <tr><td>Preview funciona como</td><td class="tok">localhost:XXXX no seu PC</td><td class="tno">URL Replit (externa)</td></tr>
+  <tr><td>API key de IA</td><td class="tok">Salva só no seu PC</td><td class="tno">Nos servidores deles</td></tr>
+  <tr><td>Conexão com Replit</td><td class="tok">NENHUMA</td><td class="tno">Sempre conectado</td></tr>
+</table>
+
+<h3>Por que o preview aqui no Replit parece diferente?</h3>
+<div class="warn">
+  <strong>⚠️ Isso é normal e correto</strong>
+  Quando você abre este site no Replit, está vendo o app rodando nos SERVIDORES DO REPLIT. É só para você ver como ficou antes de baixar. O executável .exe do seu PC é diferente: roda localmente, terminal real, preview local — sem depender de ninguém.
+</div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ INSTALAR -->
+<section id="instalar">
+<h2><span class="icon">⚙️</span> Como Instalar no Windows</h2>
+
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <strong>Baixe o arquivo ZIP</strong>
+    <span>Nome: <code>SK-Editor-4-Windows-SEM-REPLIT.zip</code> · Tamanho: ~142 MB</span>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <strong>Crie uma pasta dedicada</strong>
+    <span>Recomendado: <code>C:\SKEditor4\</code> — não deixe na Área de Trabalho</span>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <strong>Extraia TUDO nessa pasta</strong>
+    <span>Clique com botão direito no ZIP → "Extrair tudo" → selecione <code>C:\SKEditor4\</code></span>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">4</div>
+  <div class="step-body">
+    <strong>Execute SK-Editor-4.exe</strong>
+    <span>Clique duplo no arquivo <code>SK-Editor-4.exe</code> dentro da pasta extraída</span>
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-num">5</div>
+  <div class="step-body">
+    <strong>Windows SmartScreen aparece? Clique "Mais informações" → "Executar assim mesmo"</strong>
+    <span>Isso é normal — o app não tem assinatura digital paga (igual ao VLC, OBS, etc.)</span>
+  </div>
+</div>
+
+<div class="ok">
+  <strong>✅ Após abrir, o app cria automaticamente:</strong>
+  <code>C:\Users\[seu nome]\SKEditor4\projetos\</code> — onde ficam seus projetos<br/>
+  <code>C:\Users\[seu nome]\SKEditor4\settings.json</code> — suas configurações e API keys
+</div>
+
+<h3>O que vem dentro do ZIP:</h3>
+<table>
+  <tr><th>Arquivo/Pasta</th><th>O que é</th><th>Pode apagar?</th></tr>
+  <tr><td>SK-Editor-4.exe</td><td>O app — clique aqui para abrir</td><td class="tno">NÃO</td></tr>
+  <tr><td>resources/app.asar</td><td>Todo o código do editor empacotado</td><td class="tno">NÃO</td></tr>
+  <tr><td>*.dll (vários)</td><td>Bibliotecas do Chromium — motor do app</td><td class="tno">NÃO</td></tr>
+  <tr><td>locales/</td><td>Idiomas do navegador interno</td><td class="tno">NÃO</td></tr>
+  <tr><td>resources/v8_context_snapshot.bin</td><td>Otimização de inicialização</td><td class="tno">NÃO</td></tr>
+</table>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ INTERFACE -->
+<section id="interface">
+<h2><span class="icon">🖥</span> Interface — Mapa Completo</h2>
+
+<pre>
+┌──────────────────────────────────────────────────────────────────────┐
+│  SK Editor 4 — Sem Replit                         [_]  [□]  [X]      │
+├─────┬──────────────────────────────────┬───────────────────────────┤
+│     │                                  │                           │
+│  📁 │   EDITOR MONACO (Centro)         │   👁 PREVIEW (Direita)   │
+│  🔍 │                                  │                           │
+│  🤖 │   • Código colorido              │   • Mostra seu app        │
+│  ⚙️ │   • Abas de arquivos             │     rodando ao vivo       │
+│  🐙 │   • Autocomplete                 │   • Atualiza ao salvar    │
+│  🗄 │   • Multi-cursor                 │   • localhost:XXXX        │
+│     │                                  │                           │
+├─────┴──────────────────────────────────┴───────────────────────────┤
+│  💻 TERMINAL REAL (cmd.exe do Windows)                               │
+│                                                                      │
+│  C:\Users\você\SKEditor4\projetos\meu-app> npm install              │
+│  C:\Users\você\SKEditor4\projetos\meu-app> npm run dev              │
+│  C:\Users\você\SKEditor4\projetos\meu-app> git push                 │
+└──────────────────────────────────────────────────────────────────────┘</pre>
+
+<h3>Ícones da barra lateral (esquerda):</h3>
+<table>
+  <tr><th>Ícone</th><th>Nome</th><th>O que faz</th></tr>
+  <tr><td>📁</td><td>Arquivos</td><td>Navega e abre arquivos do projeto atual</td></tr>
+  <tr><td>🔍</td><td>Busca Global</td><td>Busca texto em todos os arquivos do projeto</td></tr>
+  <tr><td>🤖</td><td>Assistente IA</td><td>Chat com IA para ajudar no código</td></tr>
+  <tr><td>⚙️</td><td>Configurações</td><td>API keys, tema, preferências</td></tr>
+  <tr><td>🐙</td><td>GitHub</td><td>Clone, commit, push, pull</td></tr>
+  <tr><td>🗄</td><td>Banco de Dados</td><td>PostgreSQL, SQLite integrado</td></tr>
+  <tr><td>📦</td><td>Build & Deploy</td><td>Exportar e publicar o projeto</td></tr>
+</table>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ EDITOR -->
+<section id="editor">
+<h2><span class="icon">✏️</span> Editor de Código — Monaco</h2>
+
+<div class="info">
+  <strong>O mesmo motor do VS Code</strong>
+  O Monaco Editor é o mesmo que o Visual Studio Code usa. Tudo que funciona no VS Code funciona aqui.
+</div>
+
+<h3>Linguagens suportadas (com sintaxe colorida):</h3>
+<p>JavaScript, TypeScript, React (JSX/TSX), HTML, CSS, SCSS, Python, Java, C/C++, C#, PHP, Ruby, Go, Rust, SQL, JSON, YAML, Markdown, XML, Shell Script — e mais 50 linguagens.</p>
+
+<h3>Atalhos do teclado:</h3>
+<table>
+  <tr><th>Atalho</th><th>Ação</th></tr>
+  <tr><td><code>Ctrl + S</code></td><td>Salvar arquivo</td></tr>
+  <tr><td><code>Ctrl + F</code></td><td>Buscar no arquivo</td></tr>
+  <tr><td><code>Ctrl + H</code></td><td>Buscar e substituir</td></tr>
+  <tr><td><code>Ctrl + Z</code></td><td>Desfazer</td></tr>
+  <tr><td><code>Ctrl + Y</code></td><td>Refazer</td></tr>
+  <tr><td><code>Ctrl + /</code></td><td>Comentar/Descomentar linha</td></tr>
+  <tr><td><code>Alt + ↑/↓</code></td><td>Mover linha para cima/baixo</td></tr>
+  <tr><td><code>Ctrl + D</code></td><td>Selecionar próxima ocorrência igual</td></tr>
+  <tr><td><code>Ctrl + G</code></td><td>Ir para linha específica</td></tr>
+  <tr><td><code>Shift + Alt + F</code></td><td>Formatar código automaticamente</td></tr>
+  <tr><td><code>F12</code></td><td>Ir para definição da função</td></tr>
+  <tr><td><code>Ctrl + Space</code></td><td>Forçar autocomplete</td></tr>
+  <tr><td><code>Ctrl + \`</code></td><td>Abrir/fechar terminal</td></tr>
+</table>
+
+<h3>Recursos do editor:</h3>
+<div class="card blue">
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Abas múltiplas</strong><span>Abre vários arquivos ao mesmo tempo, alterna entre eles pela aba</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Autocomplete inteligente</strong><span>Sugestões automáticas de código, nomes de variáveis, funções e imports</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Erros sublinhados</strong><span>Erros de TypeScript e JavaScript aparecem sublinhados em vermelho em tempo real</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Multi-cursor</strong><span>Segure Alt e clique em vários lugares para editar todos ao mesmo tempo</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Recolher blocos</strong><span>Clique na seta ao lado do número de linha para recolher funções/objetos</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Tema escuro</strong><span>Interface escura por padrão, confortável para longas sessões de trabalho</span></div></div>
+</div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ TERMINAL -->
+<section id="terminal">
+<h2><span class="icon">💻</span> Terminal Real — Como Conectar e Usar</h2>
+
+<div class="ok">
+  <strong>✅ O terminal DO executável .exe é 100% real — é o cmd.exe do Windows</strong>
+  Não é simulado. Não é um terminal online. É o terminal real do seu PC. Tudo que você digitar aqui roda de verdade no seu computador.
+</div>
+
+<div class="warn">
+  <strong>⚠️ IMPORTANTE: O terminal aqui no site Replit é diferente</strong>
+  Quando você vê o preview no site do Replit, o terminal que aparece lá é um terminal LINUX nos servidores do Replit — não é o terminal do seu PC. No executável .exe, é o cmd.exe real do Windows.
+</div>
+
+<h3>Como abrir o terminal no executável:</h3>
+<div class="step">
+  <div class="step-num">1</div>
+  <div class="step-body">
+    <strong>O terminal fica na parte de baixo da janela</strong>
+    <span>Ao abrir o SK Editor 4, o terminal já aparece na parte inferior da tela automaticamente</span>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">2</div>
+  <div class="step-body">
+    <strong>Se não aparecer, use o atalho</strong>
+    <span>Pressione <code>Ctrl + `</code> (acento grave) ou clique no botão "Terminal" na barra inferior</span>
+  </div>
+</div>
+<div class="step">
+  <div class="step-num">3</div>
+  <div class="step-body">
+    <strong>Clique dentro do terminal e comece a digitar</strong>
+    <span>O cursor aparece — você está no cmd.exe do Windows, na pasta dos seus projetos</span>
+  </div>
+</div>
+
+<h3>Pasta inicial do terminal:</h3>
+<pre>C:\Users\[seu nome]\SKEditor4\projetos\</pre>
+
+<h3>Comandos mais usados:</h3>
+<table>
+  <tr><th>Comando</th><th>O que faz</th><th>Exemplo</th></tr>
+  <tr><td><code>cd nomePasta</code></td><td>Entra em uma pasta</td><td><code>cd meu-projeto</code></td></tr>
+  <tr><td><code>cd ..</code></td><td>Volta uma pasta</td><td>—</td></tr>
+  <tr><td><code>dir</code></td><td>Lista arquivos da pasta</td><td>—</td></tr>
+  <tr><td><code>npm install</code></td><td>Instala dependências do projeto</td><td>—</td></tr>
+  <tr><td><code>npm run dev</code></td><td>Inicia servidor de desenvolvimento</td><td>→ Preview abre</td></tr>
+  <tr><td><code>npm run build</code></td><td>Gera versão de produção</td><td>—</td></tr>
+  <tr><td><code>git clone URL</code></td><td>Clona repositório</td><td><code>git clone https://github.com/...</code></td></tr>
+  <tr><td><code>git status</code></td><td>Vê o que mudou</td><td>—</td></tr>
+  <tr><td><code>git add .</code></td><td>Marca tudo para commit</td><td>—</td></tr>
+  <tr><td><code>git commit -m "msg"</code></td><td>Salva alterações no Git</td><td>—</td></tr>
+  <tr><td><code>git push</code></td><td>Envia para o GitHub</td><td>—</td></tr>
+  <tr><td><code>python arquivo.py</code></td><td>Roda script Python</td><td>Precisa Python instalado</td></tr>
+  <tr><td><code>pip install pacote</code></td><td>Instala pacote Python</td><td>—</td></tr>
+  <tr><td><code>node arquivo.js</code></td><td>Roda script Node.js</td><td>—</td></tr>
+</table>
+
+<h3>Fluxo completo — criar e rodar um projeto React:</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>No terminal, crie o projeto</strong><code>npm create vite@latest meu-app -- --template react</code></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Entre na pasta</strong><code>cd meu-app</code></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-body"><strong>Instale as dependências</strong><code>npm install</code></div></div>
+<div class="step"><div class="step-num">4</div><div class="step-body"><strong>Inicie o servidor</strong><code>npm run dev</code></div></div>
+<div class="step"><div class="step-num">5</div><div class="step-body"><strong>O terminal mostrará algo como:</strong><code>Local: http://localhost:5173/</code></div></div>
+<div class="step"><div class="step-num">6</div><div class="step-body"><strong>O Preview abre automaticamente</strong><span>O painel de preview à direita já abre com seu app rodando</span></div></div>
+
+<h3>Precisa instalar programas antes?</h3>
+<table>
+  <tr><th>Programa</th><th>Para quê</th><th>Link</th><th>Obrigatório?</th></tr>
+  <tr><td>Node.js</td><td>npm, React, Vue, etc.</td><td>nodejs.org</td><td class="twa">Sim para web</td></tr>
+  <tr><td>Git</td><td>Controle de versão, GitHub</td><td>git-scm.com</td><td class="twa">Sim para Git</td></tr>
+  <tr><td>Python</td><td>Scripts Python, Django</td><td>python.org</td><td class="tok">Opcional</td></tr>
+  <tr><td>Android Studio</td><td>Gerar APK Android</td><td>developer.android.com</td><td class="tok">Só para APK</td></tr>
+</table>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ PREVIEW -->
+<section id="preview">
+<h2><span class="icon">👁</span> Preview — Como Usar Corretamente</h2>
+
+<div class="info">
+  <strong>Como o Preview funciona no executável .exe</strong>
+  O preview não é uma URL da internet. É um proxy local que redireciona para <strong>127.0.0.1:PORTA</strong> do seu próprio computador. Isso significa que seu app roda 100% no seu PC.
+</div>
+
+<h3>Como abrir o Preview:</h3>
+<div class="step"><div class="step-num blue">1</div><div class="step-body"><strong>Rode <code>npm run dev</code> no terminal</strong><span>O servidor de desenvolvimento inicia no seu PC</span></div></div>
+<div class="step"><div class="step-num blue">2</div><div class="step-body"><strong>O SK Editor detecta a porta automaticamente</strong><span>Quando aparecer "Local: http://localhost:5173" no terminal, o editor reconhece</span></div></div>
+<div class="step"><div class="step-num blue">3</div><div class="step-body"><strong>O painel de Preview já abre</strong><span>À direita do editor, o seu app aparece carregado</span></div></div>
+<div class="step"><div class="step-num blue">4</div><div class="step-body"><strong>Salve um arquivo → Preview atualiza sozinho</strong><span>Hot reload: edite o código, salve com Ctrl+S, veja a mudança em segundos</span></div></div>
+
+<h3>Preview não abriu automaticamente?</h3>
+<div class="step"><div class="step-num yellow">1</div><div class="step-body"><strong>Veja a porta no terminal</strong><span>Procure por "localhost:XXXX" ou "port XXXX" na saída do comando</span></div></div>
+<div class="step"><div class="step-num yellow">2</div><div class="step-body"><strong>Clique no botão de Preview manualmente</strong><span>Botão 👁 na barra superior do editor</span></div></div>
+<div class="step"><div class="step-num yellow">3</div><div class="step-body"><strong>Digite a porta manualmente</strong><span>Campo de URL no painel de preview — coloque <code>http://localhost:5173</code></span></div></div>
+
+<h3>Portas mais comuns por framework:</h3>
+<table>
+  <tr><th>Framework</th><th>Comando</th><th>Porta padrão</th></tr>
+  <tr><td>Vite (React/Vue)</td><td><code>npm run dev</code></td><td><code>5173</code></td></tr>
+  <tr><td>Create React App</td><td><code>npm start</code></td><td><code>3000</code></td></tr>
+  <tr><td>Next.js</td><td><code>npm run dev</code></td><td><code>3000</code></td></tr>
+  <tr><td>Vue CLI</td><td><code>npm run serve</code></td><td><code>8080</code></td></tr>
+  <tr><td>Angular</td><td><code>ng serve</code></td><td><code>4200</code></td></tr>
+  <tr><td>Express/Node</td><td><code>node index.js</code></td><td>Você define</td></tr>
+  <tr><td>Python Flask</td><td><code>python app.py</code></td><td><code>5000</code></td></tr>
+  <tr><td>Django</td><td><code>python manage.py runserver</code></td><td><code>8000</code></td></tr>
+</table>
+
+<h3>Preview em mobile (celular na mesma rede Wi-Fi):</h3>
+<div class="callout blue">
+  <p>No terminal, rode <code>npm run dev -- --host</code> → vai aparecer <code>Network: http://192.168.X.X:5173</code> → abra esse endereço no navegador do celular (mesmo Wi-Fi)</p>
+</div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ DEPLOY -->
+<section id="deploy">
+<h2><span class="icon">🚀</span> Deploy — Publicar o Projeto</h2>
+
+<p>O painel de Build & Deploy (ícone 📦 na barra lateral) tem várias opções de publicação. Veja cada uma:</p>
+
+<h3>1. Netlify (Gratuito — Recomendado para sites estáticos)</h3>
+<div class="card green">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><strong>No terminal, gere o build</strong><code>npm run build</code></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><strong>No SK Editor, clique em 📦 → Deploy → Netlify</strong><span>Gera um ZIP configurado para Netlify</span></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Acesse netlify.com → "Add new site" → "Deploy manually"</strong><span>Arraste o ZIP gerado para a área indicada</span></div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body"><strong>Pronto — URL pública em segundos</strong><span>Ex: meu-app.netlify.app — grátis, sem cartão</span></div></div>
+</div>
+
+<h3>2. Vercel (Gratuito — Melhor para Next.js e React)</h3>
+<div class="card green">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Envie o projeto para o GitHub primeiro</strong><span>Use o painel 🐙 GitHub para criar repo e fazer push</span></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Acesse vercel.com → "New Project"</strong><span>Conecte sua conta GitHub</span></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><strong>Selecione o repositório → clique "Deploy"</strong><span>Vercel detecta o framework e publica automaticamente</span></div></div>
+  <div class="step"><div class="step-num">4</div><div class="step-body"><strong>URL pública pronta</strong><span>Ex: meu-app.vercel.app — cada push no GitHub publica atualização</span></div></div>
+</div>
+
+<h3>3. GitHub Pages (Grátis — Para projetos no GitHub)</h3>
+<div class="card blue">
+  <div class="step"><div class="step-num">1</div><div class="step-body"><strong>No SK Editor → 📦 → GitHub Pages</strong><span>Gera ZIP com workflow do GitHub Actions configurado</span></div></div>
+  <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Envie para o GitHub</strong><span>O workflow publica automaticamente em cada push</span></div></div>
+  <div class="step"><div class="step-num">3</div><div class="step-body"><strong>URL: usuario.github.io/repositorio</strong><span>Grátis para projetos públicos</span></div></div>
+</div>
+
+<h3>4. Exportar ZIP Limpo (Para usar em outro editor)</h3>
+<div class="card">
+  <p>📦 → "Versão Limpa" → gera um ZIP com apenas o código-fonte, sem arquivos do editor. Pode ser aberto no VS Code, importado no Replit (irônico, né?), ou enviado para alguém.</p>
+</div>
+
+<h3>5. PWA — Instalar como app no celular (sem APK)</h3>
+<div class="card yellow">
+  <p>📦 → "PWA" → gera ZIP configurado como Progressive Web App. Depois de publicar no Netlify/Vercel, o usuário acessa pelo Chrome do Android e clica "Instalar" — vira um ícone na tela inicial sem precisar de loja.</p>
+</div>
+
+<h3>6. APK Android via Capacitor (ver seção abaixo)</h3>
+<div class="card">
+  <p>Transforma seu app web em APK instalável no Android. Veja a seção 📱 APK Android para instruções detalhadas.</p>
+</div>
+
+<h3>7. Executável Desktop Electron (gerar novo .exe)</h3>
+<div class="card">
+  <p>📦 → "Electron Desktop" → gera os arquivos de configuração para você criar seu próprio executável. Requer <code>electron-builder</code> instalado. Use o terminal: <code>npm run electron:build:win</code></p>
+</div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ PROJETOS -->
+<section id="projetos">
+<h2><span class="icon">💾</span> Projetos — Salvar, Abrir, Exportar</h2>
+
+<h3>Onde ficam seus projetos:</h3>
+<pre>C:\Users\[seu nome]\SKEditor4\projetos\</pre>
+<p>Cada projeto é salvo como um arquivo <code>.mjp.json</code> — contém todos os seus arquivos de código em um único arquivo JSON.</p>
+
+<h3>Salvar projeto:</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Menu → "Salvar Projeto" ou Ctrl+Shift+S</strong><span>Se for a primeira vez, ele pede um nome para o projeto</span></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>O arquivo é salvo automaticamente</strong><span>Em <code>C:\Users\[você]\SKEditor4\projetos\[nome-do-projeto].mjp.json</code></span></div></div>
+
+<h3>Carregar projeto salvo:</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Menu → "Abrir Projeto"</strong><span>Mostra lista de todos os projetos salvos</span></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Clique no projeto desejado</strong><span>Todos os arquivos carregam no editor</span></div></div>
+
+<h3>Importar projeto de fora (ZIP, código de outro lugar):</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Menu → "Importar ZIP"</strong><span>Selecione um arquivo .zip de qualquer projeto de código</span></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Os arquivos aparecem no editor</strong><span>Compatível com projetos do VS Code, Replit, GitHub, CodeSandbox</span></div></div>
+
+<h3>Exportar projeto:</h3>
+<table>
+  <tr><th>Opção</th><th>O que gera</th></tr>
+  <tr><td>Exportar ZIP</td><td>ZIP com todos os arquivos do projeto</td></tr>
+  <tr><td>Salvar em disco</td><td>Salva em pasta real do Windows (Explorer abre automaticamente)</td></tr>
+  <tr><td>Deploy ZIP</td><td>ZIP configurado para Netlify/Vercel/GitHub Pages</td></tr>
+</table>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ IA -->
+<section id="ia">
+<h2><span class="icon">🤖</span> Inteligência Artificial — Configurar e Usar</h2>
+
+<div class="ok">
+  <strong>Sua API key fica 100% no seu PC</strong>
+  A chave é salva em <code>C:\Users\[você]\SKEditor4\settings.json</code> — nunca é enviada para nenhum servidor externo, nem para o Replit.
+</div>
+
+<h3>Provedores disponíveis:</h3>
+<table>
+  <tr><th>Provedor</th><th>Modelos</th><th>Site para pegar key</th><th>Plano grátis?</th></tr>
+  <tr><td>OpenAI</td><td>GPT-4o, GPT-4, GPT-3.5</td><td>platform.openai.com</td><td class="twa">$5 crédito inicial</td></tr>
+  <tr><td>Anthropic</td><td>Claude 3.5 Sonnet, Claude 3</td><td>console.anthropic.com</td><td class="twa">$5 crédito inicial</td></tr>
+  <tr><td>Google</td><td>Gemini 1.5 Pro, Flash</td><td>aistudio.google.com</td><td class="tok">Sim — gratuito</td></tr>
+  <tr><td>DeepSeek</td><td>DeepSeek-V3, R1</td><td>platform.deepseek.com</td><td class="tok">Muito barato</td></tr>
+  <tr><td>Groq</td><td>Llama 3, Mixtral</td><td>console.groq.com</td><td class="tok">Sim — gratuito</td></tr>
+</table>
+
+<h3>Como configurar a IA (passo a passo):</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Clique no ícone ⚙️ na barra lateral</strong><span>Abre o painel de configurações</span></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Em "Provedor de IA", selecione o que você usa</strong><span>Ex: Google Gemini (gratuito para começar)</span></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-body"><strong>Cole sua API Key no campo indicado</strong><span>A key começa com <code>sk-</code> (OpenAI), <code>AIza</code> (Google), etc.</span></div></div>
+<div class="step"><div class="step-num">4</div><div class="step-body"><strong>Clique em "Salvar"</strong><span>A key fica salva — não precisa digitar de novo nunca mais</span></div></div>
+<div class="step"><div class="step-num">5</div><div class="step-body"><strong>Clique em 🤖 na barra lateral para abrir o chat</strong><span>Digite sua dúvida ou cole um código para a IA analisar</span></div></div>
+
+<h3>O que a IA pode fazer:</h3>
+<div class="card blue">
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Explicar código</strong><span>Cole um trecho e pergunte "o que isso faz?"</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Corrigir erros</strong><span>Cole a mensagem de erro e o código — ela corrije</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Gerar funções</strong><span>"Crie uma função que valida CPF em JavaScript"</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Converter código</strong><span>"Converta este código Python para JavaScript"</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Revisar e melhorar</strong><span>"Melhore a performance deste código"</span></div></div>
+  <div class="feat"><div class="dot db"></div><div class="feat-text"><strong>Criar projetos completos</strong><span>"Crie um CRUD de clientes em React com Tailwind"</span></div></div>
+</div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ GITHUB -->
+<section id="github">
+<h2><span class="icon">🐙</span> GitHub — Clonar, Commit, Push</h2>
+
+<h3>Configuração inicial (uma vez só):</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>No terminal, configure seu nome</strong><code>git config --global user.name "Seu Nome"</code></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Configure seu email</strong><code>git config --global user.email "seu@email.com"</code></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-body"><strong>Gere um token no GitHub</strong><span>github.com → Settings → Developer Settings → Personal Access Tokens → Generate new token</span></div></div>
+<div class="step"><div class="step-num">4</div><div class="step-body"><strong>Cole o token no painel 🐙 do SK Editor</strong><span>Campo "GitHub Token" nas configurações</span></div></div>
+
+<h3>Clonar um repositório:</h3>
+<pre>git clone https://github.com/usuario/repositorio.git</pre>
+<p>Ou use o painel 🐙 → "Clonar" → cole a URL</p>
+
+<h3>Enviar projeto para o GitHub:</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Crie um repositório no github.com</strong><span>Botão "New repository" — dê um nome e clique "Create"</span></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>No terminal do SK Editor, dentro da pasta do projeto:</strong><code>git init</code><code>git add .</code><code>git commit -m "primeiro commit"</code><code>git remote add origin https://github.com/usuario/repo.git</code><code>git push -u origin main</code></div></div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ APK -->
+<section id="apk">
+<h2><span class="icon">📱</span> APK Android via Capacitor</h2>
+
+<div class="info">
+  <strong>O que é Capacitor?</strong>
+  Capacitor é uma ferramenta que pega seu app web (React, Vue, HTML) e transforma em um APK real para Android. Você escreve uma vez em web e gera o APK.
+</div>
+
+<div class="warn">
+  <strong>⚠️ Precisa de Android Studio instalado no seu PC</strong>
+  O Android Studio é gratuito e necessário para gerar o APK. Baixe em: <strong>developer.android.com/studio</strong> (~1GB)
+</div>
+
+<h3>Passo a passo — Do projeto web ao APK:</h3>
+
+<h4>Etapa 1 — Instalar o que precisa (no terminal do SK Editor):</h4>
+<pre>npm install @capacitor/core @capacitor/cli @capacitor/android</pre>
+
+<h4>Etapa 2 — Inicializar o Capacitor:</h4>
+<pre>npx cap init "Nome do App" "com.seunome.seuapp" --web-dir dist</pre>
+<p>Substitua: <code>"Nome do App"</code> pelo nome real e <code>com.seunome.seuapp</code> pelo ID único do app (sem espaços).</p>
+
+<h4>Etapa 3 — Adicionar plataforma Android:</h4>
+<pre>npx cap add android</pre>
+
+<h4>Etapa 4 — Gerar build do seu app:</h4>
+<pre>npm run build</pre>
+
+<h4>Etapa 5 — Copiar para o Capacitor:</h4>
+<pre>npx cap copy android</pre>
+
+<h4>Etapa 6 — Abrir no Android Studio:</h4>
+<pre>npx cap open android</pre>
+<p>O Android Studio abre automaticamente com o projeto.</p>
+
+<h4>Etapa 7 — Gerar o APK no Android Studio:</h4>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Menu Build → "Build Bundle(s) / APK(s)" → "Build APK(s)"</strong></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Aguarde o build (2-5 min)</strong></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-body"><strong>Clique em "locate" no toast que aparece</strong><span>O APK fica em: <code>android/app/build/outputs/apk/debug/app-debug.apk</code></span></div></div>
+<div class="step"><div class="step-num">4</div><div class="step-body"><strong>Transfira o .apk para o celular e instale</strong><span>Via cabo, WhatsApp, Google Drive ou email</span></div></div>
+
+<h3>Arquivo capacitor.config.json (gerado automaticamente):</h3>
+<pre>{
+  "appId": "com.seunome.seuapp",
+  "appName": "Nome do App",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}</pre>
+
+<h3>Instalar APK no celular Android:</h3>
+<div class="step"><div class="step-num">1</div><div class="step-body"><strong>Ative "Instalar apps desconhecidos" no Android</strong><span>Configurações → Segurança → Fontes desconhecidas → Ativar</span></div></div>
+<div class="step"><div class="step-num">2</div><div class="step-body"><strong>Transfira o APK para o celular</strong><span>Via cabo USB, Drive ou WhatsApp para você mesmo</span></div></div>
+<div class="step"><div class="step-num">3</div><div class="step-body"><strong>Abra o arquivo no celular e clique "Instalar"</strong></div></div>
+
+<h3>ZIP com projeto pronto para Capacitor:</h3>
+<div class="ok">
+  <strong>✅ Baixe o ZIP Capacitor-ready</strong>
+  Um arquivo ZIP com tudo configurado para você só rodar o Android Studio e gerar o APK está disponível em: <a href="/downloads/SK-Editor-4-Capacitor-Android.zip" style="color:#58a6ff">SK-Editor-4-Capacitor-Android.zip</a>
+</div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════ PROBLEMAS -->
+<section id="problemas">
+<h2><span class="icon">🔧</span> Problemas Comuns e Soluções</h2>
+
+<h3>App não abre — Windows bloqueou:</h3>
+<div class="card">
+  <p><strong>Solução A:</strong> Clique com botão direito no <code>SK-Editor-4.exe</code> → Propriedades → marque a caixa "Desbloquear" → OK → abra</p>
+  <p style="margin-top:8px"><strong>Solução B:</strong> Na tela do SmartScreen → clique "Mais informações" → "Executar assim mesmo"</p>
+</div>
+
+<h3>Terminal não encontra npm / node:</h3>
+<div class="card">
+  <p>Instale o Node.js em <strong>nodejs.org</strong> → após instalar, <strong>feche e abra o SK Editor de novo</strong>. O terminal precisa ser reiniciado para reconhecer os novos programas.</p>
+</div>
+
+<h3>Preview não abre automaticamente:</h3>
+<div class="card">
+  <p>1. Rode <code>npm run dev</code> no terminal primeiro</p>
+  <p>2. Olhe a porta que aparece (ex: "localhost:5173")</p>
+  <p>3. No painel de preview, clique no botão 👁 e coloque a URL manualmente: <code>http://localhost:5173</code></p>
+</div>
+
+<h3>Preview mostra tela em branco:</h3>
+<div class="card">
+  <p>O servidor ainda não iniciou. Aguarde o terminal mostrar "ready" ou "Local: http://localhost:XXXX" e então atualize o preview (F5 no painel de preview).</p>
+</div>
+
+<h3>

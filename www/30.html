@@ -1,0 +1,288 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MANUAL (2)</title><style>body{font:16px/1.6 system-ui,sans-serif;max-width:860px;margin:0 auto;padding:12px 16px 40px;color:#1f2230;background:#fffdf8}h1,h2,h3{line-height:1.25}h2{border-bottom:1px solid #e3ddc8;padding-bottom:4px}code{background:#f1ede0;padding:1px 5px;border-radius:4px;font:14px ui-monospace,Consolas,monospace}.bloco{border:1px solid #d9d2bb;border-radius:8px;margin:10px 0;overflow:hidden}.bloco-bar{display:flex;gap:6px;align-items:center;background:#efe9d6;padding:5px 8px;font:600 12px ui-monospace,monospace;color:#6b6450}.bloco-bar span{flex:1}.bloco-bar button,.topo button{font:600 13px system-ui,sans-serif;border:1px solid #8a7b45;background:#fff;color:#4a4020;border-radius:6px;padding:5px 9px;cursor:pointer}.bloco pre{margin:0;padding:10px;overflow-x:auto;background:#fbf9f2}.bloco pre code{background:none;padding:0;white-space:pre}.tab{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0}th,td{border-bottom:1px solid #e3ddc8;padding:6px 8px;text-align:left;vertical-align:top}th{background:#f6f2e4}blockquote{margin:8px 0;padding:6px 12px;border-left:4px solid #c9b77a;background:#faf6e8}.topo{position:sticky;top:0;background:#fffdf8;padding:8px 0;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #eee;margin-bottom:8px;z-index:2}a{color:#7a6526}</style></head><body><div class="topo"><button id="md-todos">📋 Copiar todos os blocos (10)</button></div><h1>Assistente Jurídico IA — Manual Completo</h1>
+<p><b>Versão:</b> 1.1.0 · <b>Data:</b> Maio 2026 · <b>Público:</b> Advogados e operadores do sistema</p>
+<hr>
+<h2>1. Visão Geral</h2>
+<p>O <b>SK Jurídico</b> é um assistente jurídico com IA voltado para advogados brasileiros. Ele gera petições, minutas, pareceres e outros documentos jurídicos com formatação ABNT automática, usando modelos de linguagem como Gemini, OpenAI, Groq, Perplexity e qualquer provedor compatível com OpenAI.</p>
+<p><b>Funcionalidades principais:</b></p>
+<ul><li>Geração de documentos jurídicos com IA (streaming em tempo real)</li><li>Editor TipTap v3 com formatação ABNT</li><li>Importação de PDF, DOCX, HTML, XML, TXT (até 150 MB)</li><li>Exportação para DOCX</li><li>Busca de jurisprudência no DataJud CNJ</li><li>Biblioteca de ementas e modelos de prompt</li><li>Histórico de gerações</li><li>Assistente de código web (HTML/CSS/JS com preview)</li><li>Auditoria financeira, comunicações CNJ, tramitação processual</li><li>Proteção por senha</li><li>PWA instalável no celular e desktop</li></ul>
+<hr>
+<h2>2. Estrutura de Pastas</h2>
+<div class="bloco"><div class="bloco-bar"><span>código</span><button data-copiar="0">📋 Copiar</button></div><pre><code>sk-juridico/
+├── artifacts/
+│   ├── api-server/          # Backend Express 5 (porta 8080)
+│   │   ├── src/
+│   │   │   ├── app.ts       # Entry point, middlewares, sessão
+│   │   │   ├── storage.ts   # Camada de dados (PostgreSQL + fallback memória)
+│   │   │   ├── local-config.ts  # Config local em arquivo JSON
+│   │   │   └── routes/
+│   │   │       ├── ai.ts          # Streaming SSE de IA
+│   │   │       ├── upload.ts      # Upload PDF/DOCX/HTML/TXT (150 MB)
+│   │   │       ├── crud.ts        # CRUD genérico
+│   │   │       ├── settings.ts    # Configurações, auth, DB, TTS, DOCX
+│   │   │       ├── jurisprudencia.ts  # DataJud CNJ
+│   │   │       └── extra.ts       # JWT, exportação, pesquisa web
+│   │   ├── build.mjs        # Build esbuild (bundle CJS)
+│   │   └── package.json
+│   │
+│   └── assistente-juridico/ # Frontend React + Vite (porta dinâmica)
+│       ├── public/
+│       │   ├── manifest.json    # PWA manifest
+│       │   ├── sw.js            # Service Worker (cache offline)
+│       │   ├── favicon.svg
+│       │   └── robots.txt
+│       ├── src/
+│       │   ├── pages/           # Todas as páginas da aplicação
+│       │   ├── components/      # Componentes reutilizáveis
+│       │   │   └── tiptap-editor.tsx  # Editor principal
+│       │   └── lib/
+│       │       └── legal-formatter.ts # Conversor texto → HTML ABNT
+│       ├── index.html           # HTML com PWA meta tags
+│       └── vite.config.ts
+│
+├── lib/
+│   └── db/
+│       └── src/schema/index.ts  # Schema Drizzle (fonte da verdade)
+│
+├── scripts/
+│   └── export-zip.sh            # Gera ZIP do projeto
+│
+├── .env.example                 # Template de variáveis de ambiente
+├── MANUAL.md                    # Este arquivo
+└── pnpm-workspace.yaml</code></pre></div>
+<hr>
+<h2>3. Tecnologias Utilizadas</h2>
+<div class="tab"><table><thead><tr><th>Camada</th><th>Tecnologia</th></tr></thead><tbody><tr><td>Runtime</td><td>Node.js 24</td></tr><tr><td>Gerenciador</td><td>pnpm workspaces</td></tr><tr><td>Linguagem</td><td>TypeScript 5.9</td></tr><tr><td>Frontend</td><td>React 18 + Vite</td></tr><tr><td>Roteamento</td><td>Wouter</td></tr><tr><td>Estado/fetch</td><td>TanStack Query</td></tr><tr><td>UI</td><td>Tailwind CSS + shadcn/ui</td></tr><tr><td>Editor</td><td>TipTap v3</td></tr><tr><td>Backend</td><td>Express 5</td></tr><tr><td>ORM</td><td>Drizzle ORM</td></tr><tr><td>Banco</td><td>PostgreSQL (Neon / Supabase / Railway / local)</td></tr><tr><td>Validação</td><td>Zod v4 + drizzle-zod</td></tr><tr><td>IA</td><td>@google/genai (Gemini), openai (OpenAI/Groq/OpenRouter/etc)</td></tr><tr><td>PDF</td><td>pdfjs-dist (extração de texto)</td></tr><tr><td>Word</td><td>mammoth (extração) + docx (exportação)</td></tr><tr><td>Build</td><td>esbuild (CJS bundle)</td></tr><tr><td>PWA</td><td>Service Worker + Web App Manifest</td></tr></tbody></table></div>
+<hr>
+<h2>4. Variáveis de Ambiente</h2>
+<p>Copie <code>.env.example</code> para <code>.env</code> e preencha:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="1">📋 Copiar</button><button data-rodar="1" class="so-app">▶ Terminal</button></div><pre><code>cp .env.example .env</code></pre></div>
+<h3>Obrigatórias para produção</h3>
+<div class="tab"><table><thead><tr><th>Variável</th><th>Descrição</th></tr></thead><tbody><tr><td><code>DATABASE_URL</code></td><td>String de conexão PostgreSQL</td></tr><tr><td><code>SESSION_SECRET</code></td><td>String aleatória longa (≥32 chars) para sessões</td></tr></tbody></table></div>
+<h3>Opcionais (também configuráveis pelo painel)</h3>
+<div class="tab"><table><thead><tr><th>Variável</th><th>Descrição</th></tr></thead><tbody><tr><td><code>APP_PASSWORD</code></td><td>Senha para proteger o acesso</td></tr><tr><td><code>GEMINI_API_KEY</code></td><td>Chave Google Gemini</td></tr><tr><td><code>OPENAI_API_KEY</code></td><td>Chave OpenAI</td></tr><tr><td><code>GROQ_API_KEY</code></td><td>Chave Groq</td></tr><tr><td><code>OPENROUTER_API_KEY</code></td><td>Chave OpenRouter</td></tr><tr><td><code>PERPLEXITY_API_KEY</code></td><td>Chave Perplexity</td></tr><tr><td><code>DATAJUD_API_KEY</code></td><td>Chave DataJud CNJ</td></tr><tr><td><code>CUSTOM_API_KEY</code></td><td>Chave provider custom</td></tr><tr><td><code>CUSTOM_API_URL</code></td><td>URL base do provider custom</td></tr><tr><td><code>CUSTOM_API_MODEL</code></td><td>Modelo do provider custom</td></tr><tr><td><code>UPLOAD_MAX_MB</code></td><td>Tamanho máximo de upload (padrão: 150)</td></tr></tbody></table></div>
+<hr>
+<h2>5. Configuração do Banco Neon (Gratuito)</h2>
+<ol><li>Acesse <b><a href="https://neon.tech" target="_blank" rel="noopener">neon.tech</a></b> e crie uma conta gratuita</li><li>Crie um novo projeto → escolha a região mais próxima (ex: South America)</li><li>No painel do projeto, clique em <b>&quot;Connect&quot;</b> → copie a <b>Connection String</b></li><li>Formato: <code>postgresql://user:senha@host.neon.tech/dbname?sslmode=require</code></li><li>Defina a variável de ambiente:</li><li><b>No Replit:</b> Secrets → adicione <code>DATABASE_URL</code> com o valor copiado</li><li><b>Local:</b> adicione ao seu <code>.env</code></li><li>Crie as tabelas:</li></ol>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="2">📋 Copiar</button><button data-rodar="2" class="so-app">▶ Terminal</button></div><pre><code>   pnpm --filter @workspace/db run push</code></pre></div>
+<ol><li>Verifique em <b>Configurações → Banco de Dados</b> → botão &quot;Listar&quot;</li></ol>
+<h3>Outras opções de banco</h3>
+<div class="tab"><table><thead><tr><th>Provedor</th><th>URL de conexão</th></tr></thead><tbody><tr><td>Supabase</td><td><code>postgresql://postgres:senha@db.xxx.supabase.co:5432/postgres</code></td></tr><tr><td>Railway</td><td><code>postgresql://postgres:senha@xxx.railway.app:5432/railway</code></td></tr><tr><td>Local</td><td><code>postgresql://postgres:senha@localhost:5432/sk_juridico</code></td></tr><tr><td>Neon</td><td><code>postgresql://user:senha@host.neon.tech/dbname?sslmode=require</code></td></tr></tbody></table></div>
+<hr>
+<h2>6. Como Rodar Localmente (fora do Replit)</h2>
+<h3>Pré-requisitos</h3>
+<ul><li>Node.js 20+ (recomendado: 22 ou 24)</li><li>pnpm 9+</li><li>PostgreSQL ou conta Neon</li></ul>
+<h3>Passos</h3>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="3">📋 Copiar</button><button data-rodar="3" class="so-app">▶ Terminal</button></div><pre><code># 1. Instalar dependências
+pnpm install
+
+# 2. Configurar variáveis
+cp .env.example .env
+# Edite .env com suas credenciais
+
+# 3. Criar tabelas no banco
+pnpm --filter @workspace/db run push
+
+# 4. Rodar em desenvolvimento (em 2 terminais)
+pnpm --filter @workspace/api-server run dev   # terminal 1
+pnpm --filter @workspace/assistente-juridico run dev  # terminal 2
+
+# Ou usar concurrently:
+pnpm run dev  # se houver script raiz configurado</code></pre></div>
+<p>Acesse: <code>http://localhost:PORT</code> (PORT definido para o frontend)</p>
+<hr>
+<h2>7. Como Buildar para Produção</h2>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="4">📋 Copiar</button><button data-rodar="4" class="so-app">▶ Terminal</button></div><pre><code># Build do backend (gera bundle CJS em api-server/dist/)
+pnpm --filter @workspace/api-server run build
+
+# Build do frontend (gera estáticos em assistente-juridico/dist/public/)
+pnpm --filter @workspace/assistente-juridico run build
+
+# Rodar o backend compilado
+node artifacts/api-server/dist/index.cjs</code></pre></div>
+<p><b>Variáveis necessárias em produção:</b></p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="5">📋 Copiar</button><button data-rodar="5" class="so-app">▶ Terminal</button></div><pre><code>DATABASE_URL=postgresql://...
+SESSION_SECRET=string-aleatoria-longa
+PORT=8080
+NODE_ENV=production</code></pre></div>
+<hr>
+<h2>8. Como Testar</h2>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="6">📋 Copiar</button><button data-rodar="6" class="so-app">▶ Terminal</button></div><pre><code># Verificar tipos TypeScript
+pnpm run typecheck
+
+# Testar endpoints da API
+curl http://localhost:8080/api/health
+curl http://localhost:8080/api/settings/db-status
+
+# Testar upload de arquivo
+curl -X POST http://localhost:8080/api/upload/extract-text \
+  -F &quot;files=@/caminho/para/arquivo.pdf&quot;</code></pre></div>
+<hr>
+<h2>9. Como Salvar e Testar Configurações</h2>
+<ol><li>Acesse a página <b>Configurações</b> (ícone ou menu)</li><li><b>Banco de Dados:</b> veja o status de conexão atual; cole uma URL de teste e clique no ícone de teste; clique em &quot;Listar&quot; para ver as tabelas</li><li><b>Chaves de IA:</b> cole a chave no campo correspondente, clique no ícone de teste (tubo de ensaio) para validar antes de salvar</li><li>Clique em <b>&quot;Salvar Configurações&quot;</b> para persistir no banco</li><li>As chaves ficam mascaradas após salvar (mostram apenas os primeiros 8 caracteres)</li></ol>
+<hr>
+<h2>10. Voz e TTS</h2>
+<p>O sistema usa <b>edge-tts</b> (Python) no servidor para gerar áudio em português:</p>
+<ul><li>Voz: <code>pt-BR-FranciscaNeural</code> (Microsoft Edge TTS, gratuito)</li><li>Velocidade: +18% (configurável em <code>routes/settings.ts</code>)</li><li>Formato de saída: MP3</li></ul>
+<p><b>Requisito:</b> Python 3 com <code>edge-tts</code> instalado:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="7">📋 Copiar</button><button data-rodar="7" class="so-app">▶ Terminal</button></div><pre><code>pip install edge-tts</code></pre></div>
+<p><b>No frontend:</b></p>
+<ul><li>Botão &quot;Voz OFF/ON&quot; no painel de resultado</li><li>O texto do editor é enviado ao <code>/api/tts</code> e reproduzido no browser</li><li>Compatível com mobile (iOS Safari requer interação do usuário antes de reproduzir)</li></ul>
+<hr>
+<h2>11. Importação de Arquivos</h2>
+<div class="tab"><table><thead><tr><th>Formato</th><th>Limite</th><th>Método</th></tr></thead><tbody><tr><td>PDF</td><td>150 MB</td><td>pdfjs-dist (extração de texto com posicionamento Y)</td></tr><tr><td>DOCX</td><td>150 MB</td><td>mammoth</td></tr><tr><td>HTML / XML</td><td>150 MB</td><td>parse de tags com preservação de parágrafos</td></tr><tr><td>TXT</td><td>150 MB</td><td>leitura direta</td></tr></tbody></table></div>
+<p>Upload via <code>POST /api/upload/extract-text</code> com <code>multipart/form-data</code>.  <br>Campo: <code>files</code> (múltiplos arquivos suportados).</p>
+<hr>
+<h2>12. Preparação para Versão Mobile / PWA</h2>
+<h3>PWA (recomendado — sem loja de apps)</h3>
+<p>O projeto já está configurado como PWA:</p>
+<ul><li><code>manifest.json</code> com nome, ícones, cores e shortcuts</li><li><code>sw.js</code> (Service Worker) com cache offline do shell</li><li>Meta tags Apple e Android no <code>index.html</code></li></ul>
+<p><b>Como instalar no celular:</b></p>
+<ul><li><b>Android (Chrome):</b> Menu → &quot;Adicionar à tela inicial&quot;</li><li><b>iPhone (Safari):</b> Compartilhar → &quot;Adicionar à Tela de Início&quot;</li><li><b>Desktop:</b> ícone de instalação na barra de endereço</li></ul>
+<h3>Capacitor (APK nativo)</h3>
+<p>Para gerar um APK Android real:</p>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="8">📋 Copiar</button><button data-rodar="8" class="so-app">▶ Terminal</button></div><pre><code># 1. Instalar Capacitor
+pnpm add -D @capacitor/core @capacitor/cli @capacitor/android
+
+# 2. Build do frontend
+pnpm --filter @workspace/assistente-juridico run build
+
+# 3. Inicializar Capacitor
+npx cap init &quot;SK Juridico&quot; &quot;br.com.skjuridico&quot;
+
+# 4. Adicionar Android
+npx cap add android
+
+# 5. Copiar build para Capacitor
+npx cap copy
+
+# 6. Abrir no Android Studio
+npx cap open android</code></pre></div>
+<p><b>Atenção:</b> O backend precisa estar hospedado em um servidor externo (não no celular). Configure a URL do backend no frontend antes do build.</p>
+<hr>
+<h2>13. Independência do Replit (Produção sem Replit)</h2>
+<p>O projeto foi projetado para rodar em qualquer ambiente:</p>
+<div class="tab"><table><thead><tr><th>Componente Replit</th><th>Substituição</th></tr></thead><tbody><tr><td>Secrets (env vars)</td><td><code>.env</code> ou variáveis do sistema operacional</td></tr><tr><td>Database (PostgreSQL)</td><td>Neon, Supabase, Railway, ou PostgreSQL local</td></tr><tr><td>Hosting</td><td>VPS, Railway, Render, Fly.io, DigitalOcean</td></tr><tr><td>Vite plugins Replit</td><td>São ignorados em <code>NODE_ENV=production</code></td></tr></tbody></table></div>
+<p><b>Dependências Replit no código:</b></p>
+<ul><li><code>@replit/vite-plugin-runtime-error-modal</code> — só em dev</li><li><code>@replit/vite-plugin-cartographer</code> — só se <code>REPL_ID</code> estiver definido</li><li><code>@replit/vite-plugin-dev-banner</code> — só se <code>REPL_ID</code> estiver definido</li></ul>
+<p>Em produção (<code>NODE_ENV=production</code>), nenhum plugin Replit é carregado.</p>
+<hr>
+<h2>14. Gerar ZIP do Projeto</h2>
+<div class="bloco"><div class="bloco-bar"><span>bash</span><button data-copiar="9">📋 Copiar</button><button data-rodar="9" class="so-app">▶ Terminal</button></div><pre><code>bash scripts/export-zip.sh</code></pre></div>
+<p>O arquivo <code>sk-juridico-YYYYMMDD-HHMMSS.zip</code> é gerado na raiz do projeto.  <br><b>Exclusões automáticas:</b> <code>node_modules</code>, <code>dist</code>, <code>.git</code>, <code>.cache</code>, skills internas.</p>
+<p>No Replit: painel de arquivos (Files) → clique direito no ZIP → Download.</p>
+<hr>
+<h2>15. O que Foi Mantido da Estrutura Original</h2>
+<ul><li>Todas as páginas e rotas do projeto ZIP2 original</li><li>Editor TipTap v3 com extensões Table e FontSize</li><li>Formatação ABNT automática (<code>legal-formatter.ts</code>)</li><li>Sistema de autenticação por senha + sessão</li><li>Storage com fallback em memória se banco indisponível</li><li>Todas as rotas de IA com streaming SSE</li><li>Upload multer com limites de 150 MB</li><li>Extração de PDF via pdfjs-dist</li><li>Exportação DOCX via docx</li><li>Integração DataJud CNJ</li></ul>
+<h2>16. O que Foi Adicionado / Melhorado</h2>
+<ul><li><code>.env.example</code> completo com documentação</li><li><code>manifest.json</code> PWA com shortcuts</li><li><code>sw.js</code> Service Worker para cache offline</li><li><code>index.html</code> com meta tags PWA, Apple, tema, lang=pt-BR</li><li>Tela de configurações com status real do banco de dados</li><li>Endpoint <code>GET /api/settings/db-status</code> — testa conexão atual</li><li>Endpoint <code>POST /api/settings/db-test</code> — testa URL de banco customizada</li><li>Endpoint <code>POST /api/settings/db-init</code> — lista tabelas existentes</li><li>Endpoint <code>GET /api/settings/app-info</code> — versão, uptime, memória</li><li>Botão &quot;Listar tabelas&quot; na tela de configurações</li><li>Instruções de configuração Neon diretamente na tela</li><li>Script <code>scripts/export-zip.sh</code> para exportação</li><li><code>MANUAL.md</code> completo</li></ul>
+<h2>17. Novidades da Versão 1.1.0 (Maio 2026)</h2>
+<h3>Correções Críticas</h3>
+<ul><li><b>Editor TipTap v3 — preservação de formatação ABNT</b>: extensões <code>StyledParagraph</code> e <code>StyledHeading</code> customizadas que preservam atributos <code>style</code> e <code>class</code> ao definir conteúdo. A formatação ABNT (recuo 4 cm, justificado, títulos em caixa alta) não é mais perdida ao gerar/refinar documentos.</li></ul>
+<h3>Novas Funcionalidades</h3>
+<ul><li><b>Botão &quot;Drive&quot;</b> no cabeçalho: envia o documento atual diretamente para o Google Drive (substitui o botão GitHub). Configure o Access Token e Folder ID em Configurações → Google Drive.</li><li><b>Painel Administrativo</b> (<code>/admin</code>): visualize variáveis de ambiente (mascaradas), defina novas variáveis no arquivo de configuração local, execute queries SQL no banco de dados, veja todas as rotas da API documentadas, monitore RAM, uptime e versão do Node.js.</li><li><b>Link para Admin</b> adicionado em Configurações e na tela de login.</li><li><b>Campos Google Drive</b> em Configurações: Google Drive Access Token e Google Drive Folder ID.</li><li><b>Ícones PWA reais</b> (192 × 192 px e 512 × 512 px) gerados para instalação correta como PWA em Android, iOS e desktop.</li></ul>
+<h3>Melhorias de Backend</h3>
+<ul><li><b>Rate Limiting</b>: 300 requisições/min por IP para rotas gerais; 30 requisições/min por IP para rotas de IA (<code>/api/ai/*</code>). Protege contra uso abusivo.</li><li><b>Compressão Gzip</b>: respostas JSON comprimidas automaticamente quando <code>Content-Encoding: gzip</code> é aceito pelo cliente.</li><li><b>Novos endpoints em <code>/api/settings</code></b>:</li><li><code>GET /api/settings/env-list</code> — lista variáveis de ambiente e config local (valores mascarados)</li><li><code>POST /api/settings/env-set</code> — define variável na config local sem reiniciar o servidor</li><li><code>POST /api/settings/db-query</code> — executa query SQL (SELECT apenas) no banco de dados</li><li><code>POST /api/settings/drive-upload</code> — faz upload de arquivo para o Google Drive</li></ul>
+<h3>Config Local Estendida</h3>
+<p>Os campos abaixo foram adicionados ao arquivo de configuração local (<code>local-config.ts</code>):</p>
+<ul><li><code>google_drive_folder_id</code> — ID da pasta no Google Drive</li><li><code>google_drive_access_token</code> — Token OAuth2 para acesso ao Drive</li><li><code>groq_api_key</code> — Chave Groq separada da custom key</li><li><code>custom_api_key</code>, <code>custom_model</code>, <code>custom_base_url</code> — Provedor customizado</li></ul>
+<hr>
+<h2>18. O que Pode Ser Melhorado Futuramente</h2>
+<ul><li>OCR de imagens (Tesseract.js ou API Vision)</li><li>Push notifications para prazos processuais</li><li>Sincronização offline com IndexedDB</li><li>Build Capacitor automatizado (CI/CD)</li><li>Modo multi-usuário com autenticação JWT completa</li><li>Monitoramento de saúde com health checks externos</li></ul>
+<p>Agent<br>Pronto! Aqui está o resumo do que foi corrigido e melhorado:</p>
+<p>Importação de arquivos (upload):</p>
+<p>Bug CR/LF corrigido: a função cleanHtml antes destruía todas as quebras de linha com \s+ → agora converte tags de bloco (&lt;p&gt;, &lt;div&gt;, &lt;h1&gt;, &lt;br&gt;, &lt;tr&gt; etc.) em \n antes de remover as tags, preservando toda a estrutura do processo<br>HTML: estrutura de parágrafo totalmente preservada<br>XML: tags extraídas com estrutura preservada — cada elemento numa linha separada<br>PDF: corrigido o worker do pdfjs-dist para rodar em Node.js, com reconstrução de quebras de linha por posição Y (texto não fica tudo numa linha)<br>DOCX/TXT: preservados exatamente como antes<br>Limite: mantido em 150MB por arquivo, até 20 arquivos por envio<br>Editor TipTap (lado direito do resultado):</p>
+<p>Tabelas: novo menu &quot;Tabela&quot; na toolbar — insere tabela 3×3, adiciona/remove linhas e colunas, remove tabela inteira<br>Tamanho de fonte: seletor com tamanhos de 10px a 48px<br>Títulos H1/H2/H3 (antes só tinha H1 e H2)<br>Tudo sem conflito com os recursos existentes (negrito, itálico, alinhamento, link, realce)<br>Sobre os processos de 150MB: o limite está configurado corretamente no servidor (150MB por arquivo, 200MB no body do Express). Se ainda não importar, pode ser uma limitação do proxy da Replit no plano atual — nesse caso posso configurar o upload por partes (chunked) para contornar. Me avise se acontecer.</p>
+<p>MarkdownPROMPT_MESTRE_MESMO_PROJETO_MOBILE.md</p>
+<p>Prompt mestre — manter o mesmo projeto e apenas incluir/corrigir o necessário<br>Use este texto em outro agente de programação.</p>
+<p>``text<br>Quero que você atue como uma desenvolvedora senior full-stack extremamente competente, autônoma, prática e cuidadosa com refatoração de projeto grande.</p>
+<p>ATENÇÃO MÁXIMA:<br>Você NÃO deve inventar outro projeto.<br>Você NÃO deve reinventar a estrutura principal.<br>Você NÃO deve criar uma solução paralela desconectada.<br>Você deve pegar o MESMO PROJETO ATUAL como base e trabalhar em cima dele.</p>
+<p>REGRA CENTRAL:<br>MANTER A ESTRUTURA ORIGINAL DO PROJETO O MÁXIMO POSSÍVEL.<br>Só corrigir, reorganizar, complementar, limpar, integrar e preparar o que for necessário.<br>Ou seja:</p>
+<p>aproveitar o que já existe;<br>manter nomes, módulos e organização quando fizer sentido;<br>evitar trocar tecnologia sem necessidade;<br>evitar apagar o que pode ser reaproveitado;<br>não “começar do zero disfarçado”.<br>OBJETIVO:Transformar o mesmo projeto atual em uma versão:</p>
+<p>limpa;<br>funcional;<br>bem organizada;<br>sem dependência final do Replit no uso em produção;<br>preparada para celular;<br>preparada para empacotamento mobile;<br>com banco de dados funcionando de verdade;<br>com variáveis e credenciais centralizadas;<br>com suporte a voz, links, pesquisa e configurações reais;<br>com manual completo;<br>e com entrega final em ZIP pronto para envio/teste.<br>RESULTADO FINAL ESPERADO:Ao final, quero o MESMO PROJETO melhorado, e não um projeto novo inventado.</p>
+<p>Você deve:</p>
+<p>analisar o projeto inteiro;<br>mapear o que já funciona;<br>mapear o que é só visual;<br>corrigir e complementar sem descaracterizar o projeto;<br>manter a base original sempre que possível;<br>preparar tudo para rodar fora do Replit;<br>deixar pronto para empacotar versão mobile/nativa;<br>gerar documentação completa;<br>gerar um ZIP final organizado para envio.<br>REGRAS DE EXECUÇÃO:</p>
+<p>fazer plano curto antes de alterar;<br>executar em blocos pequenos e testados;<br>se faltar pacote, instalar;<br>se faltar arquivo de configuração, criar;<br>se faltar variável, organizar;<br>se faltar integração, implementar;<br>se faltar dependência no package.json, incluir;<br>se faltar script, adicionar;<br>se faltar arquivo de conexão, criar;<br>se faltar documentação, escrever;<br>se faltar estrutura de build, preparar;<br>se faltar suporte a mobile, adaptar;<br>se faltar suporte a banco, implementar;<br>se faltar suporte a voz, melhorar;<br>se faltar importação de arquivos, estruturar.<br>NÃO PARE NA PRIMEIRA DIFICULDADE.Se der erro, corrija e continue.Se o terminal falhar, gere os arquivos e explique o fluxo alternativo.</p>
+<p>PRIORIDADE 1 — NÃO REINVENTAR O PROJETORepito:não criar outro sistema do zero.não trocar tudo sem necessidade.não mexer na estrutura só por gosto pessoal.não mudar o projeto para outro formato sem necessidade real.manter a identidade do projeto atual.</p>
+<p>PRIORIDADE 2 — REMOVER DEPENDÊNCIA FINAL DO REPLITSe houver partes que só funcionam no Replit:</p>
+<p>identificar;<br>isolar;<br>substituir quando necessário;<br>preparar funcionamento fora dele.<br>O objetivo é:usar o Replit apenas como ambiente de desenvolvimento, se necessário,mas deixar o projeto final pronto para funcionar sem precisar do Replit no uso final.</p>
+<p>PRIORIDADE 3 — CAMADA DE VARIÁVEIS E CREDENCIAISCriar uma estrutura centralizada e profissional para:</p>
+<p>variáveis de ambiente;<br>chaves de API;<br>tokens;<br>URLs;<br>base URLs;<br>segredos;<br>senha do app;<br>segredo de sessão;<br>credenciais do banco;<br>parâmetros de voz;<br>parâmetros do assistente;<br>outras integrações necessárias.<br>Quero:</p>
+<p>.env.example completo;<br>leitura centralizada de variáveis;<br>validação básica;<br>uso real dessas variáveis nos pontos corretos;<br>tela/configuração real para salvar/carregar/testar quando isso fizer sentido.<br>Nada de campo fake.Cada campo deve ter ligação real com a função correspondente.</p>
+<p>PRIORIDADE 4 — BANCO DE DADOS NEONImplementar banco de dados com Neon PostgreSQL como prioridade principal.</p>
+<p>Quero que seja criado ou ajustado:</p>
+<p>conexão central com Neon;<br>arquivos de configuração necessários;<br>teste de conexão;<br>status da conexão;<br>criação de tabelas;<br>verificação das tabelas;<br>visualização da estrutura do banco;<br>comandos administrativos mínimos;<br>tratamento de erro claro;<br>rotas ou serviços para testar o banco;<br>documentação explicando como configurar.<br>Quero também que o projeto fique preparado para outros bancos, se necessário, como:</p>
+<p>PostgreSQL genérico;<br>SQLite;<br>Supabase/Postgres;<br>outro banco compatível.<br>Mas Neon é a prioridade.</p>
+<p>IMPORTANTE SOBRE AS CREDENCIAIS:Quero que o sistema:</p>
+<p>reconheça os campos de banco;<br>salve corretamente;<br>use automaticamente na conexão;<br>permita testar;<br>permita saber se conectou;<br>permita inicializar estrutura;<br>permita visualizar se existem tabelas;<br>permita reparar a estrutura básica se necessário.<br>PRIORIDADE 5 — TELA DE CONFIGURAÇÕES DE VERDADECriar ou corrigir uma tela/configuração administrativa real.Essa tela deve permitir:</p>
+<p>salvar;<br>carregar;<br>testar;<br>limpar;<br>mostrar status;<br>esconder segredos quando necessário;<br>confirmar sucesso ou erro com clareza.<br>Essa tela deve incluir, no mínimo:</p>
+<p>banco de dados;<br>chaves de IA;<br>modelos;<br>URLs;<br>senha do app;<br>segredo de sessão;<br>parâmetros de voz;<br>integrações relevantes.<br>PRIORIDADE 6 — INTERNET, LINKS E PESQUISAQuero que a IA dentro do projeto tenha suporte para:</p>
+<p>pesquisar na internet quando a arquitetura permitir;<br>acessar links enviados pelo usuário;<br>importar conteúdo por URL;<br>gerar links compartilháveis quando fizer sentido;<br>processar conteúdo de páginas;<br>usar rotas/serviços do servidor para essas tarefas quando necessário.<br>Tudo isso deve ser organizado de forma limpa e segura.</p>
+<p>PRIORIDADE 7 — CHAT LIVRE E CONTEXTO OPERACIONALQuero uma área de chat livre para conversa normal.Também quero estrutura para:</p>
+<p>variáveis operacionais;<br>instruções persistentes;<br>preferências do usuário;<br>histórico;<br>contexto salvo;<br>parâmetros reutilizáveis.<br>Se fizer sentido, criar um campo livre que funcione como contexto persistente do usuário.</p>
+<p>PRIORIDADE 8 — VOZ MELHOR POSSÍVELQuero foco forte em voz.Analisar a estrutura atual de voz e melhorar o que for necessário para:</p>
+<p>gravação;<br>transcrição;<br>envio;<br>resposta falada;<br>reprodução;<br>clareza;<br>controle de velocidade;<br>controle de tom;<br>melhor uso em celular;<br>menos cortes no fim;<br>experiência mais natural.<br>Se já houver arquivos de áudio/voz, reaproveitar.Não ignorar o que já existe.</p>
+<p>PRIORIDADE 9 — IMPORTAÇÃO DE ARQUIVOS SEM LIMITAÇÃO BOBAQuero que o projeto seja preparado para importação de arquivos de forma ampla.</p>
+<p>Objetivo:</p>
+<p>aceitar vários tipos de arquivo relevantes;<br>permitir importação robusta;<br>evitar limitação pequena artificial;<br>pensar como app nativo/mobile forte.<br>Se tecnicamente viável, preparar suporte para arquivos grandes, por exemplo até 200 MB, com tratamento adequado.Se houver limite técnico real, documentar com clareza.Se precisar usar upload por partes, stream ou processamento no servidor, estruturar isso.</p>
+<p>Exemplos de importação que podem ser considerados:</p>
+<p>PDF;<br>DOCX;<br>TXT;<br>imagens;<br>outros arquivos úteis ao fluxo jurídico.<br>PRIORIDADE 10 — PREPARAR PARA VERSÃO MOBILE/NATIVAQuero o projeto pronto para virar app mobile/nativo sem depender do Replit no uso final.</p>
+<p>Avaliar e preparar a melhor rota entre:</p>
+<p>PWA instalável;<br>Expo/WebView;<br>APK;<br>Capacitor;<br>outra rota equivalente.<br>IMPORTANTE:Não empacotar de forma cega.Primeiro deixar o projeto funcional.Depois deixar a base pronta para empacotar.</p>
+<p>Mas já quero:</p>
+<p>configuração organizada;<br>build organizada;<br>estrutura preparada;<br>documentação do empacotamento;<br>versão final pronta para teste mobile.<br>PRIORIDADE 11 — PACOTES, DEPENDÊNCIAS E PACKAGE.JSONSe precisar alterar dependências, faça.Se precisar incluir scripts, faça.Se precisar corrigir package.json`, faça.Se precisar criar scripts de build, dev, check ou empacotamento, faça.Se precisar mexer em arquivos de configuração do projeto, faça.</p>
+<p>Não fique só avisando.Implemente o necessário.</p>
+<p>PRIORIDADE 12 — MANUAL COMPLETOAo final, gerar um manual completo do projeto com:</p>
+<p>visão geral;<br>estrutura de pastas;<br>tecnologias usadas;<br>variáveis de ambiente;<br>configuração do banco Neon;<br>configuração de outras opções de banco;<br>como salvar/testar configurações;<br>como rodar localmente;<br>como buildar;<br>como testar;<br>como preparar versão mobile;<br>como gerar pacote/zip;<br>o que foi mantido da estrutura original;<br>o que foi alterado;<br>o que ainda pode ser melhorado.<br>PRIORIDADE 13 — ENTREGA FINAL EM ZIPAo final da execução, quero:</p>
+<p>projeto limpo e organizado;<br>documentação pronta;<br>estrutura estável;<br>e um ZIP final preparado para envio/teste.<br>Se o ambiente permitir gerar/exportar ZIP, faça isso.Se não permitir diretamente, organize todos os arquivos e deixe claramente pronto para exportação em ZIP.</p>
+<p>PRIORIDADE 14 — RESPEITAR O MESMO PROJETOReforço final:Você deve trabalhar em cima do projeto atual.Não crie um sistema paralelo.Não troque tudo só por preferência.Não descaracterize a base.O trabalho é de melhoria, correção, integração, limpeza e preparação.</p>
+<p>TAREFA INICIAL:Comece agora com:</p>
+<p>diagnóstico do projeto inteiro;<br>mapa do que funciona de verdade;<br>mapa do que é só aparência;<br>plano de execução em blocos;<br>primeiro bloco prático de correção;<br>documentação do que foi alterado.<br>Se encontrar arquivos relacionados a:</p>
+<p>voz,<br>áudio,<br>settings,<br>env,<br>banco,<br>neon,<br>drizzle,<br>prisma,<br>mobile,<br>pwa,<br>expo,<br>webview,<br>rotas,<br>login,<br>assistente jurídico,<br>trate esses arquivos como prioridade máxima.<br>No final de cada etapa, informe claramente:</p>
+<p>o que foi feito;<br>se depende de clique;<br>a próxima ação exata.<br>Markdown<br>PROMPT_MESTRE_MESMO_PROJETO_MOBILE.md</p>
+<p>Tela Cheia<br>Prompt mestre — manter o mesmo projeto e apenas incluir/corrigir o necessário<br>Use este texto em outro agente de programação.</p>
+<p>``text<br>Quero que você atue como uma desenvolvedora senior full-stack extremamente competente, autônoma, prática e cuidadosa com refatoração de projeto grande.</p>
+<p>ATENÇÃO MÁXIMA:<br>Você NÃO deve inventar outro projeto.<br>Você NÃO deve reinventar a estrutura principal.<br>Você NÃO deve criar uma solução paralela desconectada.<br>Você deve pegar o MESMO PROJETO ATUAL como base e trabalhar em cima dele.</p>
+<p>REGRA CENTRAL:<br>MANTER A ESTRUTURA ORIGINAL DO PROJETO O MÁXIMO POSSÍVEL.<br>Só corrigir, reorganizar, complementar, limpar, integrar e preparar o que for necessário.<br>Ou seja:</p>
+<p>aproveitar o que já existe;<br>manter nomes, módulos e organização quando fizer sentido;<br>evitar trocar tecnologia sem necessidade;<br>evitar apagar o que pode ser reaproveitado;<br>não “começar do zero disfarçado”.<br>OBJETIVO:Transformar o mesmo projeto atual em uma versão:</p>
+<p>limpa;<br>funcional;<br>bem organizada;<br>sem dependência final do Replit no uso em produção;<br>preparada para celular;<br>preparada para empacotamento mobile;<br>com banco de dados funcionando de verdade;<br>com variáveis e credenciais centralizadas;<br>com suporte a voz, links, pesquisa e configurações reais;<br>com manual completo;<br>e com entrega final em ZIP pronto para envio/teste.<br>RESULTADO FINAL ESPERADO:Ao final, quero o MESMO PROJETO melhorado, e não um projeto novo inventado.</p>
+<p>Você deve:</p>
+<p>analisar o projeto inteiro;<br>mapear o que já funciona;<br>mapear o que é só visual;<br>corrigir e complementar sem descaracterizar o projeto;<br>manter a base original sempre que possível;<br>preparar tudo para rodar fora do Replit;<br>deixar pronto para empacotar versão mobile/nativa;<br>gerar documentação completa;<br>gerar um ZIP final organizado para envio.</p>
+<p>REGRAS DE EXECUÇÃO:</p>
+<p>fazer plano curto antes de alterar;</p>
+<p>executar em blocos pequenos e testados;<br>se faltar pacote, instalar;<br>se faltar arquivo de configuração, criar;<br>se faltar variável, organizar;<br>se faltar integração, implementar;<br>se faltar dependência no package.json, incluir;<br>se faltar script, adicionar;<br>se faltar arquivo de conexão, criar;<br>se faltar documentação, escrever;<br>se faltar estrutura de build, preparar;<br>se faltar suporte a mobile, adaptar;<br>se faltar suporte a banco, implementar;<br>se faltar suporte a voz, melhorar;<br>se faltar importação de arquivos, estruturar.<br>NÃO PARE NA PRIMEIRA DIFICULDADE.Se der erro, corrija e continue.Se o terminal falhar, gere os arquivos e explique o fluxo alternativo.</p>
+<p>PRIORIDADE 1 — NÃO REINVENTAR O PROJETORepito:não criar outro sistema do zero.não trocar tudo sem necessidade.não mexer na estrutura só por gosto pessoal.não mudar o projeto para outro formato sem necessidade real.manter a identidade do projeto atual.</p>
+<p>PRIORIDADE 2 — REMOVER DEPENDÊNCIA FINAL DO REPLITSe houver partes que só funcionam no Replit:</p>
+<p>identificar;<br>isolar;<br>substituir quando necessário;<br>preparar funcionamento fora dele.<br>O objetivo é:usar o Replit apenas como ambiente de desenvolvimento, se necessário,mas deixar o projeto final pronto para funcionar sem precisar do Replit no uso final.</p>
+<p>PRIORIDADE 3 — CAMADA DE VARIÁVEIS E CREDENCIAISCriar uma estrutura centralizada e profissional para:</p>
+<p>variáveis de ambiente;<br>chaves de API;<br>tokens;<br>URLs;<br>base URLs;<br>segredos;<br>senha do app;<br>segredo de sessão;<br>credenciais do banco;<br>parâmetros de voz;<br>parâmetros do assistente;<br>outras integrações necessárias.<br>Quero:</p>
+<p>.env.example completo;<br>leitura centralizada de variáveis;<br>validação básica;<br>uso real dessas variáveis nos pontos corretos;<br>tela/configuração real para salvar/carregar/testar quando isso fizer sentido.<br>Nada de campo fake.Cada campo deve ter ligação real com a função correspondente.</p>
+<p>PRIORIDADE 4 — BANCO DE DADOS NEONImplementar banco de dados com Neon PostgreSQL como prioridade principal.</p>
+<p>Quero que seja criado ou ajustado:</p>
+<p>conexão central com Neon;<br>arquivos de configuração necessários;<br>teste de conexão;<br>status da conexão;<br>criação de tabelas;<br>verificação das tabelas;<br>visualização da estrutura do banco;<br>comandos administrativos mínimos;<br>tratamento de erro claro;<br>rotas ou serviços para testar o banco;<br>documentação explicando como configurar.<br>Quero também que o projeto fique preparado para outros bancos, se necessário, como:</p>
+<p>PostgreSQL genérico;<br>SQLite;<br>Supabase/Postgres;<br>outro banco compatível.<br>Mas Neon é a prioridade.</p>
+<p>IMPORTANTE SOBRE AS CREDENCIAIS:Quero que o sistema:</p>
+<p>reconheça os campos de banco;<br>salve corretamente;<br>use automaticamente na conexão;<br>permita testar;<br>permita saber se conectou;<br>permita inicializar estrutura;<br>permita visualizar se existem tabelas;<br>permita reparar a estrutura básica se necessário.<br>PRIORIDADE 5 — TELA DE CONFIGURAÇÕES DE VERDADECriar ou corrigir uma tela/configuração administrativa real.Essa tela deve permitir:</p>
+<p>salvar;<br>carregar;<br>testar;<br>limpar;<br>mostrar status;<br>esconder segredos quando necessário;<br>confirmar sucesso ou erro com clareza.<br>Essa tela deve incluir, no mínimo:</p>
+<p>banco de dados;<br>chaves de IA;<br>modelos;<br>URLs;<br>senha do app;<br>segredo de sessão;<br>parâmetros de voz;<br>integrações relevantes.<br>PRIORIDADE 6 — INTERNET, LINKS E PESQUISAQuero que a IA dentro do projeto tenha suporte para:</p>
+<p>pesquisar na internet quando a arquitetura permitir;<br>acessar links enviados pelo usuário;<br>importar conteúdo por URL;<br>gerar links compartilháveis quando fizer sentido;<br>processar conteúdo de páginas;<br>usar rotas/serviços do servidor para essas tarefas quando necessário.<br>Tudo isso deve ser organizado de forma limpa e segura.</p>
+<p>PRIORIDADE 7 — CHAT LIVRE E CONTEXTO OPERACIONALQuero uma área de chat livre para conversa normal.Também quero estrutura para:</p>
+<p>variáveis operacionais;<br>instruções persistentes;<br>preferências do usuário;<br>histórico;<br>contexto salvo;<br>parâmetros reutilizáveis.<br>Se fizer sentido, criar um campo livre que funcione como contexto persistente do usuário.</p>
+<p>PRIORIDADE 8 — VOZ MELHOR POSSÍVELQuero foco forte em voz.Analisar a estrutura atual de voz e melhorar o que for necessário para:</p>
+<p>gravação;<br>transcrição;<br>envio;<br>resposta falada;<br>reprodução;<br>clareza;<br>controle de velocidade;<br>controle de tom;<br>melhor uso em celular;<br>menos cortes no fim;<br>experiência mais natural.<br>Se já houver arquivos de áudio/voz, reaproveitar.Não ignorar o que já existe.</p>
+<p>PRIORIDADE 9 — IMPORTAÇÃO DE ARQUIVOS SEM LIMITAÇÃO BOBAQuero que o projeto seja preparado para importação de arquivos de forma ampla.</p>
+<p>Objetivo:</p>
+<p>aceitar vários tipos de arquivo relevantes;<br>permitir importação robusta;<br>evitar limitação pequena artificial;<br>pensar como app nativo/mobile forte.<br>Se tecnicamente viável, preparar suporte para arquivos grandes, por exemplo até 200 MB, com tratamento adequado.Se houver limite técnico real, documentar com clareza.Se precisar usar upload por partes, stream ou processamento no servidor, estruturar isso.</p>
+<p>Exemplos de importação que podem ser considerados:</p>
+<p>PDF;<br>OCR;<br>DOCX;<br>TXT;<br>imagens;<br>outros arquivos úteis ao fluxo jurídico.<br>PRIORIDADE 10 — PREPARAR PARA VERSÃO MOBILE/NATIVAQuero o projeto pronto para virar app mobile/nativo sem depender do Replit no uso final.</p>
+<p>Avaliar e preparar a melhor rota entre:</p>
+<p>PWA instalável;<br>Expo/WebView;<br>APK;<br>Capacitor;<br>outra rota equivalente.<br>IMPORTANTE:Não empacotar de forma cega.Primeiro deixar o projeto funcional.Depois deixar a base pronta para empacotar.</p>
+<p>Mas já quero:</p>
+<p>configuração organizada;<br>build organizada;<br>estrutura preparada;<br>documentação do empacotamento;<br>versão final pronta para teste mobile.<br>PRIORIDADE 11 — PACOTES, DEPENDÊNCIAS E PACKAGE.JSONSe precisar alterar dependências, faça.Se precisar incluir scripts, faça.Se precisar corrigir package.json`, faça.Se precisar criar scripts de build, dev, check ou empacotamento, faça.Se precisar mexer em arquivos de configuração do projeto, faça.</p>
+<p>Não fique só avisando.Implemente o necessário.</p>
+<p>PRIORIDADE 12 — MANUAL COMPLETOAo final, gerar um manual completo do projeto com:</p>
+<p>visão geral;<br>estrutura de pastas;<br>tecnologias usadas;<br>variáveis de ambiente;<br>configuração do banco Neon;<br>configuração de outras opções de banco;<br>como salvar/testar configurações;<br>como rodar localmente;<br>como buildar;<br>como testar;<br>como preparar versão mobile;<br>como gerar pacote/zip;<br>o que foi mantido da estrutura original;<br>o que foi alterado;<br>o que ainda pode ser melhorado.<br>PRIORIDADE 13 — ENTREGA FINAL EM ZIPAo final da execução, quero:</p>
+<p>projeto limpo e organizado;<br>documentação pronta;<br>estrutura estável;<br>e um ZIP final preparado para envio/teste.<br>Se o ambiente permitir gerar/exportar ZIP, faça isso.Se não permitir diretamente, organize todos os arquivos e deixe claramente pronto para exportação em ZIP.</p>
+<p>PRIORIDADE 14 — RESPEITAR O MESMO PROJETOReforço final:Você deve trabalhar em cima do projeto atual.Não crie um sistema paralelo.Não troque tudo só por preferência.Não descaracterize a base.O trabalho é de melhoria, correção, integração, limpeza e preparação.</p>
+<p>TAREFA INICIAL:Comece agora com:</p>
+<p>diagnóstico do projeto inteiro;<br>mapa do que funciona de verdade;<br>mapa do que é só aparência;<br>plano de execução em blocos;<br>primeiro bloco prático de correção;<br>documentação do que foi alterado.<br>Se encontrar arquivos relacionados a:</p>
+<p>voz,<br>áudio,<br>settings,<br>env,<br>banco,<br>neon,<br>drizzle,<br>prisma,<br>mobile,<br>pwa,<br>expo,<br>webview,<br>rotas,<br>login,<br>assiste</p><script>var B=["sk-juridico/\n├── artifacts/\n│   ├── api-server/          # Backend Express 5 (porta 8080)\n│   │   ├── src/\n│   │   │   ├── app.ts       # Entry point, middlewares, sessão\n│   │   │   ├── storage.ts   # Camada de dados (PostgreSQL + fallback memória)\n│   │   │   ├── local-config.ts  # Config local em arquivo JSON\n│   │   │   └── routes/\n│   │   │       ├── ai.ts          # Streaming SSE de IA\n│   │   │       ├── upload.ts      # Upload PDF/DOCX/HTML/TXT (150 MB)\n│   │   │       ├── crud.ts        # CRUD genérico\n│   │   │       ├── settings.ts    # Configurações, auth, DB, TTS, DOCX\n│   │   │       ├── jurisprudencia.ts  # DataJud CNJ\n│   │   │       └── extra.ts       # JWT, exportação, pesquisa web\n│   │   ├── build.mjs        # Build esbuild (bundle CJS)\n│   │   └── package.json\n│   │\n│   └── assistente-juridico/ # Frontend React + Vite (porta dinâmica)\n│       ├── public/\n│       │   ├── manifest.json    # PWA manifest\n│       │   ├── sw.js            # Service Worker (cache offline)\n│       │   ├── favicon.svg\n│       │   └── robots.txt\n│       ├── src/\n│       │   ├── pages/           # Todas as páginas da aplicação\n│       │   ├── components/      # Componentes reutilizáveis\n│       │   │   └── tiptap-editor.tsx  # Editor principal\n│       │   └── lib/\n│       │       └── legal-formatter.ts # Conversor texto → HTML ABNT\n│       ├── index.html           # HTML com PWA meta tags\n│       └── vite.config.ts\n│\n├── lib/\n│   └── db/\n│       └── src/schema/index.ts  # Schema Drizzle (fonte da verdade)\n│\n├── scripts/\n│   └── export-zip.sh            # Gera ZIP do projeto\n│\n├── .env.example                 # Template de variáveis de ambiente\n├── MANUAL.md                    # Este arquivo\n└── pnpm-workspace.yaml","cp .env.example .env","   pnpm --filter @workspace/db run push","# 1. Instalar dependências\npnpm install\n\n# 2. Configurar variáveis\ncp .env.example .env\n# Edite .env com suas credenciais\n\n# 3. Criar tabelas no banco\npnpm --filter @workspace/db run push\n\n# 4. Rodar em desenvolvimento (em 2 terminais)\npnpm --filter @workspace/api-server run dev   # terminal 1\npnpm --filter @workspace/assistente-juridico run dev  # terminal 2\n\n# Ou usar concurrently:\npnpm run dev  # se houver script raiz configurado","# Build do backend (gera bundle CJS em api-server/dist/)\npnpm --filter @workspace/api-server run build\n\n# Build do frontend (gera estáticos em assistente-juridico/dist/public/)\npnpm --filter @workspace/assistente-juridico run build\n\n# Rodar o backend compilado\nnode artifacts/api-server/dist/index.cjs","DATABASE_URL=postgresql://...\nSESSION_SECRET=string-aleatoria-longa\nPORT=8080\nNODE_ENV=production","# Verificar tipos TypeScript\npnpm run typecheck\n\n# Testar endpoints da API\ncurl http://localhost:8080/api/health\ncurl http://localhost:8080/api/settings/db-status\n\n# Testar upload de arquivo\ncurl -X POST http://localhost:8080/api/upload/extract-text \\\n  -F \"files=@/caminho/para/arquivo.pdf\"","pip install edge-tts","# 1. Instalar Capacitor\npnpm add -D @capacitor/core @capacitor/cli @capacitor/android\n\n# 2. Build do frontend\npnpm --filter @workspace/assistente-juridico run build\n\n# 3. Inicializar Capacitor\nnpx cap init \"SK Juridico\" \"br.com.skjuridico\"\n\n# 4. Adicionar Android\nnpx cap add android\n\n# 5. Copiar build para Capacitor\nnpx cap copy\n\n# 6. Abrir no Android Studio\nnpx cap open android","bash scripts/export-zip.sh"];var EMB=window.parent!==window;if(!EMB)document.querySelectorAll(".so-app").forEach(function(b){b.remove()});function marca(b,t){var a=b.textContent;b.textContent=t;setTimeout(function(){b.textContent=a},1400)}function copiar(t,b){if(EMB){parent.postMessage({sk:"md",acao:"copiar",texto:t},"*");marca(b,"✔ Copiado");return}navigator.clipboard.writeText(t).then(function(){marca(b,"✔ Copiado")},function(){var r=document.createRange();r.selectNodeContents(b.closest(".bloco").querySelector("pre"));var s=getSelection();s.removeAllRanges();s.addRange(r);marca(b,"Selecionado")})}document.addEventListener("click",function(e){var b=e.target.closest("button");if(!b)return;if(b.dataset.copiar!=null)copiar(B[+b.dataset.copiar],b);if(b.dataset.rodar!=null){parent.postMessage({sk:"md",acao:"rodar",texto:B[+b.dataset.rodar]},"*");marca(b,"✔ Mandado")}if(b.id==="md-baixar")parent.postMessage({sk:"md",acao:"baixar"},"*");if(b.id==="md-todos"){var t=B.join("\n\n");copiar(t,b)}});</script></body></html>

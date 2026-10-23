@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>🚨 MEU RECURSO PREVIDÊNCIA - FUNCIONA</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<style>
+* {margin:0;padding:0;box-sizing:border-box}
+body {font-family:Arial;background:#f0f0f0;padding:20px;line-height:1.6}
+h1 {background:#d32f2f;color:white;padding:25px;text-align:center;border-radius:10px;margin-bottom:30px}
+.caixa {background:white;margin:20px 0;padding:25px;border-radius:10px;box-shadow:0 5px 15px rgba(0,0,0,0.1)}
+.btn {display:block;width:100%;padding:20px;background:#1976d2;color:white;text-decoration:none;border-radius:8px;font-size:18px;font-weight:bold;margin:15px 0;transition:0.3s}
+.btn:hover {background:#1565c0;transform:translateY(-2px)}
+textarea {width:100%;height:300px;font-family:monospace;font-size:14px;padding:15px;border:2px solid #ddd;border-radius:8px}
+.salva {background:#4caf50 !important;color:white;border:none;cursor:pointer;font-size:18px;padding:20px;border-radius:10px}
+</style>
+</head>
+<body>
+<h1>⚖️ RECURSO PREVIDÊNCIA - 7 DIAS</h1>
+
+<div class="caixa">
+<h2>📋 MANTANHA AQUI SEU PROGRESSO</h2>
+<textarea id="progresso" placeholder="Cole aqui TODO seu trabalho dos 45 dias: petições, cálculos, provas, estrutura do recurso... Tudo que já fez manualmente. Não perde mais nada."></textarea><br>
+<button class="salva" onclick="salvarTudo()">💾 SALVAR 45 DIAS DE TRABALHO</button>
+<button class="btn" onclick="limparTudo()">🗑️ NOVO RECURSO</button>
+</div>
+
+<div class="caixa">
+<h2>🚀 FERRAMENTAS PRONTAS</h2>
+<a href="data:text/html;base64,PDxkb2N0eXBlIGh0bWw+CjxodG1sPgo8Ym9keT48aDE+Sk9VTiBBIE9SREVNPC9oMT48Zm9ybT48aW5wdXQgcGxhY2Vob2xkZXI9Ik5VTSBVTUVSTyI+PC9mb3JtPgo=" class="btn">🔑 Gerador INSS</a>
+<a href="data:text/html;base64,PDxkb2N0eXBlIGh0bWw+CjxodG1sPgo8Ym9keT48aDE+Q2FDTEVMQSBQQUNLRVRTPS9oMT4KZm9ybT4=" class="btn">🧮 Calculadora Revisão</a>
+<a href="data:text/html;base64,PDxkb2N0eXBlIGh0bWw+CjxodG1sPgo8Ym9keT48aDE+UEVUSUNBTyBJSU5JQ0FMPC9oMT4KZm9ybT4=" class="btn">📄 Modelo Petição</a>
+</div>
+
+<div class="caixa">
+<h2>📝 ESTRUTURA PRONTA RECURSO</h2>
+<div style="text-align:left;font-size:16px;">
+<p><strong>1. PRELIMINAR - TEMPESTIVIDADE</strong> (3 linhas)</p>
+<p><strong>2. INTRODUÇÃO</strong> (juiz errou em X, Y, Z)</p>
+<p><strong>3. DOS FATOS</strong> (cronologia limpa)</p>
+<p><strong>4. DIREITO</strong> (3 súmulas + 2 acórdãos)</p>
+<p><strong>5. PEDIDOS</strong> (tutela + provimento)
+</div>
+</div>
+
+<script>
+function salvarTudo(){
+  localStorage.setItem('recursoMaikon', document.getElementById('progresso').value);
+  alert('✅ SALVO! Seus 45 dias estão seguros aqui.');
+}
+function limparTudo(){
+  if(confirm('Limpar tudo?')) document.getElementById('progresso').value='';
+}
+
+window.onload = function(){
+  const salvo = localStorage.getItem('recursoMaikon');
+  if(salvo) {
+    document.getElementById('progresso').value = salvo;
+    alert('✅ Seus 45 dias carregados!');
+  }
+}
+</script>
+</body>
+</html>

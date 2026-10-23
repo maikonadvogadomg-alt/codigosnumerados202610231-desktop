@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧹 Limpador de Replit</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Consolas', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #252526;
+            border-radius: 10px;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #0e639c;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            background: #1e1e1e;
+            border: 2px dashed #3e3e42;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: #1177bb;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .log {
+            background: #1e1e1e;
+            border-radius: 5px;
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+        }
+
+        .success {
+            color: #4ec9b0;
+        }
+
+        .error {
+            color: #f48771;
+        }
+
+        .warning {
+            color: #ffaa00;
+        }
+
+        .info {
+            color: #569cd6;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0e639c;
+        }
+
+        .stat-label {
+            color: #888;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Limpador de Vínculos Replit</h1>
+        
+        <div class="upload-area">
+            <h2 style="color: #888; margin-bottom: 20px;">
+                📦 Faça upload do seu projeto ZIP
+            </h2>
+            <label for="fileInput" class="btn">
+                📁 Escolher ZIP
+            </label>
+            <input type="file" id="fileInput" accept=".zip" onchange="processarZip(event)">
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalArquivos">0</div>
+                <div class="stat-label">Arquivos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="vinculosEncontrados">0</div>
+                <div class="stat-label">Vínculos Replit</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="vinculosRemovidos">0</div>
+                <div class="stat-label">Removidos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="endpointsCorrigidos">0</div>
+                <div class="stat-label">Endpoints Corrigidos</div>
+            </div>
+        </div>
+
+        <div class="log" id="log" style="display: none;"></div>
+
+        <div style="text-align: center;">
+            <button class="btn" id="btnBaixar" style="display: none;" onclick="baixarZipLimpo()">
+                📦 Baixar ZIP Limpo
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        let arquivosLimpos = {};
+        let estatisticas = {
+            totalArquivos: 0,
+            vinculosEncontrados: 0,
+            vinculosRemovidos: 0,
+            endpointsCorrigidos: 0
+        };
+
+        // ========================================
+        // PADRÕES PARA DETECTAR E REMOVER
+        // ========================================
+        const padroes = {
+            // URLs Replit
+            urlsReplit: [
+                /https?:\/\/[^\/]*replit\.com[^\s\"\'\)>]*/gi,
+                /https?:\/\/[^\/]*repl\.co[^\s\"\'\)>]*/gi,
+                /https?:\/\/[^\/]*replitusercontent\.com[^\s\"\'\)>]*/gi,
+            ],
+
+            // Imports Replit
+            importsReplit: [
+                /import\s+.*from\s+['"]@replit\/[^'"]+['"]/gi,
+                /require\s*\(\s*['"]@replit\/[^'"]+['"]\s*\)/gi,
+            ],
+
+            // Endpoints API
+            endpointsAPI: [
+                /fetch\s*\(\s*['"]\/api\/[^'"]+['"]/gi,
+                /axios\.[a-z]+\s*\(\s*['"]\/api\/[^'"]+['"]/gi,
+            ],
+
+            // Comentários com TODO/FIXME
+            comentarios: [
+                /\/\/\s*TODO:.*$/gmi,
+                /\/\/\s*FIXME:.*$/gmi,
+                /\/\*\s*TODO:[\s\S]*?\*\//gi,
+            ],
+
+            // Console.log desnecessários
+            consoleLogs: [
+                /console\.log\([^)]*replit[^)]*\);?/gi,
+            ]
+        };
+
+        // ========================================
+        // PROCESSAR ZIP
+        // ========================================
+        async function processarZip(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            mostrarLog();
+            log('🚀 Iniciando limpeza...', 'info');
+            log('');
+
+            const zip = new JSZip();
+            const conteudo = await zip.loadAsync(file);
+
+            arquivosLimpos = {};
+            estatisticas = {
+                totalArquivos: 0,
+                vinculosEncontrados: 0,
+                vinculosRemovidos: 0,
+                endpointsCorrigidos: 0
+            };
+
+            for (const [caminho, arquivo] of Object.entries(conteudo.files)) {
+                if (arquivo.dir) continue;
+
+                estatisticas.totalArquivos++;
+                
+                // Ignora node_modules, .git, etc
+                if (caminho.includes('node_modules/') || 
+                    caminho.includes('.git/') ||
+                    caminho.startsWith('.')) {
+                    continue;
+                }
+
+                const conteudoOriginal = await arquivo.async('text');
+                const conteudoLimpo = limparArquivo(caminho, conteudoOriginal);
+                
+                arquivosLimpos[caminho] = conteudoLimpo;
+            }
+
+            log('');
+            log('✅ Limpeza concluída!', 'success');
+            log('');
+            log(`📊 Estatísticas:`, 'info');
+            log(`   • Arquivos processados: ${estatisticas.totalArquivos}`);
+            log(`   • Vínculos encontrados: ${estatisticas.vinculosEncontrados}`);
+            log(`   • Vínculos removidos: ${estatisticas.vinculosRemovidos}`);
+            log(`   • Endpoints corrigidos: ${estatisticas.endpointsCorrigidos}`);
+
+            atualizarEstatisticas();
+            document.getElementById('btnBaixar').style.display = 'inline-block';
+        }
+
+        // ========================================
+        // LIMPAR ARQUIVO
+        // ========================================
+        function limparArquivo(caminho, conteudo) {
+            let conteudoLimpo = conteudo;
+            let mudancas = 0;
+
+            log(`🔍 Analisando: ${caminho}`, 'info');
+
+            // 1. Remover URLs Replit
+            padroes.urlsReplit.forEach(padrao => {
+                const matches = conteudo.match(padrao);
+                if (matches) {
+                    matches.forEach(match => {
+                        log(`   ❌ Removendo URL: ${match}`, 'warning');
+                        conteudoLimpo = conteudoLimpo.replace(match, '');
+                        mudancas++;
+                        estatisticas.vinculosEncontrados++;
+                        estatisticas.vinculosRemovidos++;
+                    });
+                }
+            });
+
+            // 2. Remover Imports Replit
+            padroes.importsReplit.forEach(padrao => {
+                const matches = conteudo.match(padrao);
+                if (matches) {
+                    matches.forEach(match => {
+                        log(`   ❌ Removendo import: ${match}`, 'warning');
+                        conteudoLimpo = conteudoLimpo.replace(match, '// Import removido');
+                        mudancas++;
+                        estatisticas.vinculosEncontrados++;
+                        estatisticas.vinculosRemovidos++;
+                    });
+                }
+            });
+
+            // 3. Corrigir Endpoints API
+            padroes.endpointsAPI.forEach(padrao => {
+                const matches = conteudo.match(padrao);
+                if (matches) {
+                    matches.forEach(match => {
+                        log(`   🔧 Corrigindo endpoint: ${match}`, 'warning');
+                        // Comentar o fetch
+                        conteudoLimpo = conteudoLimpo.replace(
+                            match, 
+                            `// ${match} // ⚠️ Endpoint removido - configure seu backend`
+                        );
+                        mudancas++;
+                        estatisticas.endpointsCorrigidos++;
+                    });
+                }
+            });
+
+            // 4. Remover comentários TODO/FIXME
+            padroes.comentarios.forEach(padrao => {
+                conteudoLimpo = conteudoLimpo.replace(padrao, '');
+            });
+
+            // 5. Remover console.log com "replit"
+            padroes.consoleLogs.forEach(padrao => {
+                conteudoLimpo = conteudoLimpo.replace(padrao, '');
+            });
+
+            if (mudancas > 0) {
+                log(`   ✅ ${mudancas} alterações feitas`, 'success');
+            } else {
+                log(`   ✓ Arquivo limpo`, 'success');
+            }
+
+            return conteudoLimpo;
+        }
+
+        // ========================================
+        // BAIXAR ZIP LIMPO
+        // ========================================
+        async function baixarZipLimpo() {
+            log('');
+            log('📦 Gerando ZIP limpo...', 'info');
+
+            const zip = new JSZip();
+
+            Object.entries(arquivosLimpos).forEach(([caminho, conteudo]) => {
+                zip.file(caminho, conteudo);
+            });
+
+            // Adicionar README com instruções
+            const readme = `# Projeto Limpo
+
+✅ Este projeto foi limpo de vínculos com Replit.
+
+## Alterações feitas:
+- ${estatisticas.vinculosRemovidos} vínculos Replit removidos
+- ${estatisticas.endpointsCorrigidos} endpoints comentados
+
+## ⚠️ Próximos passos:
+1. Revise os arquivos marcados com "⚠️"
+2. Configure seu próprio backend se necessário
+3. Teste o projeto localmente
+4. Publique no GitHub Pages ou Netlify
+
+---
+Limpo por: Limpador de Replit
+Data: ${new Date().toLocaleString('pt-BR')}
+`;
+
+            zip.file('README-LIMPEZA.md', readme);
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'projeto-limpo.zip';
+            a.click();
+
+            log('✅ ZIP baixado com sucesso!', 'success');
+        }
+
+        // ========================================
+        // FUNÇÕES AUXILIARES
+        // ========================================
+        function log(texto, tipo = '') {
+            const logDiv = document.getElementById('log');
+            const linha = document.createElement('div');
+            linha.className = `log-line ${tipo}`;
+            linha.textContent = texto;
+            logDiv.appendChild(linha);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function mostrarLog() {
+            document.getElementById('stats').style.display = 'grid';
+            document.getElementById('log').style.display = 'block';
+        }
+
+        function atualizarEstatisticas() {
+            document.getElementById('totalArquivos').textContent = estatisticas.totalArquivos;
+            document.getElementById('vinculosEncontrados').textContent = estatisticas.vinculosEncontrados;
+            document.getElementById('vinculosRemovidos').textContent = estatisticas.vinculosRemovidos;
+            document.getElementById('endpointsCorrigidos').textContent = estatisticas.endpointsCorrigidos;
+        }
+    </script>
+</body>
+</html>

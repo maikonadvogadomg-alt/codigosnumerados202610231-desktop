@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Gerenciador PWA - Maikon Caldeira</title>
+    
+    <!-- JSZip para criar arquivos ZIP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <style>
+        :root {
+            --primaria: #5d5e53;
+            --secundaria: #a3a082;
+            --fundo: #0a0a0a;
+            --painel: #161614;
+            --texto: #f3f4f6;
+            --borda: #2a2a28;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: var(--fundo);
+            color: var(--texto);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--painel);
+            border-radius: 20px;
+            margin-bottom: 30px;
+            border: 2px solid var(--primaria);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: var(--secundaria);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        .secao {
+            background: var(--painel);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid var(--borda);
+        }
+
+        .secao-titulo {
+            font-size: 20px;
+            color: var(--secundaria);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grupo {
+            margin-bottom: 20px;
+        }
+
+        .form-grupo label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-grupo input,
+        .form-grupo textarea {
+            width: 100%;
+            padding: 12px;
+            background: var(--fundo);
+            border: 1px solid var(--borda);
+            border-radius: 8px;
+            color: var(--texto);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-grupo input:focus,
+        .form-grupo textarea:focus {
+            outline: none;
+            border-color: var(--primaria);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primario {
+            background: var(--secundaria);
+            color: var(--fundo);
+        }
+
+        .btn-primario:hover {
+            background: var(--primaria);
+        }
+
+        .btn-secundario {
+            background: #333;
+            color: var(--texto);
+        }
+
+        .btn-secundario:hover {
+            background: #444;
+        }
+
+        .btn-perigo {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-sucesso {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-grande {
+            width: 100%;
+            padding: 18px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .lista-apps {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .app-item {
+            background: var(--fundo);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--borda);
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .app-icone {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            background: var(--painel);
+            border-radius: 10px;
+        }
+
+        .app-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--secundaria);
+        }
+
+        .app-info p {
+            font-size: 12px;
+            color: #888;
+        }
+
+        .app-acoes {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-pequeno {
+            padding: 8px 16px;
+            font-size: 12px;
+        }
+
+        .preview {
+            background: var(--fundo);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--borda);
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .preview pre {
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .alerta {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alerta-sucesso {
+            background: #1e4620;
+            border-color: #28a745;
+            color: #90ee90;
+        }
+
+        .alerta-info {
+            background: #1a3a52;
+            border-color: #17a2b8;
+            color: #87ceeb;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 12px;
+            background: var(--fundo);
+            border: 2px dashed var(--borda);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            border-color: var(--primaria);
+            background: var(--painel);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .badge-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .app-item {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🚀 Gerenciador PWA Completo</h1>
+            <p>Importe códigos, adicione ícones e gere seu PWA pronto em ZIP</p>
+        </div>
+
+        <!-- SEÇÃO 1: ADICIONAR APPS -->
+        <div class="secao">
+            <div class="secao-titulo">
+                📱 Adicionar Novo App
+            </div>
+
+            <div class="form-grupo">
+                <label>Nome do App:</label>
+                <input type="text" id="nomeApp" placeholder="Ex: Assistente Jurídico">
+            </div>
+
+            <div class="form-grupo">
+                <label>Ícone (emoji ou URL de imagem):</label>
+                <input type="text" id="iconeApp" placeholder="Ex: ⚖️ ou https://...">
+            </div>
+
+            <div class="form-grupo">
+                <label>Descrição:</label>
+                <input type="text" id="descApp" placeholder="Ex: Assistente com IA">
+            </div>
+
+            <div class="form-grupo">
+                <label>Código HTML do App:</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="arquivoHtml" accept=".html,.htm" onchange="carregarArquivoHtml(this)">
+                    <label for="arquivoHtml" class="file-input-label">
+                        📄 Clique para importar arquivo HTML
+                    </label>
+                </div>
+                <textarea id="codigoApp" rows="8" placeholder="Ou cole o código HTML aqui..." style="margin-top:10px"></textarea>
+            </div>
+
+            <button class="btn btn-primario btn-grande" onclick="adicionarApp()">
+                ➕ Adicionar App
+            </button>
+        </div>
+
+        <!-- SEÇÃO 2: LISTA DE APPS -->
+        <div class="secao">
+            <div class="secao-titulo">
+                📦 Apps Cadastrados
+                <span class="badge badge-info" id="contadorApps">0</span>
+            </div>
+
+            <div id="listaApps" class="lista-apps">
+                <div class="alerta alerta-info">
+                    Nenhum app cadastrado ainda. Adicione o primeiro acima!
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 3: CONFIGURAÇÕES DO PWA -->
+        <div class="secao">
+            <div class="secao-titulo">
+                ⚙️ Configurações do PWA
+            </div>
+
+            <div class="form-grupo">
+                <label>Nome Completo:</label>
+                <input type="text" id="nomeCompleto" value="Maikon Caldeira - Advocacia Digital">
+            </div>
+
+            <div class="form-grupo">
+                <label>Nome Curto:</label>
+                <input type="text" id="nomeCurto" value="MC Advocacia">
+            </div>
+
+            <div class="form-grupo">
+                <label>Descrição:</label>
+                <input type="text" id="descricaoPWA" value="Sistema completo de ferramentas jurídicas">
+            </div>
+
+            <div class="grid-2">
+                <div class="form-grupo">
+                    <label>Cor de Fundo:</label>
+                    <input type="color" id="corFundo" value="#0a0a0a">
+                </div>
+
+                <div class="form-grupo">
+                    <label>Cor do Tema:</label>
+                    <input type="color" id="corTema" value="#5d5e53">
+                </div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 4: ÍCONES DO PWA -->
+        <div class="secao">
+            <div class="secao-titulo">
+                🎨 Ícones do PWA
+            </div>
+
+            <div class="alerta alerta-info">
+                Faça upload de 2 ícones PNG: 192x192 e 512x512 pixels
+            </div>
+
+            <div class="grid-2">
+                <div class="form-grupo">
+                    <label>Ícone 192x192:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="icone192" accept="image/png" onchange="carregarIcone(this, 192)">
+                        <label for="icone192" class="file-input-label">
+                            🖼️ Upload icon-192.png
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-grupo">
+                    <label>Ícone 512x512:</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="icone512" accept="image/png" onchange="carregarIcone(this, 512)">
+                        <label for="icone512" class="file-input-label">
+                            🖼️ Upload icon-512.png
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-secundario btn-grande" onclick="gerarIconesSVG()">
+                🎨 Ou Gerar Ícones SVG Automáticos
+            </button>
+        </div>
+
+        <!-- SEÇÃO 5: GERAR PWA -->
+        <div class="secao">
+            <div class="secao-titulo">
+                🚀 Gerar PWA Completo
+            </div>
+
+            <div id="alertaGerar"></div>
+
+            <button class="btn btn-sucesso btn-grande" onclick="gerarPWACompleto()">
+                📦 BAIXAR PWA COMPLETO EM ZIP
+            </button>
+
+            <div class="grid-2" style="margin-top:15px">
+                <button class="btn btn-secundario" onclick="previewIndex()">👁️ Preview Index</button>
+                <button class="btn btn-secundario" onclick="previewManifest()">👁️ Preview Manifest</button>
+            </div>
+
+            <div id="preview" class="preview" style="display:none"></div>
+        </div>
+
+    </div>
+
+    <script>
+        // ========================================
+        // ESTADO GLOBAL
+        // ========================================
+        let apps = [];
+        let icones = {
+            icon192: null,
+            icon512: null
+        };
+
+        // ========================================
+        // CARREGAR ARQUIVO HTML
+        // ========================================
+        function carregarArquivoHtml(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('codigoApp').value = e.target.result;
+            };
+            reader.readAsText(file);
+        }
+
+        // ========================================
+        // CARREGAR ÍCONES
+        // ========================================
+        function carregarIcone(input, tamanho) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                if (tamanho === 192) {
+                    icones.icon192 = e.target.result;
+                } else {
+                    icones.icon512 = e.target.result;
+                }
+                alert(`✅ Ícone ${tamanho}x${tamanho} carregado!`);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // ========================================
+        // ADICIONAR APP
+        // ========================================
+        function adicionarApp() {
+            const nome = document.getElementById('nomeApp').value.trim();
+            const icone = document.getElementById('iconeApp').value.trim();
+            const desc = document.getElementById('descApp').value.trim();
+            const codigo = document.getElementById('codigoApp').value.trim();
+
+            if (!nome || !codigo) {
+                alert('❌ Preencha pelo menos Nome e Código HTML!');
+                return;
+            }
+
+            const app = {
+                id: Date.now().toString(),
+                nome: nome,
+                icone: icone || '📄',
+                desc: desc || 'Novo app',
+                codigo: codigo,
+                arquivo: `${nome.toLowerCase().replace(/\s+/g, '-')}.html`
+            };
+
+            apps.push(app);
+            renderizarApps();
+            limparFormulario();
+            alert('✅ App adicionado!');
+        }
+
+        // ========================================
+        // RENDERIZAR APPS
+        // ========================================
+        function renderizarApps() {
+            const lista = document.getElementById('listaApps');
+            const contador = document.getElementById('contadorApps');
+            
+            contador.textContent = apps.length;
+
+            if (apps.length === 0) {
+                lista.innerHTML = '<div class="alerta alerta-info">Nenhum app cadastrado ainda.</div>';
+                return;
+            }
+
+            lista.innerHTML = '';
+
+            apps.forEach((app, index) => {
+                const div = document.createElement('div');
+                div.className = 'app-item';
+                div.innerHTML = `
+                    <div class="app-icone">${app.icone}</div>
+                    <div class="app-info">
+                        <h3>${index + 1}. ${app.nome}</h3>
+                        <p>${app.desc}</p>
+                        <p style="color:#666; font-size:11px">Arquivo: ${app.arquivo}</p>
+                    </div>
+                    <div class="app-acoes">
+                        <button class="btn btn-secundario btn-pequeno" onclick="editarApp(${index})">✏️</button>
+                        <button class="btn btn-perigo btn-pequeno" onclick="removerApp(${index})">🗑️</button>
+                    </div>
+                `;
+                lista.appendChild(div);
+            });
+        }
+
+        // ========================================
+        // REMOVER APP
+        // ========================================
+        function removerApp(index) {
+            if (!confirm('Deseja remover este app?')) return;
+            apps.splice(index, 1);
+            renderizarApps();
+        }
+
+        // ========================================
+        // EDITAR APP
+        // ========================================
+        function editarApp(index) {
+            const app = apps[index];
+            document.getElementById('nomeApp').value = app.nome;
+            document.getElementById('iconeApp').value = app.icone;
+            document.getElementById('descApp').value = app.desc;
+            document.getElementById('codigoApp').value = app.codigo;
+            
+            apps.splice(index, 1);
+            renderizarApps();
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ========================================
+        // LIMPAR FORMULÁRIO
+        // ========================================
+        function limparFormulario() {
+            document.getElementById('nomeApp').value = '';
+            document.getElementById('iconeApp').value = '';
+            document.getElementById('descApp').value = '';
+            document.getElementById('codigoApp').value = '';
+            document.getElementById('arquivoHtml').value = '';
+        }
+
+        // ========================================
+        // GERAR ÍCONES SVG
+        // ========================================
+        function gerarIconesSVG() {
+            const corFundo = document.getElementById('corTema').value;
+            
+            const svg192 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect fill="${corFundo}" width="192" height="192" rx="40"/>
+  <text x="96" y="135" font-size="100" fill="#ffffff" text-anchor="middle" font-family="Arial" font-weight="bold">M</text>
+</svg>`;
+
+            const svg512 = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect fill="${corFundo}" width="512" height="512" rx="100"/>
+  <text x="256" y="360" font-size="280" fill="#ffffff" text-anchor="middle" font-family="Arial" font-weight="bold">M</text>
+</svg>`;
+
+            // Converter SVG para Data URL
+            icones.icon192 = 'data:image/svg+xml;base64,' + btoa(svg192);
+            icones.icon512 = 'data:image/svg+xml;base64,' + btoa(svg512);
+
+            alert('✅ Ícones SVG gerados! Serão incluídos no ZIP.');
+        }
+
+        // ========================================
+        // GERAR INDEX.HTML
+        // ========================================
+        function gerarIndexHTML() {
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const corFundo = document.getElementById('corFundo').value;
+            const corTema = document.getElementById('corTema').value;
+
+            const cartoes = apps.map(app => `
+            <a href="${app.arquivo}" class="cartao">
+                <span class="icone">${app.icone}</span>
+                <span class="titulo">${app.nome}</span>
+                <span class="desc">${app.desc}</span>
+            </a>`).join('\n');
+
+            return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${nomeCompleto}</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icon-192.png">
+    <meta name="theme-color" content="${corTema}">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: ${corFundo};
+            color: #f3f4f6;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .container { max-width: 700px; width: 100%; text-align: center; }
+        .logo {
+            width: 100px; height: 100px;
+            background: ${corTema};
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+            font-weight: bold;
+            color: ${corFundo};
+        }
+        h1 { font-size: 28px; letter-spacing: 3px; margin-bottom: 10px; }
+        .subtitle { color: #888; font-size: 12px; letter-spacing: 2px; margin-bottom: 40px; }
+        .grade {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+        .cartao {
+            background: #161614;
+            padding: 30px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            color: #f3f4f6;
+            border: 1px solid #2a2a28;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        .cartao:hover {
+            transform: translateY(-5px);
+            border-color: ${corTema};
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .icone { font-size: 40px; }
+        .titulo { font-weight: bold; font-size: 13px; text-transform: uppercase; }
+        .desc { font-size: 11px; color: #888; }
+        .btn-instalar {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            display: none;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">M</div>
+        <h1>MAIKON CALDEIRA</h1>
+        <p class="subtitle">ADVOCACIA DIGITAL</p>
+        <div class="grade">
+${cartoes}
+        </div>
+        <button class="btn-instalar" id="btnInstalar">📥 Instalar App</button>
+    </div>
+    <script>
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('btnInstalar').style.display = 'block';
+        });
+        document.getElementById('btnInstalar').addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            deferredPrompt = null;
+            document.getElementById('btnInstalar').style.display = 'none';
+        });
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>`;
+        }
+
+        // ========================================
+        // GERAR MANIFEST.JSON
+        // ========================================
+        function gerarManifestJSON() {
+            const nomeCompleto = document.getElementById('nomeCompleto').value;
+            const nomeCurto = document.getElementById('nomeCurto').value;
+            const descricao = document.getElementById('descricaoPWA').value;
+            const corFundo = document.getElementById('corFundo').value;
+            const corTema = document.getElementById('corTema').value;
+
+            return JSON.stringify({
+                name: nomeCompleto,
+                short_name: nomeCurto,
+                description: descricao,
+                start_url: "./",
+                scope: "./",
+                display: "standalone",
+                background_color: corFundo,
+                theme_color: corTema,
+                icons: [
+                    { src: "icon-192.png", sizes: "192x192", type: "image/png" },
+                    { src: "icon-512.png", sizes: "512x512", type: "image/png" }
+                ]
+            }, null, 2);
+        }
+
+        // ========================================
+        // GERAR SERVICE WORKER
+        // ========================================
+        function gerarServiceWorker() {
+            const arquivos = apps.map(app => `  './${app.arquivo}'`).join(',\n');
+            
+            return `const CACHE_NAME = 'pwa-v${Date.now()}';
+const FILES = [
+  './',
+  './index.html',
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+${arquivos}
+];
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES))
+  );
+});
+
+self.addEventListener('fetch', (e) => {
+  e.respondWith(
+    caches.match(e.request).then((r) => r || fetch(e.request))
+  );
+});`;
+        }
+
+        // ========================================
+        // GERAR PWA COMPLETO EM ZIP
+        // ========================================
+        async function gerarPWACompleto() {
+            if (apps.length === 0) {
+                alert('❌ Adicione pelo menos um app!');
+                return;
+            }
+
+            if (!icones.icon192 || !icones.icon512) {
+                if (!confirm('⚠️ Você não adicionou ícones. Deseja gerar ícones SVG automáticos?')) {
+                    return;
+                }
+                gerarIconesSVG();
+            }
+
+            const alerta = document.getElementById('alertaGerar');
+            alerta.innerHTML = '<div class="alerta alerta-info">⏳ Gerando PWA completo...</div>';
+
+            const zip = new JSZip();
+
+            // Adicionar index.html
+            zip.file('index.html', gerarIndexHTML());
+
+            // Adicionar manifest.json
+            zip.file('manifest.json', gerarManifestJSON());
+
+            // Adicionar sw.js
+            zip.file('sw.js', gerarServiceWorker());
+
+            // Adicionar ícones
+            if (icones.icon192) {
+                const icon192Data = icones.icon192.split(',')[1];
+                zip.file('icon-192.png', icon192Data, { base64: true });
+            }
+            if (icones.icon512) {
+                const icon512Data = icones.icon512.split(',')[1];
+                zip.file('icon-512.png', icon512Data, { base64: true });
+            }
+
+            // Adicionar apps
+            apps.forEach(app => {
+                zip.file(app.arquivo, app.codigo);
+            });
+
+            // Gerar e baixar ZIP
+            zip.generateAsync({ type: 'blob' }).then((content) => {
+                saveAs(content, 'pwa-completo.zip');
+                alerta.innerHTML = '<div class="alerta alerta-sucesso">✅ PWA gerado! Arquivo baixado.</div>';
+            });
+        }
+
+        // ========================================
+        // PREVIEW
+        // ========================================
+        function previewIndex() {
+            const preview = document.getElementById('preview');
+            preview.style.display = 'block';
+            preview.innerHTML = '<pre>' + escapeHtml(gerarIndexHTML()) + '</pre>';
+        }
+
+        function previewManifest() {
+            const preview = document.getElementById('preview');
+            preview.style.display = 'block';
+            preview.innerHTML = '<pre>' + escapeHtml(gerarManifestJSON()) + '</pre>';
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/[<>&'"]/g, (c) => {
+                return { '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&#39;', '"': '&quot;' }[c];
+            });
+        }
+    </script>
+</body>
+</html>

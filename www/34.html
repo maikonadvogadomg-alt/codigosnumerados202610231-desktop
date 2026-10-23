@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Merger Pro — Maikon Caldeira</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --bg2: #1e293b;
+  --bg3: #334155;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --accent: #a3a082;
+  --accent2: #d4d0a8;
+  --blue: #3b82f6;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --purple: #a78bfa;
+  --border: #334155;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--bg2); border-bottom: 2px solid var(--border); }
+.logo { font-weight: 800; font-size: 16px; color: var(--accent); }
+.logo small { font-size: 10px; color: var(--text2); display: block; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
+.btn-success { background: var(--green); color: #000; }
+.btn-success:hover { background: #22c55e; }
+.btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+
+/* Main Layout */
+.main { display: flex; flex: 1; overflow: hidden; }
+
+/* Sidebar - Projects List */
+.sidebar { width: 300px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.sidebar-header { padding: 12px; border-bottom: 1px solid var(--border); }
+.sidebar-header h3 { font-size: 13px; color: var(--accent); margin-bottom: 8px; }
+.projects-list { flex: 1; overflow-y: auto; padding: 8px; }
+
+/* Project Card */
+.project-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: move; transition: all 0.2s; position: relative; }
+.project-card:hover { border-color: var(--accent); transform: translateX(4px); }
+.project-card.dragging { opacity: 0.5; }
+.project-card.active { border-color: var(--green); background: rgba(74, 222, 128, 0.05); }
+.project-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+.project-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.project-meta { font-size: 10px; color: var(--text2); }
+.project-stats { display: flex; gap: 12px; font-size: 10px; color: var(--text2); margin-top: 8px; }
+.project-actions { display: flex; gap: 4px; }
+.btn-icon { padding: 4px 8px; background: transparent; border: none; color: var(--text2); cursor: pointer; border-radius: 4px; font-size: 12px; }
+.btn-icon:hover { background: var(--bg3); color: var(--text); }
+.drag-handle { cursor: move; color: var(--text2); font-size: 16px; }
+
+/* Content Area */
+.content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+/* Tabs */
+.tabs { display: flex; gap: 4px; padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+.tab { padding: 8px 16px; background: transparent; border: none; color: var(--text2); font-size: 12px; font-weight: 600; cursor: pointer; border-radius: 6px; transition: all 0.15s; }
+.tab.active { background: var(--bg3); color: var(--accent); }
+.tab:hover:not(.active) { background: rgba(163, 160, 130, 0.1); }
+
+/* Editor & Preview */
+.workspace { flex: 1; display: flex; overflow: hidden; }
+.editor-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+.preview-panel { flex: 1; display: flex; flex-direction: column; background: var(--bg3); }
+.panel-header { padding: 8px 12px; background: var(--bg2); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 600; color: var(--text2); display: flex; justify-content: space-between; align-items: center; }
+.editor-textarea { flex: 1; background: var(--bg); color: var(--text); border: none; padding: 16px; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.6; resize: none; outline: none; }
+.preview-frame { flex: 1; border: none; background: white; }
+
+/* Modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 90%; max-width: 700px; max-height: 85vh; overflow-y: auto; position: relative; }
+.modal h3 { font-size: 18px; margin-bottom: 16px; color: var(--accent); }
+.modal-close { position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text2); font-size: 20px; cursor: pointer; }
+.modal-close:hover { color: var(--red); }
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+.form-input, .form-textarea { width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 13px; font-family: inherit; }
+.form-textarea { min-height: 200px; font-family: 'Consolas', monospace; resize: vertical; }
+.form-input:focus, .form-textarea:focus { outline: none; border-color: var(--accent); }
+
+/* Analysis Results */
+.analysis-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 16px; }
+.analysis-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.analysis-card h4 { font-size: 11px; color: var(--text2); margin-bottom: 8px; text-transform: uppercase; }
+.analysis-card .count { font-size: 24px; font-weight: 700; color: var(--accent); }
+.analysis-card .items { margin-top: 8px; max-height: 100px; overflow-y: auto; }
+.analysis-item { font-size: 11px; padding: 4px 8px; background: var(--bg3); border-radius: 4px; margin-bottom: 4px; color: var(--text2); }
+
+/* Merge Preview */
+.merge-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-top: 16px; max-height: 300px; overflow-y: auto; }
+.merge-preview pre { font-size: 11px; line-height: 1.5; color: var(--text); }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg2); border: 1px solid var(--accent); border-radius: 10px; padding: 12px 20px; font-size: 12px; font-weight: 600; color: var(--accent2); z-index: 2000; transform: translateY(100px); opacity: 0; transition: all 0.3s; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+/* Empty State */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); text-align: center; padding: 40px; }
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state-text { font-size: 14px; margin-bottom: 20px; }
+
+/* Loading */
+.loading { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <div class="logo">
+    🔗 Code Merger Pro
+    <small>Maikon Caldeira — Unificador de Projetos</small>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <button class="btn btn-primary" onclick="openImportModal()">📥 Importar Código</button>
+    <button class="btn btn-success" onclick="mergeAll()">⚡ Unificar Tudo</button>
+    <button class="btn btn-ghost" onclick="downloadMerged()">💾 Baixar</button>
+    <button class="btn btn-ghost" onclick="clearAll()">🗑️ Limpar</button>
+  </div>
+</header>
+
+<!-- Main -->
+<div class="main">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h3>📦 Projetos Importados</h3>
+      <p style="font-size:11px;color:var(--text2);">Arraste para reordenar</p>
+    </div>
+    <div class="projects-list" id="projectsList">
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">Nenhum projeto importado ainda.<br>Clique em "Importar Código" para começar!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('editor')">📝 Editor</button>
+      <button class="tab" onclick="switchTab('preview')">👁️ Preview</button>
+      <button class="tab" onclick="switchTab('merged')">🔗 Código Unificado</button>
+    </div>
+
+    <div class="workspace">
+      <div class="editor-panel" id="editorPanel">
+        <div class="panel-header">
+          <span>📄 Código Selecionado</span>
+          <span id="editorInfo">Selecione um projeto</span>
+        </div>
+        <textarea class="editor-textarea" id="editor" placeholder="Selecione um projeto na lista ao lado para editar..."></textarea>
+      </div>
+
+      <div class="preview-panel" id="previewPanel">
+        <div class="panel-header">
+          <span>👁️ Preview ao Vivo</span>
+          <button class="btn-icon" onclick="refreshPreview()">🔄</button>
+        </div>
+        <iframe class="preview-frame" id="previewFrame" sandbox="allow-scripts allow-modals allow-forms"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Import Code -->
+<div class="modal-overlay" id="importModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeImportModal()">✕</button>
+    <h3>📥 Importar Código HTML</h3>
+    
+    <div class="form-group">
+      <label>Nome do Projeto</label>
+      <input type="text" class="form-input" id="projectName" placeholder="Ex: Menu Principal, Footer, Galeria...">
+    </div>
+    
+    <div class="form-group">
+      <label>Cole o código HTML completo aqui</label>
+      <textarea class="form-textarea" id="codeInput" placeholder="<!DOCTYPE html>..."></textarea>
+    </div>
+    
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button class="btn btn-ghost" onclick="importFromFile()">📂 Importar Arquivo</button>
+      <button class="btn btn-ghost" onclick="analyzeCode()">🔍 Analisar Código</button>
+    </div>
+    
+    <div id="analysisResults"></div>
+    
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn btn-ghost" onclick="closeImportModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="importCode()">✅ Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" style="display:none" accept=".html,.htm" multiple>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========== STATE ==========
+const LS_KEY = 'code-merger-projects-v1';
+
+let state = {
+  projects: [],
+  activeProjectId: null,
+  currentTab: 'editor'
+};
+
+// Load saved projects
+try {
+  const saved = localStorage.getItem(LS_KEY);
+  if (saved) state.projects = JSON.parse(saved);
+} catch(e) {}
+
+// ========== INIT ==========
+renderProjects();
+if (state.projects.length > 0) {
+  selectProject(state.projects[0].id);
+}
+
+// ========== PROJECT MANAGEMENT ==========
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(state.projects));
+  } catch(e) {
+    console.error('Erro ao salvar:', e);
+  }
+}
+
+function addProject(name, code) {
+  const analysis = analyzeHTML(code);
+  
+  const project = {
+    id: generateId(),
+    name: name || 'Projeto ' + (state.projects.length + 1),
+    code: code,
+    html: analysis.html,
+    css: analysis.css,
+    js: analysis.js,
+    functions: analysis.functions,
+    elements: analysis.elements,
+    createdAt: new Date().toISOString()
+  };
+  
+  state.projects.push(project);
+  saveState();
+  renderProjects();
+  selectProject(project.id);
+  showToast(`✅ "${project.name}" importado!`);
+}
+
+function deleteProject(id) {
+  if (!confirm('Excluir este projeto?')) return;
+  state.projects = state.projects.filter(p => p.id !== id);
+  saveState();
+  renderProjects();
+  if (state.activeProjectId === id) {
+    state.activeProjectId = null;
+    document.getElementById('editor').value = '';
+    updatePreview('');
+  }
+  showToast('🗑️ Projeto excluído');
+}
+
+function selectProject(id) {
+  state.activeProjectId = id;
+  const project = state.projects.find(p => p.id === id);
+  if (!project) return;
+  
+  document.getElementById('editor').value = project.code;
+  document.getElementById('editorInfo').textContent = project.name;
+  updatePreview(project.code);
+  
+  // Update active state
+  document.querySelectorAll('.project-card').forEach(card => {
+    card.classList.toggle('active', card.dataset.id === id);
+  });
+}
+
+function updateProjectCode() {
+  if (!state.activeProjectId) return;
+  const project = state.projects.find(p => p.id === state.activeProjectId);
+  if (!project) return;
+  
+  project.code = document.getElementById('editor').value;
+  const analysis = analyzeHTML(project.code);
+  Object.assign(project, {
+    html: analysis.html,
+    css: analysis.css,
+    js: analysis.js,
+    functions: analysis.functions,
+    elements: analysis.elements
+  });
+  
+  saveState();
+  renderProjects();
+  updatePreview(project.code);
+}
+
+// ========== HTML ANALYSIS ==========
+function analyzeHTML(code) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(code, 'text/html');
+  
+  // Extract CSS
+  let css = '';
+  doc.querySelectorAll('style').forEach(style => {
+    css += style.textContent + '\n';
+  });
+  
+  // Extract JS
+  let js = '';
+  doc.querySelectorAll('script').forEach(script => {
+    if (!script.src) js += script.textContent + '\n';
+  });
+  
+  // Extract HTML (body content)
+  let html = doc.body ? doc.body.innerHTML : code;
+  
+  // Find functions
+  const functionRegex = /function\s+(\w+)\s*\(/g;
+  const functions = [];
+  let match;
+  while ((match = functionRegex.exec(js)) !== null) {
+    functions.push(match[1]);
+  }
+  
+  // Arrow functions
+  const arrowRegex = /(?:const|let|var)\s+(\w+)\s*=\s*(?:\([^)]*\)|[^=])\s*=>/g;
+  while ((match = arrowRegex.exec(js)) !== null) {
+    functions.push(match[1]);
+  }
+  
+  // Count elements
+  const elements = {
+    divs: (html.match(/<div/gi) || []).length,
+    buttons: (html.match(/<button/gi) || []).length,
+    inputs: (html.match(/<input/gi) || []).length,
+    images: (html.match(/<img/gi) || []).length,
+    links: (html.match(/<a /gi) || []).length
+  };
+  
+  return { html, css, js, functions, elements };
+}
+
+// ========== RENDER ==========
+function renderProjects() {
+  const container = document.getElementById('projectsList');
+  
+  if (state.projects.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-text">Nenhum projeto importado ainda.<br>Clique em "Importar Código"!</div>
+      </div>
+    `;
+    return;
+  }
+  
+  container.innerHTML = state.projects.map((p, index) => `
+    <div class="project-card ${p.id === state.activeProjectId ? 'active' : ''}" 
+         data-id="${p.id}" 
+         draggable="true"
+         onclick="selectProject('${p.id}')">
+      <div class="project-header">
+        <div>
+          <div class="project-title">
+            <span class="drag-handle">⋮⋮</span>
+            ${escapeHtml(p.name)}
+          </div>
+          <div class="project-meta">${new Date(p.createdAt).toLocaleString('pt-BR')}</div>
+        </div>
+        <div class="project-actions">
+          <button class="btn-icon" onclick="event.stopPropagation();moveUp('${p.id}')" title="Mover para cima">↑</button>
+          <button class="btn-icon" onclick="event.stopPropagation();moveDown('${p.id}')" title="Mover para baixo">↓</button>
+          <button class="btn-icon" onclick="event.stopPropagation();duplicateProject('${p.id}')" title="Duplicar">📋</button>
+          <button class="btn-icon" onclick="event.stopPropagation();deleteProject('${p.id}')" title="Excluir">🗑️</button>
+        </div>
+      </div>
+      <div class="project-stats">
+        <span>📝 ${p.functions.length} funções</span>
+        <span>🎨 ${(p.css.match(/\{/g) || []).length} estilos</span>
+        <span>🔘 ${p.elements.buttons} botões</span>
+      </div>
+    </div>
+  `).join('');
+  
+  // Setup drag and drop
+  setupDragDrop();
+}
+
+// ========== DRAG & DROP ==========
+function setupDragDrop() {
+  const cards = document.querySelectorAll('.project-card');
+  
+  cards.forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+    });
+    
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+    });
+    
+    card.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      const dragging = document.querySelector('.dragging');
+      if (dragging && dragging !== card) {
+        const rect = card.getBoundingClientRect();
+        const midpoint = rect.top + rect.height / 2;
+        if (e.clientY < midpoint) {
+          card.parentNode.insertBefore(dragging, card);
+        } else {
+          card.parentNode.insertBefore(dragging, card.nextSibling);
+        }
+      }
+    });
+    
+    card.addEventListener('drop', (e) => {
+      e.preventDefault();
+      updateProjectOrder();
+    });
+  });
+}
+
+function updateProjectOrder() {
+  const cards = document.querySelectorAll('.project-card');
+  const newOrder = Array.from(cards).map(card => card.dataset.id);
+  state.projects.sort((a, b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+  saveState();
+  showToast('📦 Ordem atualizada');
+}
+
+function moveUp(id) {
+  const index = state.projects.findIndex(p => p.id === id);
+  if (index > 0) {
+    [state.projects[index], state.projects[index - 1]] = [state.projects[index - 1], state.projects[index]];
+    saveState();
+    renderProjects();
+    showToast('⬆️ Movido para cima');
+  }
+}
+
+function moveDown(id) {
+  const index = state.projects.findIndex(p => p.id === id);
+  if (index < state.projects.length - 1) {
+    [state.projects[index], state.projects[index + 1]] = [state.projects[index + 1], state.projects[index]];
+    saveState();
+    renderProjects();
+    showToast('⬇️ Movido para baixo');
+  }
+}
+
+function duplicateProject(id) {
+  const project = state.projects.find(p => p.id === id);
+  if (!project) return;
+  
+  const duplicate = {
+    ...project,
+    id: generateId(),
+    name: project.name + ' (cópia)',
+    createdAt: new Date().toISOString()
+  };
+  
+  state.projects.push(duplicate);
+  saveState();
+  renderProjects();
+  showToast('📋 Projeto duplicado');
+}
+
+// ========== IMPORT ==========
+function openImportModal() {
+  document.getElementById('importModal').classList.add('open');
+  document.getElementById('projectName').value = '';
+  document.getElementById('codeInput').value = '';
+  document.getElementById('analysisResults').innerHTML = '';
+}
+
+function closeImportModal() {
+  document.getElementById('importModal').classList.remove('open');
+}
+
+function importCode() {
+  const name = document.getElementById('projectName').value.trim();
+  const code = document.getElementById('codeInput').value.trim();
+  
+  if (!code) {
+    showToast('⚠️ Cole um código HTML primeiro');
+    return;
+  }
+  
+  addProject(name, code);
+  closeImportModal();
+}
+
+function importFromFile() {
+  const input = document.getElementById('fileInput');
+  input.onchange = (e) => {
+    const files = e.target.files;
+    Array.from(files).forEach(file => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const code = ev.target.result;
+        const name = file.name.replace(/\.[^.]+$/, '');
+        addProject(name, code);
+      };
+      reader.readAsText(file);
+    });
+    input.value = '';
+  };
+  input.click();
+}
+
+function analyzeCode() {
+  const code = document.getElementById('codeInput').value.trim();
+  if (!code) {
+    showToast('⚠️ Cole um código primeiro');
+    return;
+  }
+  
+  const analysis = analyzeHTML(code);
+  
+  document.getElementById('analysisResults').innerHTML = `
+    <div class="analysis-grid">
+      <div class="analysis-card">
+        <h4>⚙️ Funções JS</h4>
+        <div class="count">${analysis.functions.length}</div>
+        <div class="items">
+          ${analysis.functions.map(f => `<div class="analysis-item">${f}()</div>`).join('') || '<div class="analysis-item">Nenhuma</div>'}
+        </div>
+      </div>
+      <div class="analysis-card">
+        <h4>🎨 Linhas CSS</h4>
+        <div class="count">${analysis.css.split('\n').length}</div>
+      </div>
+      <div class="analysis-card">
+        <h4>🔘 Botões</h4>
+        <div class="count">${analysis.elements.buttons}</div>
+      </div>
+      <div class="analysis-card">
+        <h4>📦 Divs</h4>
+        <div class="count">${analysis.elements.divs}</div>
+      </div>
+    </div>
+  `;
+  
+  showToast('🔍 Análise concluída!');
+}
+
+// ========== MERGE ==========
+function mergeAll() {
+  if (state.projects.length === 0) {
+    showToast('⚠️ Importe projetos primeiro');
+    return;
+  }
+  
+  const merged = generateMergedCode();
+  
+  // Switch to merged tab
+  switchTab('merged');
+  document.getElementById('editor').value = merged;
+  updatePreview(merged);
+  
+  showToast(`⚡ ${state.projects.length} projetos unificados!`);
+}
+
+function generateMergedCode() {
+  let allCSS = '';
+  let allJS = '';
+  let allHTML = '';
+  
+  state.projects.forEach((project, index) => {
+    // CSS com namespace para evitar conflitos
+    if (project.css) {
+      allCSS += `\n/* ========== ${project.name} - CSS ========== */\n`;
+      allCSS += `.project-${index} {\n`;
+      allCSS += project.css.split('\n').map(line => '  ' + line).join('\n');
+      allCSS += '\n}\n';
+    }
+    
+    // JS com escopo isolado
+    if (project.js) {
+      allJS += `\n// ========== ${project.name} - JS ==========\n`;
+      allJS += `(function() {\n`;
+      allJS += project.js.split('\n').map(line => '  ' + line).join('\n');
+      allJS += `\n})();\n`;
+    }
+    
+    // HTML com container isolado
+    allHTML += `\n<!-- ========== ${project.name} ========== -->\n`;
+    allHTML += `<div class="project-container project-${index}" id="project-${index}">\n`;
+    allHTML += project.html.split('\n').map(line => '  ' + line).join('\n');
+    allHTML += `\n</div>\n`;
+  });
+  
+  // Gerar documento final
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Projeto Unificado - Code Merger Pro</title>
+<style>
+/* ========== BASE STYLES ========== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; }
+
+/* Container para cada projeto */
+.project-container {
+  position: relative;
+  width: 100%;
+  /* Adicione estilos base aqui se necessário */
+}
+
+${allCSS}
+</style>
+</head>
+<body>
+
+${allHTML}
+
+<script>
+${allJS}
+</script>
+</body>
+</html>`;
+}
+
+// ========== PREVIEW ==========
+function updatePreview(code) {
+  const frame = document.getElementById('previewFrame');
+  const blob = new Blob([code], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  frame.src = url;
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function refreshPreview() {
+  if (state.currentTab === 'merged') {
+    const merged = generateMergedCode();
+    updatePreview(merged);
+  } else {
+    const code = document.getElementById('editor').value;
+    updatePreview(code);
+  }
+  showToast('🔄 Preview atualizado');
+}
+
+// ========== TABS ==========
+function switchTab(tab) {
+  state.currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  if (tab === 'merged') {
+    const merged = generateMergedCode();
+    document.getElementById('editor').value = merged;
+    document.getElementById('editorInfo').textContent = 'Código Unificado';
+    updatePreview(merged);
+  } else if (state.activeProjectId) {
+    selectProject(state.activeProjectId);
+  }
+}
+
+// ========== EDITOR ==========
+document.getElementById('editor').addEventListener('input', () => {
+  if (state.currentTab === 'editor') {
+    updateProjectCode();
+  }
+});
+
+// ========== DOWNLOAD ==========
+function downloadMerged() {
+  const merged = generateMergedCode();
+  const blob = new Blob([merged], { type: 'text/html' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'projeto-unificado.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 Download iniciado!');
+}
+
+function clearAll() {
+  if (!confirm('Limpar todos os projetos? Esta ação não pode ser desfeita.')) return;
+  state.projects = [];
+  state.activeProjectId = null;
+  saveState();
+  renderProjects();
+  document.getElementById('editor').value = '';
+  updatePreview('');
+  showToast('🗑️ Tudo limpo!');
+}
+
+// ========== UTILS ==========
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2800);
+}
+
+// Close modal on overlay click
+document.getElementById('importModal').addEventListener('click', (e) => {
+  if (e.target.id === 'importModal') closeImportModal();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🧩 Montador de Módulos — PWA Jurídico</title>
+<style>
+:root { --bg:#0a0a0f; --bg2:#12121a; --bg3:#1a1a2e; --text:#e2e8f0; --text2:#94a3b8; --accent:#a3a082; --accent2:#d4d0a8; --green:#4ade80; --blue:#60a5fa; --red:#f87171; --border:#2d2d3a; }
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+.header { background:var(--bg2); border-bottom:1px solid var(--border); padding:16px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.header h1 { font-size:18px; color:var(--accent); }
+.header h1 small { display:block; font-size:10px; color:var(--text2); font-weight:400; letter-spacing:2px; }
+
+.container { max-width:1400px; margin:0 auto; padding:20px; }
+
+/* Módulos salvos */
+.modules-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:16px; margin-bottom:24px; }
+.module-card { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:16px; transition:all 0.2s; }
+.module-card:hover { border-color:var(--accent); }
+.module-card .card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px; }
+.module-card h3 { font-size:13px; color:var(--accent2); margin-bottom:4px; }
+.module-card .desc { font-size:11px; color:var(--text2); margin-bottom:8px; line-height:1.4; }
+.module-card .tags { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:8px; }
+.tag { font-size:9px; padding:2px 8px; border-radius:4px; background:var(--bg3); color:var(--blue); border:1px solid var(--border); }
+.tag.visual { color:var(--green); }
+.tag.logica { color:var(--accent); }
+.tag.api { color:var(--red); }
+.module-card pre { background:var(--bg); padding:8px; border-radius:6px; font-size:10px; max-height:100px; overflow:hidden; color:var(--text2); font-family:'Consolas',monospace; position:relative; }
+.module-card pre::after { content:''; position:absolute; bottom:0; left:0; right:0; height:30px; background:linear-gradient(transparent, var(--bg)); }
+.card-actions { display:flex; gap:4px; margin-top:8px; }
+
+/* Área de trabalho */
+.workspace { background:var(--bg2); border:1px solid var(--border); border-radius:12px; padding:20px; margin-bottom:20px; }
+.workspace h2 { font-size:14px; color:var(--accent); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+
+/* Botões */
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border:none; border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+.btn-sm { padding:5px 10px; font-size:10px; }
+.btn-primary { background:var(--accent); color:#000; }
+.btn-primary:hover { background:var(--accent2); }
+.btn-success { background:var(--green); color:#000; }
+.btn-danger { background:rgba(239,68,68,0.2); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+.btn-ghost { background:transparent; color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--bg3); color:var(--text); }
+.btn-blue { background:rgba(96,165,250,0.15); color:var(--blue); border:1px solid rgba(96,165,250,0.3); }
+
+/* Textarea */
+.code-area { width:100%; min-height:200px; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:12px; font-family:'Consolas','Fira Code',monospace; font-size:12px; color:var(--text); resize:vertical; line-height:1.6; }
+.code-area:focus { outline:none; border-color:var(--accent); }
+.code-area.large { min-height:400px; }
+
+/* Input */
+.input { width:100%; padding:8px 12px; background:var(--bg); border:1px solid var(--border); border-radius:8px; color:var(--text); font-size:12px; }
+.input:focus { outline:none; border-color:var(--accent); }
+.input-group { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+.input-row { margin-bottom:8px; }
+.input-row label { display:block; font-size:10px; color:var(--text2); margin-bottom:4px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
+
+/* Tabs */
+.tabs { display:flex; gap:4px; margin-bottom:16px; flex-wrap:wrap; }
+.tab-btn { padding:8px 16px; border:1px solid var(--border); background:transparent; color:var(--text2); border-radius:8px; font-size:11px; font-weight:600; cursor:pointer; }
+.tab-btn.active { background:var(--accent); color:#000; border-color:var(--accent); }
+
+/* Preview */
+.preview-frame { width:100%; height:500px; border:1px solid var(--border); border-radius:8px; background:white; }
+
+/* Status */
+.status { padding:10px 14px; border-radius:8px; font-size:11px; font-weight:600; margin-bottom:12px; }
+.status-info { background:rgba(96,165,250,0.1); color:var(--blue); border:1px solid rgba(96,165,250,0.2); }
+.status-success { background:rgba(74,222,128,0.1); color:var(--green); border:1px solid rgba(74,222,128,0.2); }
+
+/* Responsive */
+@media(max-width:768px) {
+  .modules-grid { grid-template-columns:1fr; }
+  .input-group { grid-template-columns:1fr; }
+  .container { padding:12px; }
+}
+
+.empty-state { text-align:center; padding:40px; color:var(--text2); }
+.empty-state .icon { font-size:48px; margin-bottom:12px; }
+
+.section-title { font-size:12px; color:var(--text2); text-transform:uppercase; letter-spacing:2px; font-weight:700; margin:24px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+
+.flex-between { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+
+.checklist { list-style:none; }
+.checklist li { padding:6px 0; font-size:12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border); }
+.checklist li:last-child { border:none; }
+.check { width:18px; height:18px; border-radius:4px; border:2px solid var(--border); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:10px; transition:all 0.15s; }
+.check.checked { background:var(--green); border-color:var(--green); color:#000; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🧩 Montador de Módulos <small>PWA JURÍDICO — MAIKON CALDEIRA</small></h1>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="btn btn-primary" onclick="exportFinal()">📦 Gerar HTML Final</button>
+    <button class="btn btn-ghost" onclick="exportBackup()">💾 Backup Módulos</button>
+    <button class="btn btn-ghost" onclick="importBackup()">📂 Importar Backup</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Instruções -->
+  <div class="status status-info">
+    💡 <strong>Como usar:</strong> Cole pedaços de código HTML nos módulos abaixo. Dê um nome e descrição para cada um. 
+    Depois marque quais quer incluir e clique em "Gerar HTML Final" para combinar tudo num arquivo só.
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showSection('add')">➕ Adicionar Módulo</button>
+    <button class="tab-btn" onclick="showSection('modules')">📦 Meus Módulos (<span id="moduleCount">0</span>)</button>
+    <button class="tab-btn" onclick="showSection('build')">🔨 Montar Projeto</button>
+    <button class="tab-btn" onclick="showSection('preview')">👁️ Preview</button>
+    <button class="tab-btn" onclick="showSection('guide')">📖 Guia</button>
+  </div>
+
+  <!-- Section: Add Module -->
+  <div id="section-add" class="workspace">
+    <h2>➕ Adicionar Novo Módulo de Código</h2>
+    
+    <div class="input-group">
+      <div class="input-row">
+        <label>Nome do Módulo</label>
+        <input type="text" class="input" id="modName" placeholder="Ex: Importar PDF, Exportar Word, Formulário Cliente..." />
+      </div>
+      <div class="input-row">
+        <label>Tipo</label>
+        <select class="input" id="modType">
+          <option value="funcao">🔧 Função/Lógica (JavaScript)</option>
+          <option value="visual">🎨 Visual/Interface (HTML+CSS)</option>
+          <option value="completo">📄 Bloco Completo (HTML+CSS+JS)</option>
+          <option value="estilo">💅 Apenas CSS/Estilo</option>
+          <option value="dados">📊 Dados/Templates</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="input-row">
+      <label>Descrição (o que esse código faz?)</label>
+      <input type="text" class="input" id="modDesc" placeholder="Ex: Lê arquivo PDF e extrai nome, CPF e endereço do segurado..." />
+    </div>
+    
+    <div class="input-row">
+      <label>Tags (separadas por vírgula)</label>
+      <input type="text" class="input" id="modTags" placeholder="Ex: pdf, importar, inss, dados" />
+    </div>
+    
+    <div class="input-row">
+      <label>Cole o Código Aqui</label>
+      <textarea class="code-area large" id="modCode" placeholder="Cole aqui o pedaço de código HTML/CSS/JS que quer salvar como módulo..."></textarea>
+    </div>
+    
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button class="btn btn-primary" onclick="saveModule()">💾 Salvar Módulo</button>
+      <button class="btn btn-ghost" onclick="clearForm()">🗑️ Limpar</button>
+      <button class="btn btn-blue" onclick="importFromFile()">📂 Importar de Arquivo</button>
+    </div>
+  </div>
+
+  <!-- Section: Modules List -->
+  <div id="section-modules" class="workspace" style="display:none;">
+    <div class="flex-between">
+      <h2>📦 Módulos Salvos</h2>
+      <input type="text" class="input" style="width:200px;" placeholder="🔍 Buscar..." oninput="filterModules(this.value)" />
+    </div>
+    <div class="modules-grid" id="modulesGrid"></div>
+  </div>
+
+  <!-- Section: Build -->
+  <div id="section-build" class="workspace" style="display:none;">
+    <h2>🔨 Montar Projeto Final</h2>
+    <p style="font-size:12px;color:var(--text2);margin-bottom:16px;">
+      Marque os módulos que deseja incluir no HTML final. A ordem importa — arraste ou use as setas para reorganizar.
+    </p>
+    
+    <div class="input-row">
+      <label>Título do Projeto Final</label>
+      <input type="text" class="input" id="buildTitle" value="PWA Jurídico — Maikon Caldeira" />
+    </div>
+    
+    <div class="input-row">
+      <label>CSS Base (opcional — será incluído no &lt;head&gt;)</label>
+      <textarea class="code-area" id="buildBaseCss" style="min-height:80px;" placeholder="/* CSS base que vai em todos os projetos */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, sans-serif; }"></textarea>
+    </div>
+    
+    <div class="section-title">Selecione os Módulos para Incluir</div>
+    <div id="buildChecklist"></div>
+    
+    <div style="margin-top:16px;display:flex;gap:8px;">
+      <button class="btn btn-success" onclick="exportFinal()">📦 Gerar HTML Final</button>
+      <button class="btn btn-ghost" onclick="selectAll()">✅ Selecionar Todos</button>
+      <button class="btn btn-ghost" onclick="deselectAll()">⬜ Desmarcar Todos</button>
+    </div>
+  </div>
+
+  <!-- Section: Preview -->
+  <div id="section-preview" class="workspace" style="display:none;">
+    <div class="flex-between">
+      <h2>👁️ Preview do Projeto Montado</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="refreshPreview()">🔄 Atualizar</button>
+        <button class="btn btn-ghost btn-sm" onclick="openFullPreview()">🔳 Tela Cheia</button>
+      </div>
+    </div>
+    <iframe class="preview-frame" id="previewFrame"></iframe>
+  </div>
+
+  <!-- Section: Guide -->
+  <div id="section-guide" class="workspace" style="display:none;">
+    <h2>📖 Guia — Como Montar seu PWA</h2>
+    
+    <div class="status status-info" style="margin-top:12px;">
+      🎯 <strong>Estratégia:</strong> Em vez de tentar fazer tudo de uma vez, vamos por partes. 
+      Cada funcionalidade vira um "módulo" independente. Depois juntamos.
+    </div>
+    
+    <div class="section-title">Passo a Passo</div>
+    <ol style="font-size:12px;line-height:2;padding-left:20px;color:var(--text2);">
+      <li><strong style="color:var(--text)">Separe os códigos por função</strong> — cada pedaço faz UMA coisa (importar PDF, gerar documento, salvar dados...)</li>
+      <li><strong style="color:var(--text)">Cole cada pedaço como módulo</strong> — use a aba "Adicionar Módulo" e dê nome descritivo</li>
+      <li><strong style="color:var(--text)">Teste individual</strong> — na aba Preview, veja se cada módulo funciona sozinho</li>
+      <li><strong style="color:var(--text)">Monte o projeto</strong> — na aba "Montar", selecione os módulos e gere o HTML final</li>
+      <li><strong style="color:var(--text)">Ajuste conflitos</strong> — se algo quebrar, traga aqui que te ajudo a resolver</li>
+    </ol>
+    
+    <div class="section-title">Tipos de Módulo</div>
+    <table style="width:100%;font-size:11px;border-collapse:collapse;">
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;color:var(--blue);">🔧 Função/Lógica</td>
+        <td style="padding:8px;color:var(--text2);">Código JavaScript puro (funções, cálculos, processamento de dados)</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;color:var(--green);">🎨 Visual/Interface</td>
+        <td style="padding:8px;color:var(--text2);">HTML + CSS (botões, formulários, layout, cards)</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;color:var(--accent);">📄 Bloco Completo</td>
+        <td style="padding:8px;color:var(--text2);">HTML + CSS + JS juntos (componente inteiro que funciona sozinho)</td>
+      </tr>
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:8px;color:#c084fc;">💅 Apenas CSS</td>
+        <td style="padding:8px;color:var(--text2);">Estilos visuais (tema, cores, fontes, animações)</td>
+      </tr>
+      <tr>
+        <td style="padding:8px;color:var(--red);">📊 Dados/Templates</td>
+        <td style="padding:8px;color:var(--text2);">Modelos de documentos, arrays de dados, configurações</td>
+      </tr>
+    </table>
+    
+    <div class="section-title">Sobre o Banco de Dados (Neon)</div>
+    <div style="font-size:12px;color:var(--text2);line-height:1.8;">
+      <p>⚠️ <strong style="color:var(--text)">Importante:</strong> Um HTML puro no navegador <strong>NÃO consegue</strong> conectar direto no Neon (PostgreSQL). Precisa de um "servidor" no meio.</p>
+      <p style="margin-top:8px;">🟢 <strong style="color:var(--green)">Alternativa que funciona sem servidor:</strong></p>
+      <ul style="padding-left:16px;margin-top:4px;">
+        <li><strong>localStorage</strong> — salva no navegador (o que estamos usando aqui)</li>
+        <li><strong>IndexedDB</strong> — banco mais robusto no navegador (suporta mais dados)</li>
+        <li><strong>Exportar/Importar JSON</strong> — backup manual dos dados</li>
+      </ul>
+      <p style="margin-top:8px;">🔵 <strong style="color:var(--blue)">Se quiser Neon no futuro:</strong> Precisará de um backend (Vercel Functions, Cloudflare Workers, ou Supabase que já dá tudo pronto).</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- Hidden -->
+<input type="file" id="fileInput" style="display:none" accept=".html,.htm,.js,.css,.txt,.json" />
+<input type="file" id="backupInput" style="display:none" accept=".json" />
+
+<!-- Toast -->
+<div class="toast" id="toast" style="position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--accent);border-radius:10px;padding:12px 20px;font-size:12px;font-weight:600;color:var(--accent2);z-index:2000;transform:translateY(100px);opacity:0;transition:all 0.3s;"></div>
+
+<script>
+// ========== STATE ==========
+const LS_MODULES = 'pwa-modules-v1';
+const LS_SELECTED = 'pwa-selected-v1';
+
+function getModules() {
+  try { return JSON.parse(localStorage.getItem(LS_MODULES) || '[]'); } catch { return []; }
+}
+function setModules(list) { localStorage.setItem(LS_MODULES, JSON.stringify(list)); }
+function getSelected() {
+  try { return JSON.parse(localStorage.getItem(LS_SELECTED) || '[]'); } catch { return []; }
+}
+function setSelected(list) { localStorage.setItem(LS_SELECTED, JSON.stringify(list)); }
+
+// ========== UI ==========
+function showSection(name) {
+  ['add','modules','build','preview','guide'].forEach(s => {
+    document.getElementById('section-' + s).style.display = s === name ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    const sections = ['add','modules','build','preview','guide'];
+    btn.classList.toggle('active', sections[i] === name);
+  });
+  if (name === 'modules') renderModules();
+  if (name === 'build') renderBuildChecklist();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.transform = 'translateY(0)';
+  t.style.opacity = '1';
+  setTimeout(() => { t.style.transform = 'translateY(100px)'; t.style.opacity = '0'; }, 2500);
+}
+
+// ========== MODULES ==========
+function saveModule() {
+  const name = document.getElementById('modName').value.trim();
+  const type = document.getElementById('modType').value;
+  const desc = document.getElementById('modDesc').value.trim();
+  const tags = document.getElementById('modTags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const code = document.getElementById('modCode').value;
+  
+  if (!name) { showToast('❌ Dê um nome ao módulo!'); return; }
+  if (!code.trim()) { showToast('❌ Cole algum código!'); return; }
+  
+  const modules = getModules();
+  modules.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    name, type, desc, tags, code,
+    date: new Date().toISOString()
+  });
+  setModules(modules);
+  updateCount();
+  clearForm();
+  showToast('✅ Módulo "' + name + '" salvo!');
+}
+
+function clearForm() {
+  document.getElementById('modName').value = '';
+  document.getElementById('modDesc').value = '';
+  document.getElementById('modTags').value = '';
+  document.getElementById('modCode').value = '';
+}
+
+function renderModules(filter = '') {
+  const modules = getModules().filter(m => 
+    !filter || m.name.toLowerCase().includes(filter.toLowerCase()) || m.tags.some(t => t.toLowerCase().includes(filter.toLowerCase()))
+  );
+  const grid = document.getElementById('modulesGrid');
+  
+  if (modules.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nenhum módulo salvo ainda.<br>Use a aba "Adicionar Módulo" para começar!</p></div>';
+    return;
+  }
+  
+  grid.innerHTML = modules.map(m => `
+    <div class="module-card">
+      <div class="card-header">
+        <h3>${escHtml(m.name)}</h3>
+        <span class="tag ${m.type === 'visual' ? 'visual' : m.type === 'funcao' ? 'logica' : ''}">${getTypeLabel(m.type)}</span>
+      </div>
+      ${m.desc ? `<div class="desc">${escHtml(m.desc)}</div>` : ''}
+      <div class="tags">${m.tags.map(t => `<span class="tag">${escHtml(t)}</span>`).join('')}</div>
+      <pre>${escHtml(m.code.slice(0, 200))}${m.code.length > 200 ? '...' : ''}</pre>
+      <div class="card-actions">
+        <button class="btn btn-ghost btn-sm" onclick="viewModule('${m.id}')">👁️ Ver</button>
+        <button class="btn btn-ghost btn-sm" onclick="editModule('${m.id}')">✏️ Editar</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyModule('${m.id}')">📋 Copiar</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteModule('${m.id}')">🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterModules(query) { renderModules(query); }
+
+function deleteModule(id) {
+  if (!confirm('Excluir este módulo?')) return;
+  setModules(getModules().filter(m => m.id !== id));
+  renderModules();
+  updateCount();
+  showToast('🗑️ Módulo excluído!');
+}
+
+function copyModule(id) {
+  const m = getModules().find(x => x.id === id);
+  if (m) { navigator.clipboard.writeText(m.code); showToast('📋 Código copiado!'); }
+}
+
+function viewModule(id) {
+  const m = getModules().find(x => x.id === id);
+  if (!m) return;
+  document.getElementById('modName').value = m.name;
+  document.getElementById('modType').value = m.type;
+  document.getElementById('modDesc').value = m.desc;
+  document.getElementById('modTags').value = m.tags.join(', ');
+  document.getElementById('modCode').value = m.code;
+  showSection('add');
+}
+
+function editModule(id) {
+  const m = getModules().find(x => x.id === id);
+  if (!m) return;
+  // Remove old and let user save as new
+  setModules(getModules().filter(x => x.id !== id));
+  viewModule(id); // This won't find it anymore, so we set manually
+  document.getElementById('modName').value = m.name;
+  document.getElementById('modType').value = m.type;
+  document.getElementById('modDesc').value = m.desc;
+  document.getElementById('modTags').value = m.tags.join(', ');
+  document.getElementById('modCode').value = m.code;
+  showSection('add');
+  updateCount();
+  showToast('✏️ Editando módulo — salve quando terminar!');
+}
+
+// ========== BUILD ==========
+function renderBuildChecklist() {
+  const modules = getModules();
+  const selected = getSelected();
+  const container = document.getElementById('buildChecklist');
+  
+  if (modules.length === 0) {
+    container.innerHTML = '<p style="color:var(--text2);font-size:12px;">Nenhum módulo disponível. Adicione módulos primeiro.</p>';
+    return;
+  }
+  
+  container.innerHTML = '<ul class="checklist">' + modules.map((m, i) => `
+    <li>
+      <div class="check ${selected.includes(m.id)?'checked':''}" onclick="toggleSelect('${m.id}')">
+        ${selected.includes(m.id) ? '✓' : ''}
+      </div>
+      <div style="flex:1;">
+        <strong style="font-size:12px;">${escHtml(m.name)}</strong>
+        <span style="font-size:10px;color:var(--text2);margin-left:8px;">${getTypeLabel(m.type)}</span>
+        ${m.desc ? `<br><span style="font-size:10px;color:var(--text2);">${escHtml(m.desc)}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-ghost btn-sm" onclick="moveModule(${i},-1)">⬆️</button>
+        <button class="btn btn-ghost btn-sm" onclick="moveModule(${i},1)">⬇️</button>
+      </div>
+    </li>
+  `).join('') + '</ul>';
+}
+
+function toggleSelect(id) {
+  let selected = getSelected();
+  if (selected.includes(id)) selected = selected.filter(x => x !== id);
+  else selected.push(id);
+  setSelected(selected);
+  renderBuildChecklist();
+}
+
+function selectAll() {
+  setSelected(getModules().map(m => m.id));
+  renderBuildChecklist();
+}
+
+function deselectAll() {
+  setSelected([]);
+  renderBuildChecklist();
+}
+
+function moveModule(index, dir) {
+  const modules = getModules();
+  const newIndex = index + dir;
+  if (newIndex < 0 || newIndex >= modules.length) return;
+  [modules[index], modules[newIndex]] = [modules[newIndex], modules[index]];
+  setModules(modules);
+  renderBuildChecklist();
+}
+
+// ========== EXPORT ==========
+function exportFinal() {
+  const modules = getModules();
+  const selected = getSelected();
+  const chosen = modules.filter(m => selected.includes(m.id));
+  
+  if (chosen.length === 0) {
+    showToast('⚠️ Selecione pelo menos um módulo na aba "Montar"!');
+    showSection('build');
+    return;
+  }
+  
+  const title = document.getElementById('buildTitle').value || 'PWA Jurídico';
+  const baseCss = document.getElementById('buildBaseCss').value || '';
+  
+  // Separate by type
+  const styles = chosen.filter(m => m.type === 'estilo').map(m => m.code).join('\n\n');
+  const htmlParts = chosen.filter(m => m.type === 'visual' || m.type === 'completo' || m.type === 'dados').map(m => `\n<!-- === MÓDULO: ${m.name} === -->\n${m.code}`).join('\n');
+  const scripts = chosen.filter(m => m.type === 'funcao').map(m => `\n// === MÓDULO: ${m.name} ===\n${m.code}`).join('\n');
+  
+  // Check if any module is a complete document
+  const completeDoc = chosen.find(m => m.code.trim().toLowerCase().includes('<!doctype') || m.code.trim().toLowerCase().includes('<html'));
+  
+  let finalHtml;
+  if (completeDoc && chosen.length === 1) {
+    finalHtml = completeDoc.code;
+  } else {
+    finalHtml = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${escHtml(title)}</title>
+<style>
+/* === CSS BASE === */
+${baseCss}
+
+/* === MÓDULOS CSS === */
+${styles}
+</style>
+</head>
+<body>
+
+${htmlParts}
+
+<script>
+${scripts}
+<\/script>
+</body>
+</html>`;
+  }
+  
+  // Download
+  const blob = new Blob([finalHtml], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (title.replace(/[^a-zA-Z0-9]/g, '_') || 'projeto') + '.html';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📦 HTML final gerado e baixado!');
+}
+
+function refreshPreview() {
+  const modules = getModules();
+  const selected = getSelected();
+  const chosen = modules.filter(m => selected.includes(m.id));
+  
+  const title = document.getElementById('buildTitle').value || 'PWA Jurídico';
+  const baseCss = document.getElementById('buildBaseCss').value || '';
+  const styles = chosen.filter(m => m.type === 'estilo').map(m => m.code).join('\n');
+  const htmlParts = chosen.filter(m => m.type === 'visual' || m.type === 'completo' || m.type === 'dados').map(m => m.code).join('\n');
+  const scripts = chosen.filter(m => m.type === 'funcao').map(m => m.code).join('\n');
+  
+  const doc = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${baseCss}\n${styles}</style></head><body>${htmlParts}<script>${scripts}<\/script></body></html>`;
+  
+  const blob = new Blob([doc], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  document.getElementById('previewFrame').src = url;
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+}
+
+function openFullPreview() {
+  refreshPreview();
+  const frame = document.getElementById('previewFrame');
+  if (frame.src) window.open(frame.src, '_blank');
+}
+
+// ========== BACKUP ==========
+function exportBackup() {
+  const data = { modules: getModules(), selected: getSelected(), date: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'pwa-modulos-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('💾 Backup exportado!');
+}
+
+function importBackup() {
+  document.getElementById('backupInput').click();
+}
+
+document.getElementById('backupInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (data.modules) {
+        const existing = getModules();
+        const merged = [...existing, ...data.modules.filter(m => !existing.find(e => e.id === m.id))];
+        setModules(merged);
+        if (data.selected) setSelected(data.selected);
+        updateCount();
+        showToast('📂 Backup importado! ' + data.modules.length + ' módulos.');
+      }
+    } catch(err) {
+      showToast('❌ Arquivo inválido!');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// Import code from file
+function importFromFile() {
+  document.getElementById('fileInput').click();
+}
+
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    document.getElementById('modCode').value = ev.target.result;
+    if (!document.getElementById('modName').value) {
+      document.getElementById('modName').value = file.name.replace(/\.[^.]+$/, '');
+    }
+    showToast('📂 Código do arquivo carregado!');
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+// ========== UTILS ==========
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function getTypeLabel(type) {
+  const labels = { funcao:'🔧 Função', visual:'🎨 Visual', completo:'📄 Completo', estilo:'💅 CSS', dados:'📊 Dados' };
+  return labels[type] || type;
+}
+function updateCount() {
+  document.getElementById('moduleCount').textContent = getModules().length;
+}
+
+// Init
+updateCount();
+</script>
+</body>
+</html>
